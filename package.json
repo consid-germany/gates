@@ -1,0 +1,74 @@
+{
+  "name": "gates",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/consid-germany/gates.git"
+  },
+  "author": {
+    "name": "Consid GmbH",
+    "email": "hamburg@consid.com",
+    "organization": true
+  },
+  "homepage": "https://consid.tech/gates",
+  "license": "MIT",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "jsii",
+    "build:watch": "jsii -w",
+    "package": "jsii-pacmak",
+    "lint": "eslint . --ext .ts",
+    "test": "jest",
+    "integ-test": "integ-runner --directory ./integ-test --parallel-regions eu-central-1 --update-on-failed",
+    "format": "prettier src/**/*.ts --write"
+  },
+  "keywords": [
+    ""
+  ],
+  "dependencies": {
+    "aws-cdk-lib": "^2.127.0"
+  },
+  "devDependencies": {
+    "@aws-cdk/integ-runner": "^2.127.0-alpha.0",
+    "@aws-cdk/integ-tests-alpha": "^2.127.0-alpha.0",
+    "@aws-sdk/client-ssm": "^3.511.0",
+    "@types/aws-lambda": "^8.10.133",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.17",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "aws-lambda": "^1.0.7",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "jsii": "^5.3.15",
+    "jsii-pacmak": "^1.94.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "jsii": {
+    "outdir": "dist",
+    "tsc": {
+      "rootDir": "src",
+      "outDir": "lib"
+    },
+    "versionFormat": "full",
+    "excludeTypescript": [
+      "src/function/**/*"
+    ],
+    "targets": {
+    }
+  },
+  "files": [
+    "lib/**/*",
+    "api/target/lambda/**/*"
+  ],
+  "jest": {
+    "verbose": true
+  },
+  "stability": "experimental"
+}
