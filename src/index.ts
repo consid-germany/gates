@@ -1,9 +1,7 @@
-import { Construct } from "constructs";
+import { Construct, IConstruct } from "constructs";
 import {
     CfnResource,
     CustomResource,
-    CustomResourceProvider,
-    CustomResourceProviderRuntime,
     Lazy,
     Stack,
     Stage,
@@ -11,19 +9,42 @@ import {
 } from "aws-cdk-lib";
 import * as waf from "aws-cdk-lib/aws-wafv2";
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import * as path from "path";
-import { IConstruct } from "constructs/lib/construct";
+import { CrossRegionArnReaderProvider } from "./cross-region-arn-reader-provider";
 
-export interface GatesProps {}
+export interface GatesProps {
+    /**
+     * A namespace for resources of the deployed gates application.
+     * If not specified, the default namespace `default` is used.
+     */
+    namespace?: string;
+
+    /**
+     * A name for the app of the deployed gates application.
+     * If not specified, the default app name `gates` is used.
+     */
+    appName?: string;
+}
 
 const GLOBAL_REGION = "us-east-1";
 const CROSS_REGION_ARN_READER = "Custom::CrossRegionArnReader";
+const DEFAULT_NAMESPACE = "default";
+const DEFAULT_APP_NAME = "gates";
 
 export class Gates extends Construct {
     private readonly stack: Stack;
 
-    constructor(scope: Construct, id: string, _props: GatesProps) {
+    private readonly namespace: string;
+    private readonly appName: string;
+    private readonly crossRegionParametersPrefix: string;
+
+    constructor(scope: Construct, id: string, props: GatesProps) {
         super(scope, id);
+
+        const { namespace = DEFAULT_NAMESPACE, appName = DEFAULT_APP_NAME } =
+            props;
+        this.namespace = namespace;
+        this.appName = appName;
+        this.crossRegionParametersPrefix = `/${this.namespace}/${this.appName}/cdk`;
 
         this.stack = Stack.of(this);
 
@@ -37,25 +58,20 @@ export class Gates extends Construct {
 
         const ipSet = new waf.CfnIPSet(globalStack, "ip-set", {
             name: "consid-test",
-            addresses: ["93.230.173.30/32"],
+            addresses: ["93.230.172.22/32"],
             ipAddressVersion: "IPV4",
             scope: "CLOUDFRONT",
         });
 
-        const parameterNamePrefix = "cdk/WafIpSetArn";
-        const sanitizedPath = this.node.path.replace(/[^\/\w.-]/g, "_");
-        const parameterName = `/${parameterNamePrefix}/${this.stack.region}/${sanitizedPath}`;
+        // TODO is this unique enough?
+        const parameterName = `/${this.crossRegionParametersPrefix}/${this.stack.region}/${this.node.path.replace(/[^\/\w.-]/g, "_")}`;
 
         new ssm.StringParameter(ipSet, "WafIpSetArnParameter", {
             parameterName,
             stringValue: ipSet.attrArn,
         });
 
-        const arnRef = this.createCrossRegionArnReader(
-            parameterNamePrefix,
-            parameterName,
-            ipSet,
-        );
+        const arnRef = this.createCrossRegionArnReader(parameterName, ipSet);
 
         new ssm.StringParameter(this, "InRegionTest", {
             parameterName: "/consid/integ-test-exported",
@@ -115,41 +131,12 @@ export class Gates extends Construct {
     }
 
     private createCrossRegionArnReader(
-        parameterNamePrefix: string,
         parameterName: string,
         construct: IConstruct,
     ) {
-        const parameterArnPrefix = this.stack.formatArn({
-            service: "ssm",
-            region: GLOBAL_REGION,
-            resource: "parameter",
-            resourceName: parameterNamePrefix + "/*",
-        });
-
-        const serviceToken = CustomResourceProvider.getOrCreate(
-            this,
-            CROSS_REGION_ARN_READER,
-            {
-                codeDirectory: path.join(
-                    __dirname,
-                    "function",
-                    "cross-region-arn-reader",
-                    "build",
-                ),
-                runtime: CustomResourceProviderRuntime.NODEJS_18_X,
-                policyStatements: [
-                    {
-                        Effect: "Allow",
-                        Resource: parameterArnPrefix,
-                        Action: ["ssm:GetParameter"],
-                    },
-                ],
-            },
-        );
-
         const resource = new CustomResource(this, "arn-reader", {
             resourceType: CROSS_REGION_ARN_READER,
-            serviceToken,
+            serviceToken: this.getCrossRegionArnReaderServiceToken(),
             properties: {
                 Region: GLOBAL_REGION,
                 ParameterName: parameterName,
@@ -166,5 +153,28 @@ export class Gates extends Construct {
         });
 
         return resource.getAttString("Arn");
+    }
+
+    private getCrossRegionArnReaderServiceToken() {
+        const parameterArnPrefix = this.stack.formatArn({
+            service: "ssm",
+            region: GLOBAL_REGION,
+            resource: "parameter",
+            resourceName: this.crossRegionParametersPrefix + "/*",
+        });
+
+        return CrossRegionArnReaderProvider.getOrCreate(
+            this,
+            CROSS_REGION_ARN_READER,
+            {
+                policyStatements: [
+                    {
+                        Effect: "Allow",
+                        Resource: parameterArnPrefix,
+                        Action: ["ssm:GetParameter"],
+                    },
+                ],
+            },
+        );
     }
 }

@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
-import { Gates } from "../lib/index";
 import { IntegTest } from "@aws-cdk/integ-tests-alpha";
+import { Gates } from "../src";
 
 const app = new cdk.App();
 

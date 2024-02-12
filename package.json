@@ -65,7 +65,7 @@
   },
   "files": [
     "lib/**/*",
-    "api/target/lambda/**/*"
+    "build/**/*"
   ],
   "jest": {
     "verbose": true
