@@ -1,0 +1,357 @@
+use crate::storage;
+use axum::async_trait;
+use itertools::Itertools;
+
+use crate::clock::Clock;
+use crate::date_time_switch::DateTimeSwitch;
+use crate::storage::Storage;
+use crate::types::{representation, Gate};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Error {
+    Internal(String),
+}
+
+impl From<storage::Error> for Error {
+    fn from(value: storage::Error) -> Self {
+        Self::Internal(value.message)
+    }
+}
+
+#[cfg_attr(test, mockall::automock)]
+#[async_trait]
+pub trait UseCase {
+    async fn execute<'required_for_mocking>(
+        &self,
+        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
+        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+    ) -> Result<Vec<representation::Group>, Error>;
+}
+
+pub fn create() -> impl UseCase {
+    UseCaseImpl {}
+}
+
+#[derive(Clone)]
+struct UseCaseImpl;
+
+#[async_trait]
+impl UseCase for UseCaseImpl {
+    async fn execute<'required_for_mocking>(
+        &self,
+        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
+        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+    ) -> Result<Vec<representation::Group>, Error> {
+        Ok(ordered_by_group(
+            storage
+                .find_all()
+                .await?
+                .into_iter()
+                .map(|gate| date_time_switch.close_if_time(clock.now(), gate))
+                .collect(),
+        ))
+    }
+}
+
+fn ordered_by_group(gates: Vec<Gate>) -> Vec<representation::Group> {
+    let mut groups: Vec<representation::Group> = Vec::new();
+    let group_to_items = gates
+        .into_iter()
+        .sorted_by_key(|item| item.key.group.clone())
+        .group_by(|item| item.key.group.clone());
+
+    for (group, items) in &group_to_items {
+        let service_to_items = items
+            .into_iter()
+            .sorted_by_key(|item| item.key.service.clone())
+            .group_by(|item| item.key.service.clone());
+
+        let mut services: Vec<representation::Service> = Vec::new();
+        for (service, items) in &service_to_items {
+            let mut environments: Vec<representation::Environment> = Vec::new();
+            for item in items {
+                environments.push(representation::Environment {
+                    name: item.key.environment.clone(),
+                    gate: item.into(),
+                });
+            }
+            environments.sort_by(|a, b| a.gate.display_order.cmp(&b.gate.display_order));
+            services.push(representation::Service {
+                name: service.clone(),
+                environments,
+            });
+        }
+        groups.push(representation::Group {
+            name: group.clone(),
+            services,
+        });
+    }
+    groups
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use std::collections::HashSet;
+
+    use crate::storage;
+    use chrono::DateTime;
+    use mockall::predicate::eq;
+    use similar_asserts::assert_eq;
+
+    use crate::clock::MockClock;
+    use crate::date_time_switch::MockDateTimeSwitch;
+    use crate::storage::MockStorage;
+    use crate::types::{Comment, GateKey, GateState};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn should_list_gates_of_same_group() {
+        // given
+        let mut mock_clock = MockClock::new();
+        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date");
+        mock_clock.expect_now().return_const(now);
+
+        let mut mock_date_time_switch = MockDateTimeSwitch::new();
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate(
+                    "some group",
+                    "1 some service",
+                    "some environment",
+                )),
+            )
+            .return_once(|_, gate| Gate {
+                key: gate.key,
+                state: GateState::Closed,
+                comments: gate.comments,
+                last_updated: gate.last_updated,
+                display_order: gate.display_order,
+            });
+
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate(
+                    "some group",
+                    "1 some service",
+                    "some other environment",
+                )),
+            )
+            .return_once(|_, gate| gate);
+
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate(
+                    "some group",
+                    "2 some other service",
+                    "some environment",
+                )),
+            )
+            .return_once(|_, gate| gate);
+
+        let mut mock_storage = MockStorage::new();
+
+        let gate1 = some_gate("some group", "1 some service", "some environment");
+        let gate2 = some_gate("some group", "1 some service", "some other environment");
+        let gate3 = some_gate("some group", "2 some other service", "some environment");
+
+        mock_storage
+            .expect_find_all()
+            .return_once(|| Ok(vec![gate1, gate2, gate3]));
+
+        // when
+        let groups = UseCaseImpl {}
+            .execute(&mock_storage, &mock_clock, &mock_date_time_switch)
+            .await;
+
+        // then
+        let gate1 = some_gate("some group", "1 some service", "some environment");
+        let gate2 = some_gate("some group", "1 some service", "some other environment");
+        let gate3 = some_gate("some group", "2 some other service", "some environment");
+
+        assert_eq!(groups.is_ok(), true);
+        assert_eq!(
+            groups.expect("no groups found"),
+            vec![representation::Group {
+                name: "some group".to_owned(),
+                services: vec![
+                    representation::Service {
+                        name: "1 some service".to_owned(),
+                        environments: vec![
+                            representation::Environment {
+                                name: "some environment".to_owned(),
+                                gate: Gate {
+                                    key: gate1.key,
+                                    state: GateState::Closed,
+                                    comments: gate1.comments,
+                                    last_updated: gate1.last_updated,
+                                    display_order: gate1.display_order,
+                                }
+                                .into()
+                            },
+                            representation::Environment {
+                                name: "some other environment".to_owned(),
+                                gate: gate2.into(),
+                            },
+                        ],
+                    },
+                    representation::Service {
+                        name: "2 some other service".to_owned(),
+                        environments: vec![representation::Environment {
+                            name: "some environment".to_owned(),
+                            gate: gate3.into(),
+                        },],
+                    },
+                ],
+            }],
+        );
+    }
+
+    #[tokio::test]
+    async fn should_list_gates_of_different_groups() {
+        // given
+        let mut mock_clock = MockClock::new();
+        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date");
+        mock_clock.expect_now().return_const(now);
+
+        let mut mock_date_time_switch = MockDateTimeSwitch::new();
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate("some group", "some service", "some environment")),
+            )
+            .return_once(|_, gate| gate);
+
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate(
+                    "some other group",
+                    "some other service",
+                    "some other environment",
+                )),
+            )
+            .return_once(|_, gate| gate);
+
+        let mut mock_storage = MockStorage::new();
+        let gate1 = some_gate("some group", "some service", "some environment");
+        let gate2 = some_gate(
+            "some other group",
+            "some other service",
+            "some other environment",
+        );
+
+        mock_storage
+            .expect_find_all()
+            .return_once(|| Ok(vec![gate1, gate2]));
+
+        // when
+        let groups = UseCaseImpl {}
+            .execute(&mock_storage, &mock_clock, &mock_date_time_switch)
+            .await;
+
+        // then
+        let gate1 = some_gate("some group", "some service", "some environment");
+        let gate2 = some_gate(
+            "some other group",
+            "some other service",
+            "some other environment",
+        );
+
+        assert_eq!(groups.is_ok(), true);
+        assert_eq!(
+            groups.expect("no groups found"),
+            vec![
+                representation::Group {
+                    name: "some group".to_owned(),
+                    services: vec![representation::Service {
+                        name: "some service".to_owned(),
+                        environments: vec![representation::Environment {
+                            name: "some environment".to_owned(),
+                            gate: gate1.into(),
+                        },],
+                    },],
+                },
+                representation::Group {
+                    name: "some other group".to_owned(),
+                    services: vec![representation::Service {
+                        name: "some other service".to_owned(),
+                        environments: vec![representation::Environment {
+                            name: "some other environment".to_owned(),
+                            gate: gate2.into(),
+                        },],
+                    },],
+                },
+            ],
+        );
+    }
+
+    #[tokio::test]
+    async fn should_return_error_if_storage_fails() {
+        // given
+        let mock_clock = MockClock::new();
+        let mock_date_time_switch = MockDateTimeSwitch::new();
+        let mut mock_storage = MockStorage::new();
+
+        mock_storage.expect_find_all().return_once(|| {
+            Err(storage::Error {
+                message: "Some error".to_owned(),
+            })
+        });
+
+        // when
+        let groups = UseCaseImpl {}
+            .execute(&mock_storage, &mock_clock, &mock_date_time_switch)
+            .await;
+
+        // then
+        assert_eq!(groups.is_err(), true);
+        assert_eq!(
+            groups.expect_err("unexpected groups"),
+            Error::Internal("Some error".to_owned())
+        );
+    }
+
+    fn some_gate(group: &str, service: &str, environment: &str) -> Gate {
+        Gate {
+            key: GateKey {
+                group: group.to_owned(),
+                service: service.to_owned(),
+                environment: environment.to_owned(),
+            },
+            state: GateState::Open,
+            comments: HashSet::from([
+                Comment {
+                    id: "Comment1".to_owned(),
+                    message: "Some comment message".to_owned(),
+                    created: DateTime::parse_from_rfc3339("2021-04-12T22:10:57+02:00")
+                        .expect("failed creating date")
+                        .into(),
+                },
+                Comment {
+                    id: "Comment2".to_owned(),
+                    message: "Some other comment message".to_owned(),
+                    created: DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
+                        .expect("failed creating date")
+                        .into(),
+                },
+            ]),
+            last_updated: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("failed creating date")
+                .into(),
+            display_order: Option::default(),
+        }
+    }
+}
