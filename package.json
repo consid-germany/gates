@@ -16,12 +16,15 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "prebuild": "tsc -b src/function && esbuild src/function/cross-region-arn-reader/handler.ts --bundle --minify --platform=node --target=ES2022 --external:@aws-sdk --outfile=lib/function/cross-region-arn-reader/index.js",
     "build": "jsii",
     "build:watch": "jsii -w",
     "package": "jsii-pacmak",
     "lint": "eslint . --ext .ts",
     "test": "jest",
-    "integ-test": "integ-runner --directory ./integ-test --parallel-regions eu-central-1 --update-on-failed",
+    "integ-test": "integ-runner --directory ./integ-test --parallel-regions eu-central-1 -v --update-on-failed",
+    "integ-watch": "integ-runner --directory ./integ-test integ.gates.ts --watch -v --parallel-regions eu-central-1",
+    "integ-synth": "npx cdk@latest synth --app \"npx ts-node integ-test/integ.gates.ts\" StackUnderTest",
     "format": "prettier src/**/*.ts --write"
   },
   "keywords": [

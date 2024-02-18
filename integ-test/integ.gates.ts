@@ -2,30 +2,38 @@ import * as cdk from "aws-cdk-lib";
 import { IntegTest } from "@aws-cdk/integ-tests-alpha";
 import { Gates } from "../src";
 
-const app = new cdk.App();
+const app = new cdk.App({
+    context: {
+        "@aws-cdk/core:bootstrapQualifier": "consid",
+        "@aws-cdk/core:permissionsBoundary": {
+            name: "consid-aws-cdk-permission-boundary",
+        },
+    },
+});
 
-const stackUnderTest = new cdk.Stack(app, "consid-gates-integ-test", {
-    //stackName
+const stackUnderTest = new cdk.Stack(app, "StackUnderTest", {
+    stackName: "consid-gates-integ-test",
     env: {
         region: "eu-central-1",
     },
-    permissionsBoundary: cdk.PermissionsBoundary.fromName(
-        "consid-aws-cdk-permission-boundary",
-    ),
 });
 
-new Gates(stackUnderTest, "gates", {});
+new Gates(stackUnderTest, "Gates", {
+    namespace: "consid",
+});
 
-new IntegTest(app, "test", {
+new IntegTest(app, "IntegTest", {
     testCases: [stackUnderTest],
     regions: [stackUnderTest.region],
     cdkCommandOptions: {
         deploy: {
             args: {
                 stacks: ["*"],
-                context: {
-                    "@aws-cdk/core:bootstrapQualifier": "consid",
-                },
+            },
+        },
+        destroy: {
+            args: {
+                force: true,
             },
         },
     },
