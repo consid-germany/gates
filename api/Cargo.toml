@@ -28,5 +28,5 @@ axum-test = "14.3.0"
 http-body-util = "0.1.0"
 similar-asserts = "1.5.0"
 testcontainers = "0.15.0"
-testcontainers-modules = { version = "0.3.3", features = ["dynamodb"] }
+testcontainers-modules = { version = "0.3.4", features = ["dynamodb"] }
 mockall = "0.12.1"
