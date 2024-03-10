@@ -75,7 +75,7 @@ fn create_router(app_state: AppState) -> Router {
         );
 
     Router::new().nest(
-        "/api",
+        "/api/",
         Router::new()
             .route("/", get(routes::api_info::handler))
             .nest("/gates", gates_router),

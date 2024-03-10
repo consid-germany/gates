@@ -7,7 +7,6 @@ use crate::types::{Comment, Gate, GateKey, GateState};
 
 type Storage = dyn storage::Storage + Send + Sync;
 
-#[allow(clippy::module_name_repetitions)]
 pub struct DemoDbStorage {
     pub proxy: Box<Storage>,
 }

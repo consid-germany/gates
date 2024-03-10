@@ -10,7 +10,7 @@
     "email": "hamburg@consid.com",
     "organization": true
   },
-  "homepage": "https://consid.tech/gates",
+  "homepage": "https://gates.consid.tech",
   "license": "MIT",
   "version": "0.0.0",
   "main": "lib/index.js",

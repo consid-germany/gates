@@ -1,0 +1,589 @@
+openapi: 3.1.0
+
+info:
+  title: Gates API
+  version: 0.0.0
+  description: OpenAPI specification for the gates API
+  contact:
+    url: https://github.com/consid-germany/gates
+
+tags:
+  - name: api
+    description: Provides information about the API, e.g. version
+  - name: gate
+    description: Provides endpoints to manipulate and query gates
+
+servers:
+  - url: http://localhost:9000/api
+  - url: https://gates.consid.tech/api
+
+security: []
+
+paths:
+  /:
+    get:
+      operationId: api_info
+      tags:
+        - api
+      summary: Get API info
+      description: Returns an object with `name` and `version`. Use this to validate the API is up and running.
+      responses:
+        '200':
+          description: Returns an object with `name` and `version`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInfo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates:
+    get:
+      operationId: list_gates
+      tags:
+        - gate
+      summary: List of all gates, aggregated by group and service name
+      description: A list of all available gates, aggregated and ordered by group and service. Will return an empty array if no gates found.
+      responses:
+        '200':
+          description: A list of all available gates, aggregated and ordered by group and service.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of gate groups
+                items:
+                  $ref: '#/components/schemas/Group'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      operationId: create_gate
+      tags:
+        - gate
+      summary: Create a new gate
+      description: |
+        **Create** or **add** a new gate for the combination of group, service and environment.
+        The default state of a new gate is `closed`.
+      requestBody:
+        $ref: '#/components/requestBodies/CreateGatePayload'
+      responses:
+        '200':
+          description: Gate is created and the newly created gate is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+          links:
+             ListGates:
+               operationId: list_gates
+             GetGate:
+               operationId: get_gate
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             UpdateGateState:
+               operationId: update_gate_state
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             UpdateDisplayOrder:
+               operationId: update_display_order
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             AddComment:
+               operationId: add_comment
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             DeleteGate:
+               operationId: delete_gate
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}:
+    get:
+      operationId: get_gate
+      tags:
+        - gate
+      summary: Get gate by group, service and environment
+      description: This should be used if you want to explicitly know the state of a gate.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: The requested gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      operationId: delete_gate
+      tags:
+        - gate
+      summary: Delete a gate by group, service and environment
+      description: Remove a specific gate you don´t longer need. **This will delete the gate permanently**.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: Successfully deleted the gate.
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /gates/{group}/{service}/{environment}/state:
+    put:
+      operationId: update_gate_state
+      tags:
+        - gate
+      summary: Update the state of a gate
+      description: With this operation you can change the `state` of the gate, e.g. switch the gate state from `closed` to `open` and vice versa.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateGateStatePayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+          description: Most common type of error is a spelling error in `open` or `closed`.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/display-order:
+    put:
+      operationId: update_display_order
+      tags:
+        - gate
+      summary: Update the display order of a gate
+      description: This can be used to sort the frontend representation of the gates. Sorting has to be done by the frontend.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateDisplayOrderPayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/comments:
+    post:
+      operationId: add_comment
+      tags:
+        - gate
+      summary: Add a comment to a gate
+      description: | 
+        You can add additional notes as `comment` to a gate. E.g. Providing information why you changed the gate state.
+        You may use the autogenerated id of the comment to specifically remove it using `delete comment`.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/AddCommentPayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+          links:
+             DeleteComment:
+               operationId: delete_comment
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+                 comment_id: '$response.body#/comments/0/id'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/comments/{comment_id}:
+    delete:
+      operationId: delete_comment
+      tags:
+        - gate
+      summary: Delete a comment from a gate
+      description: Use the autogenerated id to remove a specific comment.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+        - $ref: '#/components/parameters/comment_id'
+      responses:
+        '200':
+          description: Returns the updated gate.
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    group:
+      name: group
+      in: path
+      description: Group name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    service:
+      name: service
+      in: path
+      description: Service name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    environment:
+      name: environment
+      in: path
+      description: Environment name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    comment_id:
+      name: comment_id
+      in: path
+      description: Id of the comment
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+  requestBodies:
+    CreateGatePayload:
+      description: These parameters are needed to create or reset a gate
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              group:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: You can use this as a category to group your gates.
+                example: some-gate-group
+              service:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: This is another deeper nesting level to group your gates.
+                example: some-service
+              environment:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: Identifies a gate for group and service. This is the third level of nesting.
+                example: develop
+              display_order:
+                type: number
+                description: TODO
+                example: 1
+            required:
+              - group
+              - service
+              - environment
+
+    UpdateGateStatePayload:
+      description: TODO
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              state:
+                $ref: "#/components/schemas/GateState"
+            required:
+              - state
+
+    UpdateDisplayOrderPayload:
+      description: TODO
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              display_order:
+                type: number
+                description: TODO
+                example: 1
+            required:
+              - display_order
+
+
+    AddCommentPayload:
+      description: TODO
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                minLength: 1
+                description: TODO
+                example: Running some tests (Max)
+            required:
+              - message
+
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: string
+            example: group, service and environment must not be empty
+
+    Forbidden:
+      description: Unauthorized request blocked.
+
+    Conflict:
+      description: Request could not be processed because of a conflict in the current state of the resource.
+
+    NoContent:
+      description: Requested resource could not be found.
+
+    UnprocessableContent:
+      description: Request body could not be processed.
+
+    InternalServerError:
+      description: Request failed (internal server error).
+      content:
+        application/json:
+          schema:
+            type: string
+            example: 'service error: ResourceNotFoundException: Cannot do operations on a non-existent table'
+
+  schemas:
+    ApiInfo:
+      type: object
+      description: TODO
+      properties:
+        name:
+          type: string
+          description: TODO
+          example: stargate-api
+        version:
+          type: string
+          description: TODO
+          example: '0.0.1'
+      required:
+        - name
+        - version
+
+    Group:
+      type: object
+      description: TODO
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: TODO
+          example: Some gate group
+        services:
+          type: array
+          description: TODO
+          items:
+            $ref: "#/components/schemas/Service"
+      required:
+        - name
+        - services
+
+    Service:
+      type: object
+      description: TODO
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: TODO
+          example: Some service
+        environments:
+          type: array
+          description: TODO
+          items:
+            $ref: "#/components/schemas/Environment"
+      required:
+        - name
+        - environments
+
+    Environment:
+      type: object
+      description: TODO
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: TODO
+          example: develop
+        gate:
+            $ref: "#/components/schemas/Gate"
+      required:
+        - name
+        - gate
+
+    Gate:
+      type: object
+      description: TODO
+      properties:
+        group:
+          type: string
+          minLength: 1
+          description: TODO
+          example: some-gate-group
+        service:
+          type: string
+          minLength: 1
+          description: TODO
+          example: some-service
+        environment:
+          type: string
+          minLength: 1
+          description: TODO
+          example: develop
+        state:
+          $ref: "#/components/schemas/GateState"
+        display_order:
+          type: number
+          description: TODO
+          example: 1
+        comments:
+          type: array
+          description: TODO
+          items:
+            $ref: "#/components/schemas/Comment"
+        last_updated:
+          type: string
+          description: TODO
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+      required:
+        - group
+        - service
+        - environment
+        - state
+        - comments
+        - last_updated
+
+    GateState:
+      type: string
+      description: TODO
+      example: closed
+      enum:
+        - open
+        - closed
+
+    Comment:
+      type: object
+      description: TODO
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: TODO
+          example: e9qo5ibvyvk8ffmhu6qe6p30
+        message:
+          type: string
+          minLength: 1
+          description: TODO
+          example: Running some tests (Max)
+        created:
+          type: string
+          description: TODO
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+      required:
+        - id
+        - message
+        - created
