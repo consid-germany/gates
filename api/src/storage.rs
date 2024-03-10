@@ -1,12 +1,19 @@
+use std::env;
+use std::future::Future;
+use std::sync::Arc;
+
 use axum::async_trait;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use types::GateState;
 
+use crate::storage::demo::DemoDbStorage;
+use crate::storage::dynamodb::DynamoDbStorage;
 use crate::types;
 use crate::types::{Comment, Gate, GateKey};
 
+mod demo;
 pub mod dynamodb;
 
 const fn is_local() -> bool {
@@ -16,16 +23,41 @@ const fn is_local() -> bool {
     return false;
 }
 
-pub async fn default() -> impl Storage {
+pub const DEMO_MODE_ACTIVE: &str = "DEMO_MODE";
+
+fn is_demo_mode() -> bool {
+    env::var(DEMO_MODE_ACTIVE).is_ok()
+}
+
+pub async fn default() -> Arc<dyn Storage + Send + Sync> {
     if is_local() {
-        dynamodb::DynamoDbStorage::new_local(dynamodb::DEFAULT_LOCAL_DYNAMO_DB_PORT).await
+        get_storage(get_local_database()).await
     } else {
-        dynamodb::DynamoDbStorage::new().await
+        get_storage(get_live_database()).await
     }
 }
+
+async fn get_storage(
+    database: impl Future<Output = DynamoDbStorage> + Sized + Send,
+) -> Arc<dyn Storage + Send + Sync> {
+    if is_demo_mode() {
+        Arc::new(DemoDbStorage::new(Box::new(database.await)))
+    } else {
+        Arc::new(database.await)
+    }
+}
+
+async fn get_live_database() -> DynamoDbStorage {
+    DynamoDbStorage::new().await
+}
+
+async fn get_local_database() -> DynamoDbStorage {
+    DynamoDbStorage::new_local(dynamodb::DEFAULT_LOCAL_DYNAMO_DB_PORT).await
+}
+
 #[allow(dead_code)]
 pub async fn test(port: u16) -> impl Storage {
-    dynamodb::DynamoDbStorage::new_local(port).await
+    DynamoDbStorage::new_local(port).await
 }
 
 #[derive(Debug, Serialize)]

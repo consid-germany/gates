@@ -31,7 +31,7 @@ async fn main() -> Result<(), Error> {
         .init();
 
     let result = run(create_router(AppState::new(
-        Arc::new(storage::default().await),
+        storage::default().await,
         Arc::new(clock::default()),
         Arc::new(id_provider::default()),
         Arc::new(date_time_switch::default()),
