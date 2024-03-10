@@ -4,7 +4,7 @@ use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{GateKey, representation};
+use crate::types::{representation, GateKey};
 
 #[derive(Debug)]
 pub struct Input {
@@ -79,13 +79,13 @@ mod unit_tests {
     use chrono::{DateTime, Utc};
     use mockall::predicate::eq;
 
-    use similar_asserts::assert_eq;
     use crate::clock::MockClock;
     use crate::date_time_switch::MockDateTimeSwitch;
     use crate::storage;
     use crate::storage::MockStorage;
-    use crate::types::{Gate, GateKey, GateState, representation};
+    use crate::types::{representation, Gate, GateKey, GateState};
     use crate::use_cases::get_gate::use_case::{Error, Input, UseCase, UseCaseImpl};
+    use similar_asserts::assert_eq;
 
     #[tokio::test]
     async fn should_get_gate_and_alter_with_date_time_switch() {

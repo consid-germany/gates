@@ -2,7 +2,7 @@ use axum::async_trait;
 use chrono::{DateTime, Utc};
 
 use crate::storage;
-use crate::storage::{DeleteError, Error, UpdateError};
+use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
 
 type Storage = dyn storage::Storage + Send + Sync;
@@ -14,27 +14,18 @@ pub struct DemoDbStorage {
 
 #[async_trait]
 impl storage::Storage for DemoDbStorage {
-    async fn save(&self, _: &Gate) -> Result<(), Error> {
-        Err(Error {
-            message: "not allowed in demo mode".to_owned(),
-        })
+    async fn insert(&self, _: &Gate) -> Result<(), InsertError> {
+        Err(InsertError::Other("not allowed in demo mode".to_owned()))
     }
 
-    async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, Error> {
+    async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, FindError> {
         self.proxy.find_one(key).await
     }
-    async fn find_all(&self) -> Result<Vec<Gate>, Error> {
+    async fn find_all(&self) -> Result<Vec<Gate>, FindError> {
         self.proxy.find_all().await
     }
 
-    async fn find_by_group_and_service(
-        &self,
-        group: String,
-        service: String,
-    ) -> Result<Vec<Gate>, Error> {
-        self.proxy.find_by_group_and_service(group, service).await
-    }
-    async fn delete_one(&self, _: GateKey) -> Result<(), DeleteError> {
+    async fn delete(&self, _: GateKey) -> Result<(), DeleteError> {
         Err(DeleteError::Other("not allowed in demo mode".to_owned()))
     }
 
@@ -109,14 +100,14 @@ mod unit_test {
     use crate::types::{Comment, Gate, GateKey, GateState};
 
     #[tokio::test]
-    async fn should_not_save() {
+    async fn should_not_insert() {
         // when
         let mock_storage = MockStorage::new();
 
         let actual = DemoDbStorage {
             proxy: Box::new(mock_storage),
         }
-        .save(&Gate {
+        .insert(&Gate {
             key: GateKey {
                 group: String::new(),
                 service: String::new(),
@@ -139,7 +130,7 @@ mod unit_test {
         let actual = DemoDbStorage {
             proxy: Box::new(mock_storage),
         }
-        .delete_one(GateKey {
+        .delete(GateKey {
             group: String::new(),
             service: String::new(),
             environment: String::new(),
@@ -288,45 +279,6 @@ mod unit_test {
                 key: GateKey {
                     group: "output".to_owned(),
                     service: "output".to_owned(),
-                    environment: "output".to_owned(),
-                },
-                state: GateState::default(),
-                comments: HashSet::default(),
-                last_updated: DateTime::default(),
-                display_order: None,
-            }])
-        );
-    }
-
-    #[tokio::test]
-    async fn should_find_by_group_and_service_from_proxy() {
-        let mut storage = MockStorage::new();
-        storage
-            .expect_find_by_group_and_service()
-            .with(eq("group".to_owned()), eq("service".to_owned()))
-            .return_once(move |group, service| {
-                Ok(Vec::from([Gate {
-                    key: GateKey {
-                        group,
-                        service,
-                        environment: "output".to_owned(),
-                    },
-                    state: GateState::default(),
-                    comments: HashSet::default(),
-                    last_updated: DateTime::default(),
-                    display_order: None,
-                }]))
-            });
-        let actual = DemoDbStorage::new(Box::new(storage))
-            .find_by_group_and_service("group".to_owned(), "service".to_owned())
-            .await;
-        assert!(actual.is_ok());
-        assert_eq!(
-            actual.unwrap(),
-            Vec::from([Gate {
-                key: GateKey {
-                    group: "group".to_owned(),
-                    service: "service".to_owned(),
                     environment: "output".to_owned(),
                 },
                 state: GateState::default(),
