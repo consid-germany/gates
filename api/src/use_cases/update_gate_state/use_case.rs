@@ -28,15 +28,14 @@ impl From<UpdateError> for Error {
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<representation::Gate, Error>;
 }
 
@@ -49,7 +48,7 @@ struct UseCaseImpl {}
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         Input {
             group,
@@ -57,9 +56,9 @@ impl UseCase for UseCaseImpl {
             environment,
             state,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<representation::Gate, Error> {
         if date_time_switch.is_closed(clock.now()) {
             return Err(Error::GateClosed(

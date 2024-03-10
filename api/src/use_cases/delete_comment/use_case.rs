@@ -27,14 +27,13 @@ impl From<storage::UpdateError> for Error {
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error>;
 }
 
@@ -47,7 +46,7 @@ struct UseCaseImpl;
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         Input {
             group,
@@ -55,8 +54,8 @@ impl UseCase for UseCaseImpl {
             environment,
             comment_id,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error> {
         Ok(storage
             .delete_comment_by_id_and_update_last_updated(

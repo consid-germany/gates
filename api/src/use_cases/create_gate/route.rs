@@ -40,6 +40,7 @@ pub async fn handler(
         Ok(gate) => Json(gate).into_response(),
         Err(error) => match error {
             Error::InvalidInput(error) => (StatusCode::BAD_REQUEST, Json(error)).into_response(),
+            Error::GateAlreadyExists => StatusCode::CONFLICT.into_response(),
             Error::Internal(error) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(error)).into_response()
             }

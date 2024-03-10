@@ -35,14 +35,21 @@ pub enum UpdateError {
 }
 
 #[derive(Debug)]
-pub enum DeleteError {
-    ItemToDeleteNotFound(String),
+pub enum InsertError {
+    ItemAlreadyExists(String),
     Other(String),
 }
 
-#[derive(Debug, Serialize)]
-pub struct Error {
-    pub message: String,
+#[derive(Debug)]
+pub enum FindError {
+    ItemCouldNotBeDecoded(String),
+    Other(String),
+}
+
+#[derive(Debug)]
+pub enum DeleteError {
+    ItemToDeleteNotFound(String),
+    Other(String),
 }
 
 /**
@@ -53,15 +60,10 @@ For testing purpose implement a in_memory_storage
 #[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait Storage {
-    async fn save(&self, gate: &Gate) -> Result<(), Error>;
-    async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, Error>;
-    async fn find_all(&self) -> Result<Vec<Gate>, Error>;
-    async fn find_by_group_and_service(
-        &self,
-        group: String,
-        service: String,
-    ) -> Result<Vec<Gate>, Error>;
-    async fn delete_one(&self, key: GateKey) -> Result<(), DeleteError>;
+    async fn insert(&self, gate: &Gate) -> Result<(), InsertError>;
+    async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, FindError>;
+    async fn find_all(&self) -> Result<Vec<Gate>, FindError>;
+    async fn delete(&self, key: GateKey) -> Result<(), DeleteError>;
 
     async fn update_state_and_last_updated(
         &self,

@@ -26,14 +26,13 @@ impl From<UpdateError> for Error {
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error>;
 }
 
@@ -46,7 +45,7 @@ struct UseCaseImpl {}
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         Input {
             group,
@@ -54,8 +53,8 @@ impl UseCase for UseCaseImpl {
             environment,
             display_order,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error> {
         Ok(storage
             .update_display_order_and_last_updated(

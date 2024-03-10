@@ -28,15 +28,14 @@ impl From<UpdateError> for Error {
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        id_provider: &(dyn IdProvider + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        id_provider: &(dyn IdProvider + Send + Sync),
     ) -> Result<representation::Gate, Error>;
 }
 
@@ -49,7 +48,7 @@ struct UseCaseImpl;
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         Input {
             group,
@@ -57,9 +56,9 @@ impl UseCase for UseCaseImpl {
             environment,
             message,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        id_provider: &(dyn IdProvider + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        id_provider: &(dyn IdProvider + Send + Sync),
     ) -> Result<representation::Gate, Error> {
         let now = clock.now();
         match message.as_str().trim() {

@@ -12,20 +12,23 @@ pub enum Error {
     Internal(String),
 }
 
-impl From<storage::Error> for Error {
-    fn from(value: storage::Error) -> Self {
-        Self::Internal(value.message)
+impl From<storage::FindError> for Error {
+    fn from(value: storage::FindError) -> Self {
+        match value {
+            storage::FindError::ItemCouldNotBeDecoded(error) | storage::FindError::Other(error) => {
+                Self::Internal(error)
+            }
+        }
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<Vec<representation::Group>, Error>;
 }
 
@@ -38,11 +41,11 @@ struct UseCaseImpl;
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<Vec<representation::Group>, Error> {
         Ok(ordered_by_group(
             storage
@@ -228,7 +231,7 @@ mod unit_tests {
         mock_date_time_switch
             .expect_close_if_time()
             .with(
-                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq::<DateTime<chrono::Utc>>(now.into()),
                 eq(some_gate("some group", "some service", "some environment")),
             )
             .return_once(|_, gate| gate);
@@ -236,7 +239,7 @@ mod unit_tests {
         mock_date_time_switch
             .expect_close_if_time()
             .with(
-                eq::<chrono::DateTime<chrono::Utc>>(now.into()),
+                eq::<DateTime<chrono::Utc>>(now.into()),
                 eq(some_gate(
                     "some other group",
                     "some other service",
@@ -299,16 +302,79 @@ mod unit_tests {
     }
 
     #[tokio::test]
-    async fn should_return_error_if_storage_fails() {
+    async fn should_list_gates_and_alter_with_date_time_switch() {
+        // given
+        let mut mock_clock = MockClock::new();
+        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date");
+        mock_clock.expect_now().return_const(now);
+
+        let mut mock_date_time_switch = MockDateTimeSwitch::new();
+        mock_date_time_switch
+            .expect_close_if_time()
+            .with(
+                eq::<DateTime<chrono::Utc>>(now.into()),
+                eq(some_gate("some group", "some service", "some environment")),
+            )
+            .return_once(|_, gate| Gate {
+                key: gate.key,
+                state: GateState::Closed,
+                comments: gate.comments,
+                last_updated: gate.last_updated,
+                display_order: gate.display_order,
+            });
+
+        let mut mock_storage = MockStorage::new();
+        let gate1 = some_gate("some group", "some service", "some environment");
+
+        mock_storage
+            .expect_find_all()
+            .return_once(|| Ok(vec![gate1]));
+
+        // when
+        let groups = UseCaseImpl {}
+            .execute(&mock_storage, &mock_clock, &mock_date_time_switch)
+            .await;
+
+        // then
+        let gate = some_gate("some group", "some service", "some environment");
+
+        assert_eq!(groups.is_ok(), true);
+        let gate_representation = representation::Gate::from(gate);
+        assert_eq!(
+            groups.expect("no groups found"),
+            vec![representation::Group {
+                name: "some group".to_owned(),
+                services: vec![representation::Service {
+                    name: "some service".to_owned(),
+                    environments: vec![representation::Environment {
+                        name: "some environment".to_owned(),
+                        gate: representation::Gate {
+                            group: gate_representation.group,
+                            service: gate_representation.service,
+                            environment: gate_representation.environment,
+                            state: GateState::Closed,
+                            comments: gate_representation.comments,
+                            last_updated: gate_representation.last_updated,
+                            display_order: gate_representation.display_order
+                        }
+                    },],
+                },],
+            },],
+        );
+    }
+
+    #[tokio::test]
+    async fn should_return_error_if_storage_fails_to_decode() {
         // given
         let mock_clock = MockClock::new();
         let mock_date_time_switch = MockDateTimeSwitch::new();
         let mut mock_storage = MockStorage::new();
 
         mock_storage.expect_find_all().return_once(|| {
-            Err(storage::Error {
-                message: "Some error".to_owned(),
-            })
+            Err(storage::FindError::ItemCouldNotBeDecoded(
+                "some error".to_owned(),
+            ))
         });
 
         // when
@@ -320,7 +386,31 @@ mod unit_tests {
         assert_eq!(groups.is_err(), true);
         assert_eq!(
             groups.expect_err("unexpected groups"),
-            Error::Internal("Some error".to_owned())
+            Error::Internal("some error".to_owned())
+        );
+    }
+
+    #[tokio::test]
+    async fn should_return_error_if_storage_fails() {
+        // given
+        let mock_clock = MockClock::new();
+        let mock_date_time_switch = MockDateTimeSwitch::new();
+        let mut mock_storage = MockStorage::new();
+
+        mock_storage
+            .expect_find_all()
+            .return_once(|| Err(storage::FindError::Other("some error".to_owned())));
+
+        // when
+        let groups = UseCaseImpl {}
+            .execute(&mock_storage, &mock_clock, &mock_date_time_switch)
+            .await;
+
+        // then
+        assert_eq!(groups.is_err(), true);
+        assert_eq!(
+            groups.expect_err("unexpected groups"),
+            Error::Internal("some error".to_owned())
         );
     }
 

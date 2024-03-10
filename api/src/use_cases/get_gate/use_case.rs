@@ -1,10 +1,10 @@
+use axum::async_trait;
+
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage;
-use axum::async_trait;
-
 use crate::storage::Storage;
-use crate::types::{representation, GateKey};
+use crate::types::{GateKey, representation};
 
 #[derive(Debug)]
 pub struct Input {
@@ -18,21 +18,24 @@ pub enum Error {
     Internal(String),
 }
 
-impl From<storage::Error> for Error {
-    fn from(value: storage::Error) -> Self {
-        Self::Internal(value.message)
+impl From<storage::FindError> for Error {
+    fn from(value: storage::FindError) -> Self {
+        match value {
+            storage::FindError::ItemCouldNotBeDecoded(error) | storage::FindError::Other(error) => {
+                Self::Internal(error)
+            }
+        }
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<Option<representation::Gate>, Error>;
 }
 
@@ -45,16 +48,16 @@ struct UseCaseImpl {}
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         Input {
             group,
             service,
             environment,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
-        clock: &(dyn Clock + Send + Sync + 'required_for_mocking),
-        date_time_switch: &(dyn DateTimeSwitch + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
+        date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
     ) -> Result<Option<representation::Gate>, Error> {
         let gate = storage
             .find_one(GateKey {
@@ -71,17 +74,22 @@ impl UseCase for UseCaseImpl {
 
 #[cfg(test)]
 mod unit_tests {
-    use crate::clock::MockClock;
-    use crate::date_time_switch::MockDateTimeSwitch;
-    use crate::storage::MockStorage;
-    use crate::types::{representation, Gate, GateKey, GateState};
-    use crate::use_cases::get_gate::use_case::{Input, UseCase, UseCaseImpl};
-    use chrono::{DateTime, Utc};
-    use mockall::predicate::eq;
     use std::collections::HashSet;
 
+    use chrono::{DateTime, Utc};
+    use mockall::predicate::eq;
+
+    use similar_asserts::assert_eq;
+    use crate::clock::MockClock;
+    use crate::date_time_switch::MockDateTimeSwitch;
+    use crate::storage;
+    use crate::storage::MockStorage;
+    use crate::types::{Gate, GateKey, GateState, representation};
+    use crate::use_cases::get_gate::use_case::{Error, Input, UseCase, UseCaseImpl};
+
     #[tokio::test]
-    async fn should_get_gate() {
+    async fn should_get_gate_and_alter_with_date_time_switch() {
+        // given
         let group = "com.consid";
         let service = "stargate";
         let environment = "live";
@@ -166,5 +174,93 @@ mod unit_tests {
             display_order: Some(5),
         });
         assert_eq!(left.expect("could not unwrap gate"), expected_gate);
+    }
+
+    #[tokio::test]
+    async fn should_return_error_if_storage_fails_to_decode_item() {
+        // given
+        let group = "com.consid";
+        let service = "stargate";
+        let environment = "live";
+
+        let mock_clock = MockClock::new();
+        let mock_date_time_switch = MockDateTimeSwitch::new();
+
+        let mut mock_storage = MockStorage::new();
+        mock_storage
+            .expect_find_one()
+            .with(eq(GateKey {
+                group: group.to_string(),
+                service: service.to_string(),
+                environment: environment.to_string(),
+            }))
+            .return_once(|_| {
+                Err(storage::FindError::ItemCouldNotBeDecoded(
+                    "some error".to_owned(),
+                ))
+            });
+
+        // when
+        let gate = UseCaseImpl {}
+            .execute(
+                Input {
+                    group: group.to_string(),
+                    service: service.to_string(),
+                    environment: environment.to_string(),
+                },
+                &mock_storage,
+                &mock_clock,
+                &mock_date_time_switch,
+            )
+            .await;
+
+        // then
+        assert!(gate.is_err());
+        assert_eq!(
+            gate.expect_err("unexpected groups"),
+            Error::Internal("some error".to_owned())
+        );
+    }
+
+    #[tokio::test]
+    async fn should_return_storage_error() {
+        // given
+        let group = "com.consid";
+        let service = "stargate";
+        let environment = "live";
+
+        let mock_clock = MockClock::new();
+        let mock_date_time_switch = MockDateTimeSwitch::new();
+
+        let mut mock_storage = MockStorage::new();
+        mock_storage
+            .expect_find_one()
+            .with(eq(GateKey {
+                group: group.to_string(),
+                service: service.to_string(),
+                environment: environment.to_string(),
+            }))
+            .return_once(|_| Err(storage::FindError::Other("some error".to_owned())));
+
+        // when
+        let gate = UseCaseImpl {}
+            .execute(
+                Input {
+                    group: group.to_string(),
+                    service: service.to_string(),
+                    environment: environment.to_string(),
+                },
+                &mock_storage,
+                &mock_clock,
+                &mock_date_time_switch,
+            )
+            .await;
+
+        // then
+        assert!(gate.is_err());
+        assert_eq!(
+            gate.expect_err("unexpected groups"),
+            Error::Internal("some error".to_owned())
+        );
     }
 }

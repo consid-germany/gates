@@ -1,5 +1,6 @@
-use axum::async_trait;
 use std::collections::HashSet;
+
+use axum::async_trait;
 
 use crate::clock::Clock;
 use crate::storage;
@@ -16,23 +17,26 @@ pub struct Input {
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     InvalidInput(String),
+    GateAlreadyExists,
     Internal(String),
 }
 
-impl From<storage::Error> for Error {
-    fn from(value: storage::Error) -> Self {
-        Self::Internal(value.message)
+impl From<storage::InsertError> for Error {
+    fn from(value: storage::InsertError) -> Self {
+        match value {
+            storage::InsertError::ItemAlreadyExists(_) => Self::GateAlreadyExists,
+            storage::InsertError::Other(error) => Self::Internal(error),
+        }
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error>;
 }
 
@@ -45,15 +49,15 @@ struct UseCaseImpl {}
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'a>(
+    async fn execute(
         &self,
         Input {
             group,
             service,
             environment,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'a),
-        clock: &(dyn Clock + Send + Sync + 'a),
+        storage: &(dyn Storage + Send + Sync),
+        clock: &(dyn Clock + Send + Sync),
     ) -> Result<representation::Gate, Error> {
         if group.is_empty() || service.is_empty() || environment.is_empty() {
             return Err(Error::InvalidInput(
@@ -73,7 +77,7 @@ impl UseCase for UseCaseImpl {
             display_order: Option::default(),
         };
 
-        storage.save(&gate).await?;
+        storage.insert(&gate).await?;
 
         Ok(gate.into())
     }
@@ -114,7 +118,7 @@ mod unit_tests {
         };
 
         mock_storage
-            .expect_save()
+            .expect_insert()
             .with(eq(gate1))
             .returning(move |_| Ok(()));
 
@@ -205,7 +209,7 @@ mod unit_tests {
     }
 
     #[tokio::test]
-    async fn should_return_storage_error() {
+    async fn should_return_gate_already_exists_error_if_gate_already_exists() {
         let mut mock_storage = MockStorage::new();
         let mut mock_clock = MockClock::new();
 
@@ -213,7 +217,7 @@ mod unit_tests {
             .expect("failed to parse date");
         mock_clock.expect_now().return_const(now);
 
-        let gate1 = Gate {
+        let gate = Gate {
             key: GateKey {
                 group: "some group".to_owned(),
                 service: "some service".to_owned(),
@@ -226,12 +230,12 @@ mod unit_tests {
         };
 
         mock_storage
-            .expect_save()
-            .with(eq(gate1))
+            .expect_insert()
+            .with(eq(gate))
             .returning(move |_| {
-                Err(storage::Error {
-                    message: "can´t save".to_string(),
-                })
+                Err(storage::InsertError::ItemAlreadyExists(
+                    "item already exists".to_owned(),
+                ))
             });
 
         let left = UseCaseImpl {}
@@ -248,8 +252,53 @@ mod unit_tests {
 
         assert!(left.is_err());
         assert_eq!(
-            left.expect_err("Error expected here"),
-            Error::Internal("can´t save".to_owned())
+            left.expect_err("error expected here"),
+            Error::GateAlreadyExists
+        );
+    }
+
+    #[tokio::test]
+    async fn should_return_storage_error() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_clock = MockClock::new();
+
+        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date");
+        mock_clock.expect_now().return_const(now);
+
+        let gate = Gate {
+            key: GateKey {
+                group: "some group".to_owned(),
+                service: "some service".to_owned(),
+                environment: "some environment".to_owned(),
+            },
+            state: GateState::Closed,
+            comments: HashSet::default(),
+            last_updated: DateTime::from(now),
+            display_order: Option::default(),
+        };
+
+        mock_storage
+            .expect_insert()
+            .with(eq(gate))
+            .returning(move |_| Err(storage::InsertError::Other("could not insert".to_owned())));
+
+        let left = UseCaseImpl {}
+            .execute(
+                Input {
+                    group: "some group".to_owned(),
+                    service: "some service".to_owned(),
+                    environment: "some environment".to_owned(),
+                },
+                &mock_storage,
+                &mock_clock,
+            )
+            .await;
+
+        assert!(left.is_err());
+        assert_eq!(
+            left.expect_err("error expected here"),
+            Error::Internal("could not insert".to_owned())
         );
     }
 }

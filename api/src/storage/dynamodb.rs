@@ -14,7 +14,7 @@ use aws_sdk_dynamodb::{config, Client};
 use axum::async_trait;
 use chrono::{DateTime, Utc};
 
-use crate::storage::{DeleteError, Error, Storage, UpdateError};
+use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
 
 const GROUP: &str = "group";
@@ -42,11 +42,13 @@ pub struct DynamoDbStorage {
 
 #[async_trait]
 impl Storage for DynamoDbStorage {
-    async fn save(&self, gate: &Gate) -> Result<(), Error> {
+    async fn insert(&self, gate: &Gate) -> Result<(), InsertError> {
         self.client
             .put_item()
             .table_name(&self.table)
             .set_item(Some(gate.into()))
+            .condition_expression("attribute_not_exists(#g)")
+            .expression_attribute_names("#g", GROUP)
             .send()
             .await?;
 
@@ -60,7 +62,7 @@ impl Storage for DynamoDbStorage {
             service,
             environment,
         }: GateKey,
-    ) -> Result<Option<Gate>, Error> {
+    ) -> Result<Option<Gate>, FindError> {
         self.client
             .get_item()
             .table_name(&self.table)
@@ -76,14 +78,16 @@ impl Storage for DynamoDbStorage {
             .await?
             .item()
             .map(|item| {
-                item.try_into().map_err(|error| Error {
-                    message: format!("could not decode gate (mapping error: {error})"),
+                item.try_into().map_err(|error| {
+                    FindError::ItemCouldNotBeDecoded(format!(
+                        "could not decode gate (mapping error: {error})"
+                    ))
                 })
             })
             .transpose()
     }
 
-    async fn find_all(&self) -> Result<Vec<Gate>, Error> {
+    async fn find_all(&self) -> Result<Vec<Gate>, FindError> {
         self.client
             .scan()
             .table_name(&self.table)
@@ -92,54 +96,22 @@ impl Storage for DynamoDbStorage {
             .send()
             .collect::<Result<Vec<_>, _>>()
             .await
-            .map_err(Error::from)
+            .map_err(FindError::from)
             .map(|result| {
                 result
                     .into_iter()
                     .map(|item| {
-                        Gate::try_from(&item).map_err(|error| Error {
-                            message: format!("could not decode gate (mapping error: {error})"),
+                        Gate::try_from(&item).map_err(|error| {
+                            FindError::ItemCouldNotBeDecoded(format!(
+                                "could not decode gate (mapping error: {error})"
+                            ))
                         })
                     })
                     .collect()
             })?
     }
 
-    async fn find_by_group_and_service(
-        &self,
-        group: String,
-        service: String,
-    ) -> Result<Vec<Gate>, Error> {
-        self.client
-            .query()
-            .table_name(&self.table)
-            .key_condition_expression("#g=:pk AND begins_with(#se, :sk)")
-            .expression_attribute_names("#g", GROUP)
-            .expression_attribute_names("#se", SERVICE_ENVIRONMENT)
-            .expression_attribute_values(":pk", AttributeValue::S(group))
-            .expression_attribute_values(
-                ":sk",
-                AttributeValue::S(get_service_environment(service.as_str(), "")),
-            )
-            .into_paginator()
-            .items()
-            .send()
-            .collect::<Result<Vec<_>, _>>()
-            .await
-            .map_err(Error::from)
-            .map(|result| {
-                result
-                    .into_iter()
-                    .map(|item| {
-                        Gate::try_from(&item).map_err(|error| Error {
-                            message: format!("could not decode gate (mapping error: {error})"),
-                        })
-                    })
-                    .collect()
-            })?
-    }
-
-    async fn delete_one(
+    async fn delete(
         &self,
         GateKey {
             group,
@@ -570,18 +542,21 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
 // Converting SdkError<_> to Storage Errors
 /////////////////////////////////////////////////////////////////////////////
 
-impl From<SdkError<get_item::GetItemError>> for Error {
+impl From<SdkError<get_item::GetItemError>> for FindError {
     fn from(value: SdkError<get_item::GetItemError>) -> Self {
-        Self {
-            message: aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string(),
-        }
+        Self::Other(aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string())
     }
 }
 
-impl From<SdkError<put_item::PutItemError>> for Error {
+impl From<SdkError<put_item::PutItemError>> for InsertError {
     fn from(value: SdkError<put_item::PutItemError>) -> Self {
-        Self {
-            message: aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string(),
+        match value.into_service_error() {
+            put_item::PutItemError::ConditionalCheckFailedException(exception) => {
+                Self::ItemAlreadyExists(
+                    aws_sdk_dynamodb::error::DisplayErrorContext(exception).to_string(),
+                )
+            }
+            error => Self::Other(aws_sdk_dynamodb::error::DisplayErrorContext(error).to_string()),
         }
     }
 }
@@ -599,19 +574,15 @@ impl From<SdkError<update_item::UpdateItemError>> for UpdateError {
     }
 }
 
-impl From<SdkError<scan::ScanError>> for Error {
+impl From<SdkError<scan::ScanError>> for FindError {
     fn from(value: SdkError<scan::ScanError>) -> Self {
-        Self {
-            message: aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string(),
-        }
+        Self::Other(aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string())
     }
 }
 
-impl From<SdkError<query::QueryError>> for Error {
+impl From<SdkError<query::QueryError>> for FindError {
     fn from(value: SdkError<query::QueryError>) -> Self {
-        Self {
-            message: aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string(),
-        }
+        Self::Other(aws_sdk_dynamodb::error::DisplayErrorContext(value).to_string())
     }
 }
 
@@ -633,6 +604,7 @@ impl From<SdkError<delete_item::DeleteItemError>> for DeleteError {
 mod integration_tests {
     use chrono::DateTime;
     use itertools::concat;
+    use mockall::Any;
     use similar_asserts::assert_eq;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
@@ -642,7 +614,7 @@ mod integration_tests {
     use super::*;
 
     #[tokio::test]
-    async fn should_save_and_find_one() {
+    async fn should_insert_and_find_one() {
         // given
         let docker = clients::Cli::default();
 
@@ -655,9 +627,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         // when
         let result = dynamodb_storage.find_one(gate.key.clone()).await;
@@ -667,6 +639,35 @@ mod integration_tests {
             .expect("storage failed to find gate")
             .expect("gate not found");
         assert_eq!(stored_gate, gate);
+    }
+
+    #[tokio::test]
+    async fn should_not_insert_if_item_already_exists() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        let gate = some_gate("some group", "some service", "some environment");
+
+        dynamodb_storage
+            .insert(&gate)
+            .await
+            .expect("storage failed to insert gate");
+
+        // when
+        let result = dynamodb_storage.insert(&gate).await;
+
+        // then
+        assert_eq!(result.is_err(), true);
+        assert_eq!(
+            result.expect_err("expected error not found").type_name(),
+            InsertError::ItemAlreadyExists(String::default()).type_name()
+        );
     }
 
     #[tokio::test]
@@ -695,7 +696,7 @@ mod integration_tests {
     }
 
     #[tokio::test]
-    async fn should_save_and_find_all() {
+    async fn should_insert_and_find_all() {
         // given
         let docker = clients::Cli::default();
 
@@ -713,13 +714,13 @@ mod integration_tests {
         );
 
         dynamodb_storage
-            .save(&gate1)
+            .insert(&gate1)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
         dynamodb_storage
-            .save(&gate2)
+            .insert(&gate2)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         // when
         let result = dynamodb_storage.find_all().await;
@@ -731,104 +732,7 @@ mod integration_tests {
     }
 
     #[tokio::test]
-    async fn should_save_and_find_by_group_and_service() {
-        // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
-
-        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
-        assert_empty(&dynamodb_storage).await;
-
-        let gate1 = some_gate("group1", "service1", "environment1");
-        let gate2 = some_gate("group1", "service12", "environment2");
-        let gate3 = some_gate("group1", "service1", "environment3");
-        let gate4 = some_gate("group2", "service2", "environment4");
-        let gate5 = some_gate("group1", "service3", "environment5");
-
-        dynamodb_storage
-            .save(&gate1)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate2)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate3)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate4)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate5)
-            .await
-            .expect("storage failed to save gate");
-
-        // when
-        let result = dynamodb_storage
-            .find_by_group_and_service("group1".to_owned(), "service1".to_owned())
-            .await;
-
-        // then
-        let stored_gates = result.expect("storage failed to find gates");
-        assert_eq!(stored_gates.len(), 2);
-        assert_eq!(stored_gates, vec![gate1, gate3]);
-    }
-
-    #[tokio::test]
-    async fn should_not_find_by_group_and_service_if_no_items_match() {
-        // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
-
-        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
-        assert_empty(&dynamodb_storage).await;
-
-        let gate1 = some_gate("group1", "service1", "environment1");
-        let gate2 = some_gate("group1", "service12", "environment3");
-        let gate3 = some_gate("group1", "service1", "environment2");
-        let gate4 = some_gate("group2", "service2", "environment4");
-        let gate5 = some_gate("group1", "service3", "environment5");
-
-        dynamodb_storage
-            .save(&gate1)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate2)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate3)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate4)
-            .await
-            .expect("storage failed to save gate");
-        dynamodb_storage
-            .save(&gate5)
-            .await
-            .expect("storage failed to save gate");
-
-        // when
-        let result = dynamodb_storage
-            .find_by_group_and_service("group1".to_owned(), "service5".to_owned())
-            .await;
-
-        // then
-        let stored_gates = result.expect("storage failed to find gates");
-        assert_eq!(stored_gates.len(), 0);
-    }
-
-    #[tokio::test]
-    async fn should_save_and_delete_one() {
+    async fn should_insert_and_delete() {
         // given
         let docker = clients::Cli::default();
 
@@ -841,9 +745,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let stored_gates = dynamodb_storage
             .find_all()
@@ -852,7 +756,7 @@ mod integration_tests {
         assert_eq!(stored_gates.len(), 1);
 
         // when
-        let result = dynamodb_storage.delete_one(gate.key).await;
+        let result = dynamodb_storage.delete(gate.key).await;
 
         // then
         result.expect("storage failed to delete gate");
@@ -865,7 +769,7 @@ mod integration_tests {
     }
 
     #[tokio::test]
-    async fn should_fail_to_delete_one_item_if_item_does_not_exist() {
+    async fn should_fail_to_delete_item_if_item_does_not_exist() {
         // given
         let docker = clients::Cli::default();
 
@@ -878,9 +782,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let stored_gates = dynamodb_storage
             .find_all()
@@ -890,7 +794,7 @@ mod integration_tests {
 
         // when
         let result = dynamodb_storage
-            .delete_one(GateKey {
+            .delete(GateKey {
                 group: "some group".to_owned(),
                 service: "some service".to_owned(),
                 environment: "some wrong environment".to_owned(),
@@ -927,9 +831,9 @@ mod integration_tests {
         );
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         // when
         let new_last_updated = DateTime::parse_from_rfc3339("2025-04-12T22:10:57+02:00")
@@ -981,9 +885,9 @@ mod integration_tests {
 
         let gate = some_gate("some group", "some service", "some environment");
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         // when
         let result = dynamodb_storage
@@ -1027,9 +931,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let now = DateTime::parse_from_rfc3339("2025-04-12T22:10:57+02:00")
             .expect("failed creating date")
@@ -1078,9 +982,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let now = DateTime::parse_from_rfc3339("2025-04-12T22:10:57+02:00")
             .expect("failed creating date")
@@ -1180,9 +1084,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let now = DateTime::parse_from_rfc3339("2025-04-12T22:10:57+02:00")
             .expect("failed creating date")
@@ -1240,9 +1144,9 @@ mod integration_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         dynamodb_storage
-            .save(&gate)
+            .insert(&gate)
             .await
-            .expect("storage failed to save gate");
+            .expect("storage failed to insert gate");
 
         let now = DateTime::parse_from_rfc3339("2025-04-12T22:10:57+02:00")
             .expect("failed creating date")

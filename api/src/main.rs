@@ -1,8 +1,9 @@
+use std::sync::Arc;
+
 use axum::routing::{delete, get, post, put};
 use axum::Router;
 use lambda_http::run;
 use lambda_runtime::Error;
-use std::sync::Arc;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 
@@ -74,7 +75,7 @@ fn create_router(app_state: AppState) -> Router {
         );
 
     Router::new().nest(
-        "/:stage/api/",
+        "/api",
         Router::new()
             .route("/", get(routes::api_info::handler))
             .nest("/gates", gates_router),
@@ -83,9 +84,9 @@ fn create_router(app_state: AppState) -> Router {
 
 #[cfg(test)]
 mod integration_tests_lambda {
-    use axum::http::StatusCode;
     use std::sync::Arc;
 
+    use axum::http::StatusCode;
     use chrono::DateTime;
     use http_body_util::BodyExt;
     use lambda_http::Service;
@@ -168,9 +169,9 @@ mod integration_tests_lambda {
 
 #[cfg(test)]
 mod acceptance_tests {
-    use axum::http::StatusCode;
     use std::sync::Arc;
 
+    use axum::http::StatusCode;
     use axum_test::TestServer;
     use chrono::{DateTime, FixedOffset};
     use testcontainers::clients;
@@ -208,7 +209,7 @@ mod acceptance_tests {
 
         // when
         let response = server
-            .post("/test/api/gates")
+            .post("/api/gates")
             .json(&crate::use_cases::create_gate::route::Payload {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
@@ -219,7 +220,7 @@ mod acceptance_tests {
         assert_eq!(response.status_code(), StatusCode::OK);
 
         let response = server
-            .post("/test/api/gates")
+            .post("/api/gates")
             .json(&crate::use_cases::create_gate::route::Payload {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
@@ -229,7 +230,7 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -295,7 +296,7 @@ mod acceptance_tests {
 
         initialize_two_gates(&server).await;
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -320,7 +321,7 @@ mod acceptance_tests {
         );
 
         let response = server
-            .put("/test/api/gates/somegroup/someservice/develop/state")
+            .put("/api/gates/somegroup/someservice/develop/state")
             .json(&crate::use_cases::update_gate_state::route::Payload {
                 state: GateState::Open,
             })
@@ -341,7 +342,7 @@ mod acceptance_tests {
         );
 
         let response = server
-            .put("/test/api/gates/somegroup/someservice/develop/state")
+            .put("/api/gates/somegroup/someservice/develop/state")
             .json(&crate::use_cases::update_gate_state::route::Payload {
                 state: GateState::Closed,
             })
@@ -361,9 +362,7 @@ mod acceptance_tests {
             }
         );
 
-        let response = server
-            .get("/test/api/gates/somegroup/someservice/develop")
-            .await;
+        let response = server.get("/api/gates/somegroup/someservice/develop").await;
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
@@ -406,13 +405,11 @@ mod acceptance_tests {
         initialize_two_gates(&server).await;
 
         // when
-        let response = server
-            .delete("/test/api/gates/somegroup/someservice/live")
-            .await;
+        let response = server.delete("/api/gates/somegroup/someservice/live").await;
 
         assert_eq!(response.status_code(), StatusCode::OK);
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -464,13 +461,13 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(response.json::<Vec<representation::Group>>(), vec![]);
 
         // when
         let response = server
-            .post("/test/api/gates")
+            .post("/api/gates")
             .json(&crate::use_cases::create_gate::route::Payload {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
@@ -481,7 +478,7 @@ mod acceptance_tests {
         assert_eq!(response.status_code(), StatusCode::OK);
 
         let response = server
-            .post("/test/api/gates/somegroup/someservice/develop/comments")
+            .post("/api/gates/somegroup/someservice/develop/comments")
             .json(&crate::use_cases::add_comment::route::Payload {
                 message: "Some comment message".to_owned(),
             })
@@ -489,7 +486,7 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -521,12 +518,12 @@ mod acceptance_tests {
 
         // when
         let response = server
-            .delete("/test/api/gates/somegroup/someservice/develop/comments/some_id")
+            .delete("/api/gates/somegroup/someservice/develop/comments/some_id")
             .await;
 
         assert_eq!(response.status_code(), StatusCode::OK);
 
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
@@ -580,7 +577,7 @@ mod acceptance_tests {
         // when
         // try to set state of live - CLOSED on sunday
         let response = server
-            .put("/test/api/gates/somegroup/someservice/live/state")
+            .put("/api/gates/somegroup/someservice/live/state")
             .json(&crate::use_cases::update_gate_state::route::Payload {
                 state: GateState::Open,
             })
@@ -592,9 +589,7 @@ mod acceptance_tests {
             "Already after business hours - rejecting attempt to change state".to_owned()
         );
 
-        let response = server
-            .get("/test/api/gates/somegroup/someservice/live")
-            .await;
+        let response = server.get("/api/gates/somegroup/someservice/live").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -639,7 +634,7 @@ mod acceptance_tests {
 
         // when
         let response = server
-            .put("/test/api/gates/somegroup/someservice/develop/display-order")
+            .put("/api/gates/somegroup/someservice/develop/display-order")
             .json(&crate::use_cases::update_display_order::route::Payload { display_order: 1 })
             .await;
 
@@ -658,7 +653,7 @@ mod acceptance_tests {
         );
 
         // then
-        let response = server.get("/test/api/gates").await;
+        let response = server.get("/api/gates").await;
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -690,7 +685,7 @@ mod acceptance_tests {
     async fn initialize_two_gates(server: &TestServer) {
         // when
         let response = server
-            .post("/test/api/gates")
+            .post("/api/gates")
             .json(&crate::use_cases::create_gate::route::Payload {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
@@ -700,7 +695,7 @@ mod acceptance_tests {
         assert_eq!(response.status_code(), StatusCode::OK);
 
         let response = server
-            .post("/test/api/gates")
+            .post("/api/gates")
             .json(&crate::use_cases::create_gate::route::Payload {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),

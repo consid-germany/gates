@@ -25,13 +25,12 @@ impl From<storage::DeleteError> for Error {
     }
 }
 
-#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait UseCase {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         input: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
     ) -> Result<(), Error>;
 }
 
@@ -44,17 +43,17 @@ struct UseCaseImpl;
 
 #[async_trait]
 impl UseCase for UseCaseImpl {
-    async fn execute<'required_for_mocking>(
+    async fn execute(
         &self,
         Input {
             group,
             service,
             environment,
         }: Input,
-        storage: &(dyn Storage + Send + Sync + 'required_for_mocking),
+        storage: &(dyn Storage + Send + Sync),
     ) -> Result<(), Error> {
         Ok(storage
-            .delete_one(GateKey {
+            .delete(GateKey {
                 group,
                 service,
                 environment,
@@ -83,7 +82,7 @@ mod unit_tests {
         mock_clock.expect_now().return_const(now);
 
         mock_storage
-            .expect_delete_one()
+            .expect_delete()
             .with(eq(GateKey {
                 group: "group".to_string(),
                 service: "service".to_string(),
@@ -114,7 +113,7 @@ mod unit_tests {
             .expect("failed to parse date");
         mock_clock.expect_now().return_const(now);
 
-        mock_storage.expect_delete_one().returning(move |_| {
+        mock_storage.expect_delete().returning(move |_| {
             Err(DeleteError::ItemToDeleteNotFound(
                 "ConditionalCheckFailedException".to_owned(),
             ))
@@ -145,7 +144,7 @@ mod unit_tests {
         mock_clock.expect_now().return_const(now);
 
         mock_storage
-            .expect_delete_one()
+            .expect_delete()
             .returning(move |_| Err(DeleteError::Other("some error".to_owned())));
 
         let left = UseCaseImpl {}
