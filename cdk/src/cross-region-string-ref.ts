@@ -18,7 +18,7 @@ export default class CrossRegionStringRef<C extends IConstruct> extends Construc
         super(scope, id);
         this.stackOfConstruct = Stack.of(props.constructInOtherRegion);
 
-        const parameterName = `/${this.cdkExportsParameterPrefix}/${this.stackOfConstruct.stackName}/${props.constructInOtherRegion.node.path.replace(/[^\/\w.-]/g, "-")}/${id}`;
+        const parameterName = `/${this.cdkExportsParameterPrefix}/${this.stackOfConstruct.stackName}/${props.constructInOtherRegion.node.path.replace(/[^/\w.-]/g, "-")}/${id}`;
 
         new ssm.StringParameter(props.constructInOtherRegion, id, {
             parameterName,

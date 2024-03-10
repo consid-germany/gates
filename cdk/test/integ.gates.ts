@@ -15,6 +15,10 @@ const stackUnderTest = new cdk.Stack(app, "StackUnderTest", {
     stackName: "consid-gates-integ-test",
     env: {
         region: "eu-central-1",
+        account: "669698671509",
+    },
+    tags: {
+        owner: "consid",
     },
 });
 

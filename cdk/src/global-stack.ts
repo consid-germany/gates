@@ -7,7 +7,6 @@ const GLOBAL_STACK_ID = "Global";
 export default class GlobalStackProvider {
     /**
      * Provides a global stack (stack in the region `us-east-1`) for the given construct.
-     * The name of the global stack is derived from the stack of the scope (name of the stack and `-global` suffix).
      * If a global stack has already been created for the scope, the existing global stack is returned.
      * @param scope The construct to create the global stack for.
      * @param props Stack properties.

@@ -1,5 +1,0 @@
-{
-  "watch": {
-    "include": ["integ-test/**/*.ts"]
-  }
-}
