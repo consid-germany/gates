@@ -31,9 +31,10 @@
     ""
   ],
   "dependencies": {
-    "aws-cdk-lib": "^2.127.0"
   },
   "devDependencies": {
+    "aws-cdk-lib": "2.131.0",
+    "constructs": "10.3.0",
     "@aws-cdk/integ-runner": "^2.131.0-alpha.0",
     "@aws-cdk/integ-tests-alpha": "^2.131.0-alpha.0",
     "@aws-sdk/client-cloudfront": "^3.529.1",
@@ -53,6 +54,10 @@
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "2.131.0",
+    "constructs": "10.3.0"
   },
   "jsii": {
     "outdir": "dist",

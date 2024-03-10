@@ -23,7 +23,7 @@ const stackUnderTest = new cdk.Stack(app, "StackUnderTest", {
 });
 
 new Gates(stackUnderTest, "Gates", {
-    namespace: "consid",
+    appName: "consid-gates",
 });
 
 new IntegTest(app, "IntegTest", {

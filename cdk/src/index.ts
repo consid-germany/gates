@@ -19,23 +19,23 @@ import * as apigatewayv2_authorizers from "aws-cdk-lib/aws-apigatewayv2-authoriz
 
 const SCOPE_CLOUDFRONT = "CLOUDFRONT";
 
-export interface GatesProps {
-    /**
-     * A namespace for resources of the deployed application.
-     * If not specified, the default namespace `default` is used.
-     */
-    namespace?: string;
+export interface Domain {
+    readonly domainName: string;
+    readonly zoneDomainName?: string;
+}
 
+export interface GatesProps {
     /**
      * A name for the application.
      * If not specified, the default app name `gates` is used.
      */
-    appName?: string;
+    readonly appName?: string;
 
-    globalStackName?: string;
+    readonly domain?: Domain;
+
+    readonly globalStackName?: string;
 }
 
-const DEFAULT_NAMESPACE = "default";
 const DEFAULT_APP_NAME = "gates";
 const X_VERIFY_ORIGIN_HEADER_NAME = "x-verify-origin";
 
@@ -47,7 +47,7 @@ export class Gates extends Construct {
     constructor(scope: Construct, id: string, props: GatesProps) {
         super(scope, id);
 
-        const { namespace = DEFAULT_NAMESPACE, appName = DEFAULT_APP_NAME } = props;
+        const { appName = DEFAULT_APP_NAME } = props;
 
         this.stack = Stack.of(this);
         this.globalStack = GlobalStackProvider.getOrCreate(this, {
@@ -56,16 +56,16 @@ export class Gates extends Construct {
         });
 
         const certificate = this.createCertificate();
-        const webAclArn = this.createWebAcl(namespace, appName);
+        const webAclArn = this.createWebAcl(appName);
 
         const gatesTable = new dynamodb.TableV2(this, "GatesTable", {
-            tableName: `${namespace}-${appName}`,
+            tableName: `${appName}`,
             partitionKey: { name: "group", type: dynamodb.AttributeType.STRING },
             sortKey: { name: "service_environment", type: dynamodb.AttributeType.STRING },
         });
 
         const apiFunction = new lambda.Function(this, "ApiFunction", {
-            functionName: `${namespace}-${appName}-api`,
+            functionName: `${appName}-api`,
             runtime: lambda.Runtime.PROVIDED_AL2023,
             architecture: lambda.Architecture.ARM_64,
             code: lambda.Code.fromAsset(path.join(__dirname, "../api/target/lambda/gates-api")),
@@ -79,14 +79,14 @@ export class Gates extends Construct {
         gatesTable.grantReadWriteData(apiFunction);
 
         const verifyOriginSecret = new secretsmanager.Secret(this, "VerifyOriginSecret", {
-            secretName: `${namespace}-${appName}-verify-origin-secret`,
+            secretName: `${appName}-verify-origin-secret`,
             generateSecretString: {
                 excludePunctuation: true,
             },
         });
 
         const verifyOriginAuthFunction = new lambda.Function(this, "VerifyOriginAuthFunction", {
-            functionName: `${namespace}-${appName}-verify-origin-auth`,
+            functionName: `${appName}-verify-origin-auth`,
             runtime: lambda.Runtime.NODEJS_20_X,
             code: lambda.Code.fromAsset(
                 path.join(__dirname, "..", "lib", "function", "verify-origin-authorizer"),
@@ -107,7 +107,7 @@ export class Gates extends Construct {
         );
 
         const httpApi = new apigatewayv2.HttpApi(this, "HttpApi", {
-            apiName: `${namespace}-${appName}-api`,
+            apiName: `${appName}-api`,
             defaultIntegration: apiFunctionIntegration,
             defaultAuthorizer: new apigatewayv2_authorizers.HttpLambdaAuthorizer(
                 "VerifyOriginAuthorizer",
@@ -188,7 +188,7 @@ export class Gates extends Construct {
             this,
             "VerifyOriginSecretRotationFunction",
             {
-                functionName: `${namespace}-${appName}-verify-origin-secret-rotation`,
+                functionName: `${appName}-verify-origin-secret-rotation`,
                 runtime: lambda.Runtime.NODEJS_20_X,
                 code: lambda.Code.fromAsset(
                     path.join(__dirname, "..", "lib", "function", "verify-origin-secret-rotation"),
@@ -237,19 +237,19 @@ export class Gates extends Construct {
         return acm.Certificate.fromCertificateArn(this, "Certificate", certificateArn);
     }
 
-    private createWebAcl(namespace: string, appName: string) {
+    private createWebAcl(appName: string) {
         const ipSet = new wafv2.CfnIPSet(this.globalStack, "IpSet", {
-            name: `${namespace}-${appName}-ip-allow-list`,
+            name: `${appName}-ip-allow-list`,
             addresses: [],
             ipAddressVersion: "IPV4",
             scope: "CLOUDFRONT",
         });
 
         const ipAllowList: wafv2.CfnWebACL.RuleProperty = {
-            name: `${namespace}-${appName}-waf-ip-allow-list-rule`,
+            name: `${appName}-waf-ip-allow-list-rule`,
             visibilityConfig: {
                 cloudWatchMetricsEnabled: true,
-                metricName: `${namespace}-${appName}-waf-ip-allow-list`,
+                metricName: `${appName}-waf-ip-allow-list`,
                 sampledRequestsEnabled: true,
             },
             priority: 0,
@@ -262,11 +262,11 @@ export class Gates extends Construct {
         };
 
         const webAcl = new wafv2.CfnWebACL(this.globalStack, "WebAcl", {
-            name: `${namespace}-${appName}-waf`,
+            name: `${appName}-waf`,
             defaultAction: { block: {} },
             visibilityConfig: {
                 cloudWatchMetricsEnabled: true,
-                metricName: `${namespace}-${appName}-waf`,
+                metricName: `${appName}-waf`,
                 sampledRequestsEnabled: true,
             },
             scope: SCOPE_CLOUDFRONT,
