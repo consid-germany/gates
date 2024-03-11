@@ -1,2 +1,24 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import { Spinner, TabItem, Tabs } from 'flowbite-svelte';
+
+	import { getGroups } from '$lib/api';
+	import Group from '$lib/components/Group.svelte';
+
+	let groups = getGroups();
+</script>
+
+{#await groups}
+	<div class="flex justify-center mt-10">
+		<Spinner />
+	</div>
+{:then groups}
+	<Tabs contentClass="mt-10">
+		{#each groups as group, i}
+			<TabItem title={group.name} open={i===0}>
+				<Group {group} />
+			</TabItem>
+		{/each}
+	</Tabs>
+{:catch error}
+	<p class="text-red-500">{error.message}</p>
+{/await}

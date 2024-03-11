@@ -12,6 +12,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3_deployment from "aws-cdk-lib/aws-s3-deployment";
 import GlobalStackProvider from "./global-stack";
 import CrossRegionStringRef from "./cross-region-string-ref";
 import * as path from "path";
@@ -55,7 +56,7 @@ export class Gates extends Construct {
             tags: this.stack.tags.tagValues(),
         });
 
-        const certificate = this.createCertificate();
+        const certificate = this.createCertificate(props.domain);
         const webAclArn = this.createWebAcl(appName);
 
         const gatesTable = new dynamodb.TableV2(this, "GatesTable", {
@@ -68,12 +69,14 @@ export class Gates extends Construct {
             functionName: `${appName}-api`,
             runtime: lambda.Runtime.PROVIDED_AL2023,
             architecture: lambda.Architecture.ARM_64,
-            code: lambda.Code.fromAsset(path.join(__dirname, "../api/target/lambda/gates-api")),
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "..", "..", "api/target/lambda/gates-api"),
+            ),
             handler: "provided",
             environment: {
                 GATES_DYNAMO_DB_TABLE_NAME: gatesTable.tableName,
             },
-            // TODO log retetion
+            logRetention: logs.RetentionDays.ONE_WEEK,
         });
 
         gatesTable.grantReadWriteData(apiFunction);
@@ -120,6 +123,7 @@ export class Gates extends Construct {
         });
 
         const frontendAssetsBucket = new s3.Bucket(this, "FrontendAssetsBucket", {
+            // TODO name?
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
         });
@@ -132,9 +136,12 @@ export class Gates extends Construct {
             webACLId: webAclArn,
             enableIpV6: false,
             viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            viewerCertificate: cloudfront.ViewerCertificate.fromAcmCertificate(certificate, {
-                aliases: ["consid.tech"], // TODO
-            }),
+            viewerCertificate:
+                props.domain && certificate
+                    ? cloudfront.ViewerCertificate.fromAcmCertificate(certificate, {
+                          aliases: [props.domain.domainName],
+                      })
+                    : undefined,
             originConfigs: [
                 {
                     customOriginSource: {
@@ -172,17 +179,19 @@ export class Gates extends Construct {
             ],
         });
 
-        const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
-            domainName: `consid.tech`, // TODO
-        });
+        if (props.domain) {
+            const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
+                domainName: props.domain.domainName,
+            });
 
-        new route53.ARecord(this, "ARecord", {
-            recordName: "consid.tech", // TODO,
-            target: route53.RecordTarget.fromAlias(
-                new route53_targets.CloudFrontTarget(webDistribution),
-            ),
-            zone: hostedZone,
-        });
+            new route53.ARecord(this, "ARecord", {
+                recordName: props.domain.zoneDomainName || props.domain.domainName,
+                target: route53.RecordTarget.fromAlias(
+                    new route53_targets.CloudFrontTarget(webDistribution),
+                ),
+                zone: hostedZone,
+            });
+        }
 
         const verifyOriginSecretRotationFunction = new lambda.Function(
             this,
@@ -215,17 +224,24 @@ export class Gates extends Construct {
             rotationLambda: verifyOriginSecretRotationFunction,
             automaticallyAfter: Duration.days(1),
         });
+
+        new s3_deployment.BucketDeployment(this, "BucketDeployment", {
+            sources: [s3_deployment.Source.asset(path.join(__dirname, "..", "..", "ui/build"))],
+            destinationBucket: frontendAssetsBucket,
+            distribution: webDistribution,
+        });
     }
 
-    private createCertificate() {
-        // TODO
-        const domainName = `consid.tech`;
+    private createCertificate(domain: Domain | undefined) {
+        if (domain === undefined) {
+            return undefined;
+        }
 
         const hostedZone = route53.HostedZone.fromLookup(this.globalStack, "HostedZone", {
-            domainName: domainName,
+            domainName: domain.zoneDomainName || domain.domainName,
         });
         const certificate = new acm.Certificate(this.globalStack, "Certificate", {
-            domainName: `${domainName}`,
+            domainName: domain.domainName,
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 

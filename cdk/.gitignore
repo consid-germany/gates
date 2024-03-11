@@ -4,6 +4,8 @@ build
 dist/
 .idea
 
+lib
+
 *.js
 *.d.ts
 
