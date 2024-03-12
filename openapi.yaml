@@ -448,16 +448,16 @@ components:
   schemas:
     ApiInfo:
       type: object
-      description: TODO
+      description: Contains information about the API such as name and version.
       properties:
         name:
           type: string
-          description: TODO
-          example: stargate-api
+          description: The name of the API.
+          example: gates-api
         version:
           type: string
-          description: TODO
-          example: '0.0.1'
+          description: The version of the API.
+          example: '0.0.0'
       required:
         - name
         - version
