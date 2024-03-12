@@ -363,7 +363,7 @@ components:
                 example: develop
               display_order:
                 type: number
-                description: TODO
+                description: Specifies a way to order the gate for frontend display purpose.
                 example: 1
             required:
               - group
@@ -371,7 +371,7 @@ components:
               - environment
 
     UpdateGateStatePayload:
-      description: TODO
+      description: This is needed to update the state of the gate.
       required: true
       content:
         application/json:
@@ -384,7 +384,7 @@ components:
               - state
 
     UpdateDisplayOrderPayload:
-      description: TODO
+      description: This parameter is needed to change the display order.
       required: true
       content:
         application/json:
@@ -393,14 +393,14 @@ components:
             properties:
               display_order:
                 type: number
-                description: TODO
+                description: Is expected to be a positive number, but can basically be anything.
                 example: 1
             required:
               - display_order
 
 
     AddCommentPayload:
-      description: TODO
+      description: If you want to add a comment, you need to set this.
       required: true
       content:
         application/json:
@@ -410,7 +410,7 @@ components:
               message:
                 type: string
                 minLength: 1
-                description: TODO
+                description: This should be a thoughtful description of why this gate is here.
                 example: Running some tests (Max)
             required:
               - message
@@ -463,17 +463,17 @@ components:
         - version
 
     Group:
+      description: This is the toplevel of arranging the gates. Gates are bracketed in an environment, environments are part of a service and services are in a group. 
       type: object
-      description: TODO
       properties:
         name:
           type: string
           minLength: 1
-          description: TODO
-          example: Some gate group
+          description: The name of the group. Could be any string, but mainly we recommend an organizational orientation.
+          example: web shop department
         services:
           type: array
-          description: TODO
+          description: Service is the level between Group an Environment. A service is part of a group and has multiple environments.
           items:
             $ref: "#/components/schemas/Service"
       required:
@@ -482,16 +482,16 @@ components:
 
     Service:
       type: object
-      description: TODO
+      description: Service is the level between Group an Environment. A service is part of a group and has multiple environments. A group consists basically of services.
       properties:
         name:
           type: string
           minLength: 1
-          description: TODO
-          example: Some service
+          description: This can be anything an should represent an business aspect of your services. 
+          example: html frontpage delivery
         environments:
           type: array
-          description: TODO
+          description: Environments serve as a way to group your technical and procedural needs. Most teams have a production environment, a stageing env and a develop env.
           items:
             $ref: "#/components/schemas/Environment"
       required:
@@ -500,12 +500,12 @@ components:
 
     Environment:
       type: object
-      description: TODO
+      description: Environments serve as a way to group your technical and procedural needs. An environemnt has a single parent called service and consists of many gates. Most teams have a production environment, a stageing env and a develop env. A good practive could be to close the production gate ,from Friday to Monday to reduce work on weekends if a mishap happens.
       properties:
         name:
           type: string
           minLength: 1
-          description: TODO
+          description: Identifies the stage of your gate. Meaningful choices are product, live, develop, integration, staging, etc...
           example: develop
         gate:
             $ref: "#/components/schemas/Gate"
@@ -515,37 +515,37 @@ components:
 
     Gate:
       type: object
-      description: TODO
+      description: The gate is lowest but most important part of the hierachy. This defines the actual object, that will be altered by all actions. You can open and close it.
       properties:
         group:
           type: string
           minLength: 1
-          description: TODO
+          description: The group that surrounds the service.
           example: some-gate-group
         service:
           type: string
           minLength: 1
-          description: TODO
+          description: The service that contains the environment.
           example: some-service
         environment:
           type: string
           minLength: 1
-          description: TODO
+          description: The environment for the specific gate.
           example: develop
         state:
           $ref: "#/components/schemas/GateState"
         display_order:
           type: number
-          description: TODO
+          description: The way to describe how you want to arrange your gates.
           example: 1
         comments:
           type: array
-          description: TODO
+          description: The comment describe why you open or closed the gate.
           items:
             $ref: "#/components/schemas/Comment"
         last_updated:
           type: string
-          description: TODO
+          description: Changes when a comment or gate is changed.
           format: date-time
           example: 2023-05-26T21:36:18.345195Z
       required:
@@ -558,7 +558,7 @@ components:
 
     GateState:
       type: string
-      description: TODO
+      description: This can only be open or closed.
       example: closed
       enum:
         - open
@@ -566,21 +566,21 @@ components:
 
     Comment:
       type: object
-      description: TODO
+      description: Comments will help you identify the reasons for the gate.
       properties:
         id:
           type: string
           minLength: 1
-          description: TODO
+          description: Identifies the comment.
           example: e9qo5ibvyvk8ffmhu6qe6p30
         message:
           type: string
           minLength: 1
-          description: TODO
+          description: Very important text to show why you did it.
           example: Running some tests (Max)
         created:
           type: string
-          description: TODO
+          description: The exact moment the comment was created.
           format: date-time
           example: 2023-05-26T21:36:18.345195Z
       required:
