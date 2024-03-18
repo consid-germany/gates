@@ -9,7 +9,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::types::appstate::AppState;
 use crate::use_cases::{
-    add_comment, create_gate, delete_comment, delete_gate, get_gate, list_gates,
+    add_comment, create_gate, delete_comment, delete_gate, get_gate, get_gate_state, list_gates,
     update_display_order, update_gate_state,
 };
 
@@ -53,7 +53,7 @@ fn create_router(app_state: AppState) -> Router {
         )
         .route(
             "/:group/:service/:environment/state",
-            put(update_gate_state::route::handler),
+            put(update_gate_state::route::handler).get(get_gate_state::route::handler),
         )
         .route(
             "/:group/:service/:environment/display-order",
@@ -552,6 +552,55 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_auto_close_gates() {
         // given
+        let now = DateTime::parse_from_rfc3339("2023-05-30T22:10:57+02:00") //Tuesday
+            .expect("failed to parse date");
+        let mut mock_clock = MockClock::new();
+        mock_clock.expect_now().return_const(now);
+
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = storage::test(port).await;
+        let router = create_router(AppState::new(
+            Arc::new(dynamodb_storage),
+            Arc::new(mock_clock),
+            Arc::new(id_provider::default()),
+            Arc::new(date_time_switch::default()),
+        ));
+
+        let server = TestServer::new(router).expect("failed to create test server");
+
+        initialize_two_gates(&server).await;
+
+        // when
+        let response = server
+            .put("/api/gates/somegroup/someservice/live/state")
+            .json(&crate::use_cases::update_gate_state::route::Payload {
+                state: GateState::Open,
+            })
+            .await;
+
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .get("/api/gates/somegroup/someservice/live/state")
+            .await;
+
+        // then
+        assert_eq!(response.status_code(), StatusCode::OK);
+        assert_eq!(
+            response.json::<representation::GateStateRep>(),
+            representation::GateStateRep {
+                state: GateState::Open,
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn should_get_gate_state() {
+        // given
         let now = DateTime::parse_from_rfc3339("2023-05-28T22:10:57+02:00") //sunday
             .expect("failed to parse date");
         let mut mock_clock = MockClock::new();
@@ -673,7 +722,7 @@ mod acceptance_tests {
                             gate: expected_gate_representation_with_display_order(
                                 now,
                                 "develop".to_string(),
-                                1
+                                1,
                             ),
                         },
                     ],

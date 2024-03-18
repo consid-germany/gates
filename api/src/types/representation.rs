@@ -40,6 +40,10 @@ pub struct Gate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_order: Option<u32>,
 }
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GateStateRep {
+    pub state: GateState,
+}
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
@@ -64,6 +68,11 @@ impl From<types::Gate> for Gate {
             last_updated: value.last_updated,
             display_order: value.display_order,
         }
+    }
+}
+impl From<types::Gate> for GateStateRep {
+    fn from(value: types::Gate) -> Self {
+        Self { state: value.state }
     }
 }
 
