@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { Badge, Button, GradientButton, Input, Modal, Spinner, ToolbarButton } from 'flowbite-svelte';
+	import {
+		Badge,
+		Button,
+		GradientButton,
+		Input,
+		Modal,
+		Spinner,
+		ToolbarButton
+	} from 'flowbite-svelte';
 	import IconClock from '$lib/icons/IconClock.svelte';
 	import IconDelete from '$lib/icons/IconDelete.svelte';
 	import IconSend from '$lib/icons/IconSend.svelte';
@@ -93,7 +101,9 @@
 								<span class="gate-comment-created text-[0.6em] text-gray-500 dark:text-gray-400"
 									>{new Date(comment.created).toLocaleString()}</span
 								>
-								<span class="gate-comment-message text-gray-600 dark:text-gray-300">{comment.message}</span>
+								<span class="gate-comment-message text-gray-600 dark:text-gray-300"
+									>{comment.message}</span
+								>
 							</div>
 							<button
 								on:click={() => removeCommentFromGate(comment.id)}
@@ -108,14 +118,23 @@
 							class="flex w-full rounded-lg bg-gray-300 px-3 py-2 dark:bg-gray-600 dark:text-gray-400"
 						>
 							<div class="flex grow flex-col">
-								<Spinner class="gate-comment-loading mb-2 ml-2 mt-2 dark:text-gray-700" color="gray" size="4" />
+								<Spinner
+									class="gate-comment-loading mb-2 ml-2 mt-2 dark:text-gray-700"
+									color="gray"
+									size="4"
+								/>
 							</div>
 						</div>
 					{/if}
 				</div>
 			{/if}
 			<form class="flex rounded-lg p-2" on:submit|preventDefault={addCommentToGate}>
-				<Input class="gate-new-comment-message" bind:value={commentMessage} rows="1" placeholder="Your message..." />
+				<Input
+					class="gate-new-comment-message"
+					bind:value={commentMessage}
+					rows="1"
+					placeholder="Your message..."
+				/>
 				<ToolbarButton
 					type="submit"
 					color="blue"

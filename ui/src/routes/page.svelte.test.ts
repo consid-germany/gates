@@ -107,7 +107,7 @@ it('should show gates of other tab', async () => {
 it('should show error message if loading gates fails', async () => {
 	// given
 	vi.mocked(getGroups).mockRejectedValue({
-		message: "Some error occurred when loading gates!"
+		message: 'Some error occurred when loading gates!'
 	});
 
 	// when
@@ -119,7 +119,7 @@ it('should show error message if loading gates fails', async () => {
 		expect(spinner).toBeNull();
 	});
 
-	const error = container.querySelector(".error");
+	const error = container.querySelector('.error');
 	expect(error).not.toBeNull();
 	expect(error?.innerHTML).toEqual('Some error occurred when loading gates!');
 });

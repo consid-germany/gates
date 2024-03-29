@@ -21,7 +21,7 @@ it('should show services of group', () => {
 				environments: []
 			}
 		]
-	}
+	};
 
 	// when
 	const { container } = render(GroupComponent, {

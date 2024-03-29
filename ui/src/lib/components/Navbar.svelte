@@ -1,5 +1,5 @@
 <script>
-	import { DarkMode, Navbar, NavBrand, NavUl } from 'flowbite-svelte';
+	import { DarkMode, Navbar, NavBrand } from 'flowbite-svelte';
 	import logo from '$lib/assets/logo.png';
 </script>
 

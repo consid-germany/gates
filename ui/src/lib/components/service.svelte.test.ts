@@ -41,8 +41,8 @@ it('should show gate for each environment of service', () => {
 					last_updated: '2024-03-13T18:24:14.265799400Z'
 				}
 			}
-		],
-	}
+		]
+	};
 
 	// when
 	const { container } = render(ServiceComponent, {

@@ -1,5 +1,12 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { addCommentToGate, type Gate, getGroups, type Group, removeCommentFromGate, toggleGateState } from '$lib/api';
+import {
+	addCommentToGate,
+	type Gate,
+	getGroups,
+	type Group,
+	removeCommentFromGate,
+	toggleGateState
+} from '$lib/api';
 import createClient from 'openapi-fetch';
 
 const clientMock = createClient();
@@ -10,19 +17,18 @@ beforeAll(() => {
 			DELETE: vi.fn(),
 			POST: vi.fn(),
 			PUT: vi.fn(),
-			GET: vi.fn(),
+			GET: vi.fn()
 		};
 
-		return ({
+		return {
 			default: () => mockClient
-		});
+		};
 	});
 });
 
 afterEach(() => {
 	vi.restoreAllMocks();
 });
-
 
 describe('should get groups', () => {
 	it('should return groups', async () => {
@@ -101,7 +107,6 @@ describe('should get groups', () => {
 	});
 });
 
-
 describe('should toggle state of gate', () => {
 	it('should close gate if state is currently open and return updated gate', async () => {
 		// given
@@ -134,21 +139,18 @@ describe('should toggle state of gate', () => {
 		expect(result).toEqual(updatedGate);
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
-		expect(clientMock.PUT).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/state',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					state: "closed"
+		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				state: 'closed'
 			}
-		);
+		});
 	});
 
 	it('should open gate if state is currently closed and return updated gate', async () => {
@@ -182,21 +184,18 @@ describe('should toggle state of gate', () => {
 		expect(result).toEqual(updatedGate);
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
-		expect(clientMock.PUT).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/state',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					state: "open"
+		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				state: 'open'
 			}
-		);
+		});
 	});
 
 	it('should throw error if state is invalid', async () => {
@@ -242,21 +241,18 @@ describe('should toggle state of gate', () => {
 		expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
-		expect(clientMock.PUT).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/state',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					state: "open"
+		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				state: 'open'
 			}
-		);
+		});
 	});
 
 	it('should throw an error if updated gate is undefined', async () => {
@@ -279,21 +275,18 @@ describe('should toggle state of gate', () => {
 		expect(result).rejects.toThrow('could not retrieve updated gate');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
-		expect(clientMock.PUT).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/state',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					state: "closed"
+		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				state: 'closed'
 			}
-		);
+		});
 	});
 
 	it('should throw an error if fetch fails', async () => {
@@ -316,24 +309,20 @@ describe('should toggle state of gate', () => {
 		expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
-		expect(clientMock.PUT).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/state',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					state: "closed"
+		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				state: 'closed'
 			}
-		);
+		});
 	});
 });
-
 
 describe('should add comment to gate', () => {
 	it('should return updated gate', async () => {
@@ -373,21 +362,18 @@ describe('should add comment to gate', () => {
 		expect(result).toEqual(updatedGate);
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
-		expect(clientMock.POST).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/comments',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					message: 'some new comment message'
+		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				message: 'some new comment message'
 			}
-		);
+		});
 	});
 
 	it('should throw an error if there is an error from the server', async () => {
@@ -412,21 +398,18 @@ describe('should add comment to gate', () => {
 		expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
-		expect(clientMock.POST).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/comments',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					message: 'some new comment message'
+		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				message: 'some new comment message'
 			}
-		);
+		});
 	});
 
 	it('should throw an error if updated gate is undefined', async () => {
@@ -449,21 +432,18 @@ describe('should add comment to gate', () => {
 		expect(result).rejects.toThrow('could not retrieve updated gate');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
-		expect(clientMock.POST).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/comments',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					message: 'some new comment message'
+		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				message: 'some new comment message'
 			}
-		);
+		});
 	});
 
 	it('should throw an error if fetch fails', async () => {
@@ -486,24 +466,20 @@ describe('should add comment to gate', () => {
 		expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
-		expect(clientMock.POST).toBeCalledWith(
-			'/gates/{group}/{service}/{environment}/comments',
-			{
-				params: {
-					path: {
-						group: gate.group,
-						service: gate.service,
-						environment: gate.environment
-					}
-				},
-				body: {
-					message: 'some new comment message'
+		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
+			params: {
+				path: {
+					group: gate.group,
+					service: gate.service,
+					environment: gate.environment
 				}
+			},
+			body: {
+				message: 'some new comment message'
 			}
-		);
+		});
 	});
 });
-
 
 describe('should remove comment from gate', () => {
 	it('should return updated gate', async () => {
@@ -683,4 +659,3 @@ describe('should remove comment from gate', () => {
 		);
 	});
 });
-
