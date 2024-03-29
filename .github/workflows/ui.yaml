@@ -76,7 +76,7 @@ jobs:
         working-directory: api
       - name: Get api info
         run: curl http://localhost:9000/api/
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache-playwright
         with:
           path: |
