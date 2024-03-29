@@ -127,7 +127,7 @@ paths:
       tags:
         - gate
       summary: Get gate by group, service and environment
-      description: This should be used if you want to explicitly know the state of a gate.
+      description: Get information about a gate including e.g. state, comments and other data.
       parameters:
         - $ref: '#/components/parameters/group'
         - $ref: '#/components/parameters/service'
@@ -167,6 +167,29 @@ paths:
 
 
   /gates/{group}/{service}/{environment}/state:
+    get:
+      operationId: get_gate_state
+      tags:
+        - gate
+      summary: Get the state of a gate by group, service and environment
+      description: This should be used if you want to explicitly know the state of a gate.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: The state of the requested gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateStateRep'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     put:
       operationId: update_gate_state
       tags:
@@ -192,9 +215,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableContent'
-          description: Most common type of error is a spelling error in `open` or `closed`.
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -463,7 +487,7 @@ components:
         - version
 
     Group:
-      description: This is the toplevel of arranging the gates. Gates are bracketed in an environment, environments are part of a service and services are in a group. 
+      description: This is the toplevel of arranging the gates. Gates are bracketed in an environment, environments are part of a service and services are in a group.
       type: object
       properties:
         name:
@@ -487,7 +511,7 @@ components:
         name:
           type: string
           minLength: 1
-          description: This can be anything an should represent an business aspect of your services. 
+          description: This can be anything an should represent an business aspect of your services.
           example: html frontpage delivery
         environments:
           type: array
@@ -555,6 +579,15 @@ components:
         - state
         - comments
         - last_updated
+
+    GateStateRep:
+      type: object
+      description: Wrapper object for the state of a gate.
+      properties:
+        state:
+          $ref: "#/components/schemas/GateState"
+      required:
+        - group
 
     GateState:
       type: string
