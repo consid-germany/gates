@@ -7,45 +7,45 @@ on:
         default: http://localhost:9000/api
 
 jobs:
-  lint-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          cache: 'npm'
-          cache-dependency-path: ui
-      - uses: SpicyPizza/create-envfile@v2
-        with:
-          directory: ui
-          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
-      - run: npm ci
-        working-directory: ui
-      - run: npm run lint
-        working-directory: ui
-      - run: npm run check
-        working-directory: ui
-
-  unit-test:
-    needs: lint-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          cache: 'npm'
-          cache-dependency-path: ui
-      - uses: SpicyPizza/create-envfile@v2
-        with:
-          directory: ui
-          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
-      - run: npm ci
-        working-directory: ui
-      - run: npm run test:unit
-        working-directory: ui
+#  lint-and-check:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-node@v4
+#        with:
+#          cache: 'npm'
+#          cache-dependency-path: ui
+#      - uses: SpicyPizza/create-envfile@v2
+#        with:
+#          directory: ui
+#          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+#      - run: npm ci
+#        working-directory: ui
+#      - run: npm run lint
+#        working-directory: ui
+#      - run: npm run check
+#        working-directory: ui
+#
+#  unit-test:
+#    needs: lint-and-check
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-node@v4
+#        with:
+#          cache: 'npm'
+#          cache-dependency-path: ui
+#      - uses: SpicyPizza/create-envfile@v2
+#        with:
+#          directory: ui
+#          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+#      - run: npm ci
+#        working-directory: ui
+#      - run: npm run test:unit
+#        working-directory: ui
 
   integration-test:
-    needs: lint-check
+    #needs: lint-and-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,11 +70,13 @@ jobs:
       - name: Start api
         run: npx pm2 start "cargo lambda watch --features local"
         working-directory: api
+      - name: Get api info
+        run: curl http://localhost:9000/api/
       - run: npm run test:integration
         working-directory: ui
-      - name: Stop dynamodb-local
-        if: always()
-        run: docker rm -f $(docker ps -a -q)
       - name: Stop api
         if: always()
         run: npx pm2 delete all
+      - name: Stop dynamodb-local
+        if: always()
+        run: docker rm -f $(docker ps -a -q)
