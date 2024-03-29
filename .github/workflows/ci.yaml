@@ -1,0 +1,6 @@
+on:
+  push:
+
+jobs:
+  ui:
+    uses: ./.github/workflows/ui.yaml
