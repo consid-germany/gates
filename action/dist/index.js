@@ -24713,6 +24713,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core_1 = __importDefault(__nccwpck_require__(2186));
 async function run() {
+    // eslint-disable-next-line no-useless-catch
     try {
         const group = core_1.default.getInput("group");
         core_1.default.info(`Group: ${group}`);
@@ -24721,7 +24722,7 @@ async function run() {
         core_1.default.setFailed("some error");
     }
     catch (error) {
-        core_1.default.setFailed(`${error}`);
+        throw error;
     }
 }
 exports.run = run;
