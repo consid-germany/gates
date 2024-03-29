@@ -1,4 +1,4 @@
-use crate::types::appstate::AppState;
+use crate::types::app_state::AppState;
 use crate::use_cases::update_display_order::use_case::{Error, Input};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;

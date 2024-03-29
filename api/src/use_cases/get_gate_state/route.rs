@@ -1,4 +1,4 @@
-use crate::types::appstate::AppState;
+use crate::types::app_state::AppState;
 use crate::use_cases::get_gate_state::use_case;
 use crate::use_cases::get_gate_state::use_case::Error;
 use axum::extract::{Path, State};

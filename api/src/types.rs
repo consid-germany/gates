@@ -1,10 +1,10 @@
-pub mod representation;
-pub mod usecases;
-
-pub mod appstate;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+
+pub mod representation;
+pub mod use_cases;
+pub mod app_state;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateKey {

@@ -1,3 +1,4 @@
+pub mod api_info;
 pub mod add_comment;
 pub mod create_gate;
 pub mod delete_comment;

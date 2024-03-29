@@ -10,7 +10,7 @@ pub struct AppState {
     pub(crate) storage: Arc<Storage>,
     pub(crate) clock: Arc<Clock>,
     pub(crate) id_provider: Arc<IdProvider>,
-    pub(crate) use_cases: types::usecases::UseCases,
+    pub(crate) use_cases: types::use_cases::UseCases,
     pub(crate) date_time_switch: Arc<DateTimeSwitch>,
 }
 impl AppState {
@@ -24,7 +24,7 @@ impl AppState {
             storage,
             clock,
             id_provider,
-            use_cases: types::usecases::UseCases::new(),
+            use_cases: types::use_cases::UseCases::new(),
             date_time_switch,
         }
     }

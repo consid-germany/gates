@@ -4,7 +4,7 @@ use axum::response::IntoResponse;
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::types::appstate::AppState;
+use crate::types::app_state::AppState;
 use crate::use_cases::delete_comment::use_case;
 use crate::use_cases::delete_comment::use_case::Error;
 

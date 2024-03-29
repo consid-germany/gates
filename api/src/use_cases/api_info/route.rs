@@ -3,7 +3,6 @@ use axum::Json;
 
 use crate::types::representation::ApiInfo;
 
-#[allow(clippy::unused_async)]
 pub async fn handler() -> impl IntoResponse {
     Json(ApiInfo {
         name: option_env!("CARGO_PKG_NAME")

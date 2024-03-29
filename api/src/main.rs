@@ -7,7 +7,7 @@ use lambda_runtime::Error;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 
-use crate::types::appstate::AppState;
+use crate::types::app_state::AppState;
 use crate::use_cases::{
     add_comment, create_gate, delete_comment, delete_gate, get_gate, get_gate_state, list_gates,
     update_display_order, update_gate_state,
@@ -16,7 +16,6 @@ use crate::use_cases::{
 mod clock;
 mod date_time_switch;
 mod id_provider;
-mod routes;
 mod storage;
 mod types;
 mod use_cases;
@@ -77,7 +76,7 @@ fn create_router(app_state: AppState) -> Router {
     Router::new().nest(
         "/api/",
         Router::new()
-            .route("/", get(routes::api_info::handler))
+            .route("/", get(use_cases::api_info::route::handler))
             .nest("/gates", gates_router),
     )
 }
@@ -94,7 +93,7 @@ mod integration_tests_lambda {
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::clock::MockClock;
-    use crate::types::appstate::AppState;
+    use crate::types::app_state::AppState;
     use crate::types::{representation, GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
 
@@ -179,7 +178,7 @@ mod acceptance_tests {
 
     use crate::clock::MockClock;
     use crate::id_provider::MockIdProvider;
-    use crate::types::appstate::AppState;
+    use crate::types::app_state::AppState;
     use crate::types::representation;
     use crate::types::GateState;
     use crate::{create_router, date_time_switch, id_provider, storage};
