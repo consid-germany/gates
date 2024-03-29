@@ -1,9 +1,14 @@
 name: ui
 on:
   workflow_call:
+    inputs:
+      api-base-url:
+        required: true
+        type: string
+        default: http://localhost:9000/api
 
 jobs:
-  lint-check-test:
+  lint-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,14 +19,63 @@ jobs:
       - uses: SpicyPizza/create-envfile@v2
         with:
           directory: ui
-          envkey_PUBLIC_API_BASE_URL: http://localhost:9000/api
+          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
       - run: npm ci
         working-directory: ui
       - run: npm run lint
         working-directory: ui
       - run: npm run check
         working-directory: ui
+
+  unit-test:
+    needs: lint-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: ui
+      - uses: SpicyPizza/create-envfile@v2
+        with:
+          directory: ui
+          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+      - run: npm ci
+        working-directory: ui
       - run: npm run test:unit
         working-directory: ui
+
+  integration-test:
+    needs: lint-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          cache: enable
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: ui
+      - uses: SpicyPizza/create-envfile@v2
+        with:
+          directory: ui
+          envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+      - run: npm ci
+        working-directory: ui
+      - name: Start dynamodb-local
+        run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+      - name: Start api
+        run: npx pm2 start "cargo lambda watch --features local"
+        working-directory: api
       - run: npm run test:integration
         working-directory: ui
+      - name: Stop dynamodb-local
+        if: always()
+        run: docker rm -f $(docker ps -a -q)
+      - name: Stop api
+        if: always()
+        run: npx pm2 delete all
