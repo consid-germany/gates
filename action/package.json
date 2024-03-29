@@ -1,0 +1,38 @@
+{
+  "name": "@consid-germany/gates-action",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && ncc build src/main.ts",
+    "check": "prettier src/**/*.ts --check",
+    "format": "prettier src/**/*.ts --write",
+    "lint": "eslint . --ext .ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/consid-germany/gates.git"
+  },
+  "author": {
+    "name": "Consid GmbH",
+    "email": "hamburg@consid.com",
+    "organization": true
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/consid-germany/gates/issues"
+  },
+  "homepage": "https://github.com/consid-germany/gates",
+  "devDependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@actions/http-client": "^2.2.1",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "@vercel/ncc": "^0.38.1",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.3"
+  }
+}

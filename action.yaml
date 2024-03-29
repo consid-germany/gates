@@ -1,0 +1,16 @@
+name: 'Check Gate State'
+description: 'Checks the state of a gate and cancels the workflow if the gate is closed.'
+author: "Consid GmbH"
+inputs:
+  group:
+    description: 'TODO'
+    required: true
+  service:
+    description: 'TODO'
+    required: true
+runs:
+  using: 'node20'
+  main: 'action/dist/index.js'
+branding:
+  icon: 'toggle-left'
+  color: 'green'
