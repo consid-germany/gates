@@ -51,6 +51,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "api"
       - name: Install cargo-lambda
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
@@ -84,6 +86,7 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
       - run: npx playwright install --with-deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
+        working-directory: ui
       - run: npm run test:integration
         working-directory: ui
       - name: Stop api
