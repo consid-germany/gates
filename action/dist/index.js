@@ -26644,7 +26644,9 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const main_js_1 = __nccwpck_require__(399);
-(0, main_js_1.run)();
+(async () => {
+    await (0, main_js_1.run)();
+})();
 
 })();
 

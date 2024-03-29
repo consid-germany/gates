@@ -1,3 +1,5 @@
 import { run } from "./main.js";
 
-run();
+(async () => {
+    await run();
+})();
