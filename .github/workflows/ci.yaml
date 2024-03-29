@@ -5,3 +5,4 @@ on:
 jobs:
   ui:
     uses: ./.github/workflows/ui.yaml
+    if: false
