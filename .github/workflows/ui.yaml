@@ -9,9 +9,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: 'npm'
+          cache-dependency-path: ui
       - run: npm ci
         working-directory: ui
       - run: npm run lint
+        working-directory: ui
       - run: npm run check
+        working-directory: ui
       - run: npm run test:unit
+        working-directory: ui
       - run: npm run test:integration
+        working-directory: ui
