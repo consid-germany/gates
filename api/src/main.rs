@@ -1,17 +1,14 @@
 use std::sync::Arc;
 
-use axum::routing::{delete, get, post, put};
 use axum::Router;
+use axum::routing::{delete, get, post, put};
 use lambda_http::run;
 use lambda_runtime::Error;
 use tower_http::trace;
 use tower_http::trace::TraceLayer;
 
 use crate::types::app_state::AppState;
-use crate::use_cases::{
-    add_comment, create_gate, delete_comment, delete_gate, get_gate, get_gate_state, list_gates,
-    update_display_order, update_gate_state,
-};
+use crate::use_cases::{add_comment, api_info, create_gate, delete_comment, delete_gate, get_gate, get_gate_state, list_gates, update_display_order, update_gate_state};
 
 mod clock;
 mod date_time_switch;
@@ -76,7 +73,7 @@ fn create_router(app_state: AppState) -> Router {
     Router::new().nest(
         "/api/",
         Router::new()
-            .route("/", get(use_cases::api_info::route::handler))
+            .route("/", get(api_info::route::handler))
             .nest("/gates", gates_router),
     )
 }
@@ -92,10 +89,10 @@ mod integration_tests_lambda {
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
-    use crate::clock::MockClock;
-    use crate::types::app_state::AppState;
-    use crate::types::{representation, GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
+    use crate::clock::MockClock;
+    use crate::types::{GateState, representation};
+    use crate::types::app_state::AppState;
 
     #[tokio::test]
     async fn should_handle_api_gateway_proxy_request() {
@@ -176,12 +173,12 @@ mod acceptance_tests {
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
+    use crate::{create_router, date_time_switch, id_provider, storage};
     use crate::clock::MockClock;
     use crate::id_provider::MockIdProvider;
     use crate::types::app_state::AppState;
-    use crate::types::representation;
     use crate::types::GateState;
-    use crate::{create_router, date_time_switch, id_provider, storage};
+    use crate::types::representation;
 
     #[tokio::test]
     async fn should_create_and_list_gates() {
