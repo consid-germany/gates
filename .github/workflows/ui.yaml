@@ -50,6 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Install cargo-lambda
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
@@ -75,7 +76,14 @@ jobs:
         working-directory: api
       - name: Get api info
         run: curl http://localhost:9000/api/
-      - run: npx playwright install
+      - uses: actions/cache@v3
+        id: cache-playwright
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+      - run: npx playwright install --with-deps
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
       - run: npm run test:integration
         working-directory: ui
       - name: Stop api
