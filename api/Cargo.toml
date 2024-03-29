@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 local = []
+date_time_switch = []
 
 [profile.release]
 strip = true

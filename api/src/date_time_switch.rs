@@ -12,6 +12,8 @@ pub trait DateTimeSwitch {
 
 impl DateTimeSwitch for DefaultDateTimeCircuitBreaker {
     fn is_closed(&self, utc: DateTime<Utc>) -> bool {
+        #[cfg(not(feature = "date_time_switch"))]
+        return false;
         is_in_window(utc)
     }
 
