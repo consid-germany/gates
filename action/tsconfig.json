@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["ES2023"],
-    "module": "node16",
+    "module": "NodeNext",
     "target": "ES2022",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
