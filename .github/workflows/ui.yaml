@@ -68,7 +68,7 @@ jobs:
       - name: Start dynamodb-local
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
       - name: Build api
-        run: cargo lambda build
+        run: cargo build
         working-directory: api
       - name: Start api
         run: npx pm2 start "cargo lambda watch --features local"
