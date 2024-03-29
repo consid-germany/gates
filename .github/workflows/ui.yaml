@@ -75,6 +75,7 @@ jobs:
         working-directory: api
       - name: Get api info
         run: curl http://localhost:9000/api/
+      - run: npx playwright install
       - run: npm run test:integration
         working-directory: ui
       - name: Stop api
