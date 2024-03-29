@@ -3,7 +3,6 @@ on:
   workflow_call:
     inputs:
       api-base-url:
-        required: true
         type: string
         default: http://localhost:9000/api
 
