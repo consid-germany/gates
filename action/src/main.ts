@@ -7,6 +7,8 @@ export async function run(): Promise<void> {
 
         const idToken = await core.getIDToken();
         core.info(`idToken: ${idToken}`);
+
+        core.setFailed("some error");
     } catch (error) {
         core.setFailed(`${error}`);
     }

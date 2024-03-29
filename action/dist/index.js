@@ -24718,6 +24718,7 @@ async function run() {
         core_1.default.info(`Group: ${group}`);
         const idToken = await core_1.default.getIDToken();
         core_1.default.info(`idToken: ${idToken}`);
+        core_1.default.setFailed("some error");
     }
     catch (error) {
         core_1.default.setFailed(`${error}`);
