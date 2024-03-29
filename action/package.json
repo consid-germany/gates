@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc && ncc build src/index.ts --license licenses.txt",
     "check": "prettier src/**/*.ts --check",
