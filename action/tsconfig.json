@@ -5,8 +5,7 @@
     "target": "ES2022",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true
+    "noEmit": true
   },
   "exclude": ["node_modules"]
 }

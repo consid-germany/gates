@@ -1,7 +1,6 @@
-import core from "@actions/core";
+import * as core from "@actions/core";
 
 export async function run(): Promise<void> {
-    // eslint-disable-next-line no-useless-catch
     try {
         const group = core.getInput("group");
         core.info(`Group: ${group}`);
@@ -11,6 +10,6 @@ export async function run(): Promise<void> {
 
         core.setFailed("some error");
     } catch (error) {
-        throw error;
+        core.setFailed(`${error}`);
     }
 }
