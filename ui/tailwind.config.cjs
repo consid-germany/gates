@@ -6,7 +6,7 @@ const config = {
 	],
 	theme: {
 		fontFamily: {
-			sans: ['Plus Jakarta Sans Variable', 'sans-serif'],
+			sans: ['Plus Jakarta Sans Variable', 'sans-serif']
 		},
 		extend: {
 			colors: {

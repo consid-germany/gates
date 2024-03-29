@@ -8,17 +8,19 @@
 </script>
 
 {#await groups}
-	<div class="flex justify-center mt-10">
+	<div class="loading-spinner mt-10 flex justify-center">
 		<Spinner />
 	</div>
 {:then groups}
 	<Tabs contentClass="mt-10">
 		{#each groups as group, i}
-			<TabItem title={group.name} open={i===0}>
-				<Group {group} />
+			<TabItem title={group.name} open={i === 0}>
+				<div class="gates-group">
+					<Group {group} />
+				</div>
 			</TabItem>
 		{/each}
 	</Tabs>
 {:catch error}
-	<p class="text-red-500">{error.message}</p>
+	<p class="error text-red-500">{error.message}</p>
 {/await}
