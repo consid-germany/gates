@@ -67,10 +67,12 @@ jobs:
         working-directory: ui
       - name: Start dynamodb-local
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+      - name: Build api
+        run: cargo lambda build
+        working-directory: api
       - name: Start api
         run: npx pm2 start "cargo lambda watch --features local"
         working-directory: api
-      - run: npx pm2 logs
       - name: Get api info
         run: curl http://localhost:9000/api/
       - run: npm run test:integration
