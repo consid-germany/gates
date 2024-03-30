@@ -17,8 +17,7 @@ import GlobalStackProvider from "./global-stack";
 import CrossRegionStringRef from "./cross-region-string-ref";
 import * as path from "path";
 import * as apigatewayv2_authorizers from "aws-cdk-lib/aws-apigatewayv2-authorizers";
-
-const SCOPE_CLOUDFRONT = "CLOUDFRONT";
+import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
 
 export interface Domain {
     readonly domainName: string;
@@ -31,18 +30,23 @@ export interface GatesProps {
      * If not specified, the default app name `gates` is used.
      */
     readonly appName?: string;
-
     readonly domain?: Domain;
 
+    readonly ipAllowList?: string[];
+
     readonly globalStackName?: string;
+
+    readonly demoMode?: boolean;
+
+    readonly frontendAssetsBucketName?: string;
 }
 
+const SCOPE_CLOUDFRONT = "CLOUDFRONT";
 const DEFAULT_APP_NAME = "gates";
 const X_VERIFY_ORIGIN_HEADER_NAME = "x-verify-origin";
 
 export class Gates extends Construct {
     private readonly stack: Stack;
-
     private readonly globalStack: Stack;
 
     constructor(scope: Construct, id: string, props: GatesProps) {
@@ -56,92 +60,89 @@ export class Gates extends Construct {
             tags: this.stack.tags.tagValues(),
         });
 
-        const certificate = this.createCertificate(props.domain);
-        const webAclArn = this.createWebAcl(appName);
+        const gatesTable = this.createGatesTable(appName);
+        const apiFunction = this.createApiFunction(appName, gatesTable, props.demoMode);
+        const verifyOriginSecret = this.createVerifyOriginSecret(appName);
 
-        const gatesTable = new dynamodb.TableV2(this, "GatesTable", {
-            tableName: `${appName}`,
-            partitionKey: { name: "group", type: dynamodb.AttributeType.STRING },
-            sortKey: { name: "service_environment", type: dynamodb.AttributeType.STRING },
-        });
-
-        const apiFunction = new lambda.Function(this, "ApiFunction", {
-            functionName: `${appName}-api`,
-            runtime: lambda.Runtime.PROVIDED_AL2023,
-            architecture: lambda.Architecture.ARM_64,
-            code: lambda.Code.fromAsset(
-                path.join(__dirname, "..", "..", "api/target/lambda/gates-api"),
-            ),
-            handler: "provided",
-            environment: {
-                GATES_DYNAMO_DB_TABLE_NAME: gatesTable.tableName,
-            },
-            logRetention: logs.RetentionDays.ONE_WEEK,
-        });
-
-        gatesTable.grantReadWriteData(apiFunction);
-
-        const verifyOriginSecret = new secretsmanager.Secret(this, "VerifyOriginSecret", {
-            secretName: `${appName}-verify-origin-secret`,
-            generateSecretString: {
-                excludePunctuation: true,
-            },
-        });
-
-        const verifyOriginAuthFunction = new lambda.Function(this, "VerifyOriginAuthFunction", {
-            functionName: `${appName}-verify-origin-auth`,
-            runtime: lambda.Runtime.NODEJS_20_X,
-            code: lambda.Code.fromAsset(
-                path.join(__dirname, "..", "lib", "function", "verify-origin-authorizer"),
-            ),
-            handler: "index.handler",
-            logRetention: logs.RetentionDays.ONE_WEEK,
-            environment: {
-                SECRET_ID: verifyOriginSecret.secretName,
-                X_VERIFY_ORIGIN_HEADER_NAME,
-            },
-        });
-
-        verifyOriginSecret.grantRead(verifyOriginAuthFunction);
-
-        const apiFunctionIntegration = new apigatewayv2_integrations.HttpLambdaIntegration(
-            "ApiFunctionIntegration",
-            apiFunction,
+        const verifyOriginAuthFunction = this.createVerifyOriginAuthFunction(
+            appName,
+            verifyOriginSecret,
         );
 
-        const httpApi = new apigatewayv2.HttpApi(this, "HttpApi", {
-            apiName: `${appName}-api`,
-            defaultIntegration: apiFunctionIntegration,
-            defaultAuthorizer: new apigatewayv2_authorizers.HttpLambdaAuthorizer(
-                "VerifyOriginAuthorizer",
-                verifyOriginAuthFunction,
-                {
-                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
-                    identitySource: [`$request.header.${X_VERIFY_ORIGIN_HEADER_NAME}`],
-                },
-            ),
+        const gatesApi = this.createGatesApi(appName, apiFunction, verifyOriginAuthFunction);
+        //const gatesGitHubApi = this.createGitHubApi();
+
+        const frontendAssetsBucket = this.createFrontendAssetsBucket(
+            props.frontendAssetsBucketName,
+        );
+
+        const webDistribution = this.createWebDistribution(
+            appName,
+            frontendAssetsBucket,
+            gatesApi,
+            verifyOriginSecret,
+            props.domain,
+            props.ipAllowList,
+        );
+
+        this.createARecord(webDistribution, props.domain);
+        this.createVerifyOriginSecretRotation(verifyOriginSecret, webDistribution, gatesApi);
+        this.createFrontendAssetsDeployment(frontendAssetsBucket, webDistribution);
+    }
+
+    private createARecord(webDistribution: cloudfront.CloudFrontWebDistribution, domain?: Domain) {
+        if (domain === undefined) {
+            return;
+        }
+
+        const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
+            domainName: domain.zoneDomainName || domain.domainName,
         });
 
-        const frontendAssetsBucket = new s3.Bucket(this, "FrontendAssetsBucket", {
-            // TODO name?
+        new route53.ARecord(this, "ARecord", {
+            recordName: domain.domainName,
+            target: route53.RecordTarget.fromAlias(
+                new route53_targets.CloudFrontTarget(webDistribution),
+            ),
+            zone: hostedZone,
+        });
+    }
+
+    private createFrontendAssetsDeployment(
+        frontendAssetsBucket: s3.Bucket,
+        webDistribution: cloudfront.CloudFrontWebDistribution,
+    ) {
+        new s3_deployment.BucketDeployment(this, "BucketDeployment", {
+            sources: [s3_deployment.Source.asset(path.join(__dirname, "..", "..", "ui/build"))],
+            destinationBucket: frontendAssetsBucket,
+            distribution: webDistribution,
+        });
+    }
+
+    private createFrontendAssetsBucket(bucketName?: string) {
+        return new s3.Bucket(this, "FrontendAssetsBucket", {
+            bucketName,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
         });
+    }
 
+    private createWebDistribution(
+        appName: string,
+        frontendAssetsBucket: s3.Bucket,
+        httpApi: apigatewayv2.HttpApi,
+        verifyOriginSecret: secretsmanager.Secret,
+        domain?: Domain,
+        ipAllowList?: string[],
+    ) {
         const cloudfrontOAI = new cloudfront.OriginAccessIdentity(this, "OriginAccessIdentity");
-
         frontendAssetsBucket.grantRead(cloudfrontOAI);
 
-        const webDistribution = new cloudfront.CloudFrontWebDistribution(this, "WebDistribution", {
-            webACLId: webAclArn,
+        return new cloudfront.CloudFrontWebDistribution(this, "WebDistribution", {
+            webACLId: this.createGlobalWebAcl(appName, ipAllowList),
             enableIpV6: false,
             viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            viewerCertificate:
-                props.domain && certificate
-                    ? cloudfront.ViewerCertificate.fromAcmCertificate(certificate, {
-                          aliases: [props.domain.domainName],
-                      })
-                    : undefined,
+            viewerCertificate: this.createViewerCertificate(domain),
             originConfigs: [
                 {
                     customOriginSource: {
@@ -178,26 +179,42 @@ export class Gates extends Construct {
                 },
             ],
         });
+    }
 
-        if (props.domain) {
-            const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
-                domainName: props.domain.domainName,
-            });
+    private createGatesApi(
+        appName: string,
+        apiFunction: lambda.Function,
+        verifyOriginAuthFunction: lambda.Function,
+    ) {
+        const apiFunctionIntegration = new apigatewayv2_integrations.HttpLambdaIntegration(
+            "ApiFunctionIntegration",
+            apiFunction,
+        );
 
-            new route53.ARecord(this, "ARecord", {
-                recordName: props.domain.zoneDomainName || props.domain.domainName,
-                target: route53.RecordTarget.fromAlias(
-                    new route53_targets.CloudFrontTarget(webDistribution),
-                ),
-                zone: hostedZone,
-            });
-        }
+        return new apigatewayv2.HttpApi(this, "HttpApi", {
+            apiName: `${appName}-api`,
+            defaultIntegration: apiFunctionIntegration,
+            defaultAuthorizer: new apigatewayv2_authorizers.HttpLambdaAuthorizer(
+                "VerifyOriginAuthorizer",
+                verifyOriginAuthFunction,
+                {
+                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
+                    identitySource: [`$request.header.${X_VERIFY_ORIGIN_HEADER_NAME}`],
+                },
+            ),
+        });
+    }
 
+    private createVerifyOriginSecretRotation(
+        verifyOriginSecret: secretsmanager.Secret,
+        webDistribution: cloudfront.CloudFrontWebDistribution,
+        httpApi: apigatewayv2.HttpApi,
+    ) {
         const verifyOriginSecretRotationFunction = new lambda.Function(
             this,
             "VerifyOriginSecretRotationFunction",
             {
-                functionName: `${appName}-verify-origin-secret-rotation`,
+                functionName: `${verifyOriginSecret.secretName}-rotation`,
                 runtime: lambda.Runtime.NODEJS_20_X,
                 code: lambda.Code.fromAsset(
                     path.join(__dirname, "..", "lib", "function", "verify-origin-secret-rotation"),
@@ -208,7 +225,7 @@ export class Gates extends Construct {
                 environment: {
                     CLOUDFRONT_DISTRIBUTION_ID: webDistribution.distributionId,
                     X_VERIFY_ORIGIN_HEADER_NAME,
-                    ORIGIN_TEST_URL: `https://${httpApi.apiId}.execute-api.${this.stack.region}.amazonaws.com/api`,
+                    ORIGIN_TEST_URL: `https://${httpApi.apiId}.execute-api.${this.stack.region}.amazonaws.com/api/`,
                 },
             },
         );
@@ -224,22 +241,87 @@ export class Gates extends Construct {
             rotationLambda: verifyOriginSecretRotationFunction,
             automaticallyAfter: Duration.days(1),
         });
+    }
 
-        new s3_deployment.BucketDeployment(this, "BucketDeployment", {
-            sources: [s3_deployment.Source.asset(path.join(__dirname, "..", "..", "ui/build"))],
-            destinationBucket: frontendAssetsBucket,
-            distribution: webDistribution,
+    private createVerifyOriginAuthFunction(
+        appName: string,
+        verifyOriginSecret: secretsmanager.Secret,
+    ) {
+        const verifyOriginAuthFunction = new lambda.Function(this, "VerifyOriginAuthFunction", {
+            functionName: `${appName}-verify-origin-auth`,
+            runtime: lambda.Runtime.NODEJS_20_X,
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "..", "lib", "function", "verify-origin-authorizer"),
+            ),
+            handler: "index.handler",
+            logRetention: logs.RetentionDays.ONE_WEEK,
+            environment: {
+                SECRET_ID: verifyOriginSecret.secretName,
+                X_VERIFY_ORIGIN_HEADER_NAME,
+            },
+        });
+
+        verifyOriginSecret.grantRead(verifyOriginAuthFunction);
+
+        return verifyOriginAuthFunction;
+    }
+
+    private createVerifyOriginSecret(appName: string) {
+        return new secretsmanager.Secret(this, "VerifyOriginSecret", {
+            secretName: `${appName}-verify-origin-secret`,
+            generateSecretString: {
+                excludePunctuation: true,
+            },
         });
     }
 
-    private createCertificate(domain: Domain | undefined) {
+    private createApiFunction(appName: string, gatesTable: TableV2, demoMode?: boolean) {
+        const apiFunction = new lambda.Function(this, "ApiFunction", {
+            functionName: `${appName}-api`,
+            runtime: lambda.Runtime.PROVIDED_AL2023,
+            architecture: lambda.Architecture.ARM_64,
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "..", "..", "api/target/lambda/gates-api"),
+            ),
+            handler: "provided",
+            environment: {
+                GATES_DYNAMO_DB_TABLE_NAME: gatesTable.tableName,
+                ...(demoMode && { DEMO_MODE: "true" }),
+            },
+            logRetention: logs.RetentionDays.ONE_WEEK,
+        });
+
+        gatesTable.grantReadWriteData(apiFunction);
+
+        return apiFunction;
+    }
+
+    private createViewerCertificate(domain?: Domain) {
         if (domain === undefined) {
             return undefined;
         }
 
+        return cloudfront.ViewerCertificate.fromAcmCertificate(
+            this.createGlobalCertificate(domain),
+            {
+                aliases: [domain.domainName],
+            },
+        );
+    }
+
+    private createGatesTable(appName: string) {
+        return new dynamodb.TableV2(this, "GatesTable", {
+            tableName: `${appName}`,
+            partitionKey: { name: "group", type: dynamodb.AttributeType.STRING },
+            sortKey: { name: "service_environment", type: dynamodb.AttributeType.STRING },
+        });
+    }
+
+    private createGlobalCertificate(domain: Domain) {
         const hostedZone = route53.HostedZone.fromLookup(this.globalStack, "HostedZone", {
             domainName: domain.zoneDomainName || domain.domainName,
         });
+
         const certificate = new acm.Certificate(this.globalStack, "Certificate", {
             domainName: domain.domainName,
             validation: acm.CertificateValidation.fromDns(hostedZone),
@@ -253,15 +335,19 @@ export class Gates extends Construct {
         return acm.Certificate.fromCertificateArn(this, "Certificate", certificateArn);
     }
 
-    private createWebAcl(appName: string) {
+    private createGlobalWebAcl(appName: string, ipAllowList?: string[]) {
+        if (ipAllowList === undefined) {
+            return undefined;
+        }
+
         const ipSet = new wafv2.CfnIPSet(this.globalStack, "IpSet", {
             name: `${appName}-ip-allow-list`,
-            addresses: [],
+            addresses: [...ipAllowList],
             ipAddressVersion: "IPV4",
             scope: "CLOUDFRONT",
         });
 
-        const ipAllowList: wafv2.CfnWebACL.RuleProperty = {
+        const ipAllowListRule: wafv2.CfnWebACL.RuleProperty = {
             name: `${appName}-waf-ip-allow-list-rule`,
             visibilityConfig: {
                 cloudWatchMetricsEnabled: true,
@@ -286,7 +372,7 @@ export class Gates extends Construct {
                 sampledRequestsEnabled: true,
             },
             scope: SCOPE_CLOUDFRONT,
-            rules: [ipAllowList],
+            rules: [ipAllowListRule],
         });
 
         return new CrossRegionStringRef(this, "WebAclArn", {

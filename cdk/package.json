@@ -1,5 +1,5 @@
 {
-  "name": "gates",
+  "name": "@consid-germany/gates",
   "description": "",
   "repository": {
     "type": "git",
@@ -10,13 +10,13 @@
     "email": "hamburg@consid.com",
     "organization": true
   },
-  "homepage": "https://gates.consid.tech",
+  "homepage": "https://github.com/consid-germany/gates",
   "license": "MIT",
   "version": "0.0.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "prebuild": "tsc -b src/function && node --require ts-node/register src/function/build.ts",
+    "prebuild": "node --require ts-node/register copy-builds.ts && tsc -b src/function && node --require ts-node/register src/function/build.ts",
     "build": "jsii",
     "build:watch": "jsii -w",
     "package": "jsii-pacmak",
@@ -24,12 +24,16 @@
     "test": "jest",
     "integ-test": "integ-runner --directory ./integ-test --parallel-regions eu-central-1 -v --update-on-failed",
     "integ-watch": "integ-runner --parallel-regions eu-central-1 -v --watch",
-    "integ-synth": "npx cdk@latest synth --app \"npx ts-node test/integ.gates.ts\" StackUnderTest",
+    "integ-synth": "npx cdk@latest synth --app \"npx ts-node test/integ.gates.test.ts\" StackUnderTest",
+    "check": "prettier src/**/*.ts --check",
     "format": "prettier src/**/*.ts --write"
   },
   "keywords": [
     ""
   ],
+  "bugs": {
+    "url": "https://github.com/consid-germany/gates/issues"
+  },
   "dependencies": {
   },
   "devDependencies": {

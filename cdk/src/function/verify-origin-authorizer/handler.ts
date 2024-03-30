@@ -24,10 +24,6 @@ export const handler: APIGatewayRequestSimpleAuthorizerHandlerV2 = async (event)
             return {
                 isAuthorized: true,
             };
-        } else {
-            return {
-                isAuthorized: false,
-            };
         }
     }
 
@@ -36,10 +32,6 @@ export const handler: APIGatewayRequestSimpleAuthorizerHandlerV2 = async (event)
         if (event.headers[X_VERIFY_ORIGIN_HEADER_NAME] == currentSecret) {
             return {
                 isAuthorized: true,
-            };
-        } else {
-            return {
-                isAuthorized: false,
             };
         }
     }

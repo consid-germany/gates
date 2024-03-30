@@ -24,6 +24,11 @@ const stackUnderTest = new cdk.Stack(app, "StackUnderTest", {
 
 new Gates(stackUnderTest, "Gates", {
     appName: "consid-gates",
+    ipAllowList: ["93.230.165.116/32"],
+    domain: {
+        domainName: "gates.consid.tech",
+        zoneDomainName: "consid.tech",
+    },
 });
 
 new IntegTest(app, "IntegTest", {
