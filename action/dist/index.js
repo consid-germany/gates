@@ -24748,32 +24748,27 @@ async function run() {
                 "Authorization": `Bearer ${await core.getIDToken(AUDIENCE)}`,
             }
         });
-        core.info(String(gateStateResponse.status));
-        core.info(await gateStateResponse.json());
-        // switch (gateStateResponse.message.statusCode) {
-        //     case 200:
-        //         await checkGate(await gateStateResponse.readBody());
-        //         break;
-        //     case 204:
-        //         //core.setFailed("Gate could not be found.");
-        //         break;
-        //     default:
-        //         //core.setFailed("Request to check gate state failed");
-        //         break;
-        // }
-        return;
+        switch (gateStateResponse.status) {
+            case 200:
+                if (isClosed(await gateStateResponse.json())) {
+                    core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
+                }
+                break;
+            case 204:
+                core.setFailed(`Gate ${group}/${service}/${environment} could not be found.`);
+                break;
+            default:
+                core.setFailed(`Request to check gate state of ${group}/${service}/${environment} failed`);
+                break;
+        }
     }
     catch (error) {
         core.setFailed(`${error}`);
     }
 }
 exports.run = run;
-async function checkGate(gateStateJson) {
-    const gateState = JSON.parse(gateStateJson);
-    await core.summary.addDetails("Gate State", gateState.state).write();
-    if (gateState.state !== "open") {
-        core.setFailed("Gate is closed.");
-    }
+function isClosed(gateState) {
+    return gateState.state !== "open";
 }
 
 
