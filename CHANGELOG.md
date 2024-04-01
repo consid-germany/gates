@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/consid-germany/gates/compare/v1.2.0...v1.3.0) (2024-04-01)
+
+
+### Features
+
+* **release:** update release workflow ([d6c2b6e](https://github.com/consid-germany/gates/commit/d6c2b6eb92373f94f23fb0f2610ca3f952d9bc70))
+
 # [1.2.0](https://github.com/consid-germany/gates/compare/v1.1.0...v1.2.0) (2024-04-01)
 
 
