@@ -1,5 +1,5 @@
 import {Construct} from "constructs";
-import {Duration, Stack} from "aws-cdk-lib";
+import * as cdk from "aws-cdk-lib";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53_targets from "aws-cdk-lib/aws-route53-targets";
@@ -52,15 +52,15 @@ const DEFAULT_APP_NAME = "gates";
 const X_VERIFY_ORIGIN_HEADER_NAME = "x-verify-origin";
 
 export class Gates extends Construct {
-    private readonly stack: Stack;
-    private readonly globalStack: Stack;
+    private readonly stack: cdk.Stack;
+    private readonly globalStack: cdk.Stack;
 
     constructor(scope: Construct, id: string, props: GatesProps) {
         super(scope, id);
 
         const { appName = DEFAULT_APP_NAME } = props;
 
-        this.stack = Stack.of(this);
+        this.stack = cdk.Stack.of(this);
         this.globalStack = GlobalStackProvider.getOrCreate(this, {
             stackName: props.globalStackName || `${this.stack.stackName}-global`,
             tags: this.stack.tags.tagValues(),
@@ -229,6 +229,8 @@ export class Gates extends Construct {
             bucketName,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+            autoDeleteObjects: true,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
     }
 
@@ -262,12 +264,12 @@ export class Gates extends Construct {
                         {
                             pathPattern: "/api",
                             allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-                            defaultTtl: Duration.seconds(0),
+                            defaultTtl: cdk.Duration.seconds(0),
                         },
                         {
                             pathPattern: "/api/*",
                             allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-                            defaultTtl: Duration.seconds(0),
+                            defaultTtl: cdk.Duration.seconds(0),
                         },
                     ],
                 },
@@ -339,7 +341,7 @@ export class Gates extends Construct {
                 ),
                 handler: "index.handler",
                 logRetention: logs.RetentionDays.ONE_WEEK,
-                timeout: Duration.seconds(30),
+                timeout: cdk.Duration.seconds(30),
                 environment: {
                     CLOUDFRONT_DISTRIBUTION_ID: webDistribution.distributionId,
                     X_VERIFY_ORIGIN_HEADER_NAME,
@@ -357,7 +359,7 @@ export class Gates extends Construct {
 
         verifyOriginSecret.addRotationSchedule("RotationSchedule", {
             rotationLambda: verifyOriginSecretRotationFunction,
-            automaticallyAfter: Duration.days(1),
+            automaticallyAfter: cdk.Duration.days(1),
         });
     }
 

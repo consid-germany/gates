@@ -1,10 +1,16 @@
 import * as cdk from "aws-cdk-lib";
-import { IntegTest } from "@aws-cdk/integ-tests-alpha";
-import { Gates } from "../src";
+import {IntegTest} from "@aws-cdk/integ-tests-alpha";
+import {ApplyDestroyPolicyAspect} from "./destroy-aspect";
+import {createTestBuilds} from "./assets";
+import {execSync} from "child_process";
+import {Gates} from "../src";
 
 Date.now = function() {
     return 0;
 };
+
+execSync("npm run prebuild");
+createTestBuilds();
 
 const app = new cdk.App({
     context: {
@@ -33,6 +39,8 @@ new Gates(stackUnderTest, "Gates", {
         allowedSubPatterns: []
     }
 });
+
+cdk.Aspects.of(stackUnderTest).add(new ApplyDestroyPolicyAspect());
 
 new IntegTest(app, "IntegTest", {
     testCases: [stackUnderTest],
