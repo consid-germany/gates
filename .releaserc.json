@@ -12,8 +12,8 @@
             "files": [
               "api/Cargo.toml"
             ],
-            "from": "name = \".*\"\nversion = \".*\"",
-            "to": "name = \".*\"\nversion = \"${nextRelease.version}\"",
+            "from": "name = \"gates-api\"\nversion = \".*\"",
+            "to": "name = \"gates-api\"\nversion = \"${nextRelease.version}\"",
             "results": [
               {
                 "file": "api/Cargo.toml",
