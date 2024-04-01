@@ -10,6 +10,22 @@
         "replacements": [
           {
             "files": [
+              "api/Cargo.toml"
+            ],
+            "from": "version = \".*\"",
+            "to": "version = \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "api/Cargo.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
               "action/package.json",
               "cdk/package.json",
               "ui/package.json"
