@@ -12,8 +12,8 @@
             "files": [
               "openapi.yaml"
             ],
-            "from": "version: \".*\"",
-            "to": "version: \"${nextRelease.version}\"",
+            "from": "version: .*",
+            "to": "version: ${nextRelease.version}",
             "results": [
               {
                 "file": "openapi.yaml",
@@ -86,6 +86,7 @@
       {
         "assets": [
           "CHANGELOG.md",
+          "openapi.yaml",
           "api/Cargo.toml",
           "api/Cargo.lock",
           "action/package.json",
