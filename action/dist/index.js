@@ -24740,7 +24740,7 @@ async function run() {
         const group = core.getInput("group");
         const service = core.getInput("service");
         const environment = core.getInput("environment");
-        const gateStateResponse = await fetch(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`, {
+        const gateStateResponse = await fetch(`${gitHubApiBaseUrl}/gatses/${group}/${service}/${environment}/state`, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
