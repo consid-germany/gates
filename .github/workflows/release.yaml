@@ -22,5 +22,6 @@ jobs:
             @semantic-release/changelog
             @semantic-release/exec
             @semantic-release/git
+            semantic-release-replace-plugin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
