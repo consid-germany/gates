@@ -22,6 +22,7 @@ jobs:
         with:
           repo: cargo-lambda/cargo-lambda
           cache: enable
+      - uses: korandoru/setup-zig@v1
       - uses: cycjimmy/semantic-release-action@v4
         with:
           extra_plugins: |
