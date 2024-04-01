@@ -918,7 +918,7 @@ dependencies = [
 
 [[package]]
 name = "gates-api"
-version = "1.8.0"
+version = "1.9.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
