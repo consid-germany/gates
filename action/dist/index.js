@@ -24738,7 +24738,7 @@ async function run() {
     try {
         const group = core.getInput("group");
         core.info(`Group: ${group}`);
-        const idToken = await core.getIDToken();
+        const idToken = await core.getIDToken("consid-germany/gates");
         core.info(`idToken: ${idToken}`);
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient("consid-germany/gates", [auth]);

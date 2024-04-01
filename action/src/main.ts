@@ -7,7 +7,7 @@ export async function run(): Promise<void> {
         const group = core.getInput("group");
         core.info(`Group: ${group}`);
 
-        const idToken = await core.getIDToken();
+        const idToken = await core.getIDToken("consid-germany/gates");
         core.info(`idToken: ${idToken}`);
 
 
