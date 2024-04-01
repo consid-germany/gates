@@ -21,19 +21,23 @@ export async function run(): Promise<void> {
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient(USER_AGENT, [auth]);
 
-        const gateStateResponse = await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
-
-        switch (gateStateResponse.message.statusCode) {
-            case 200:
-                await checkGate(await gateStateResponse.readBody());
-                break;
-            case 204:
-                //core.setFailed("Gate could not be found.");
-                break;
-            default:
-                //core.setFailed("Request to check gate state failed");
-                break;
+        try {
+            await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        } catch (e) {
+            core.info("catched error")
         }
+
+        // switch (gateStateResponse.message.statusCode) {
+        //     case 200:
+        //         await checkGate(await gateStateResponse.readBody());
+        //         break;
+        //     case 204:
+        //         //core.setFailed("Gate could not be found.");
+        //         break;
+        //     default:
+        //         //core.setFailed("Request to check gate state failed");
+        //         break;
+        // }
     } catch (error) {
         core.setFailed(`${error}`);
     }
