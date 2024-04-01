@@ -1,6 +1,6 @@
 [package]
-version = "0.0.0"
 name = "gates-api"
+version = "0.0.0"
 edition = "2021"
 
 [features]
