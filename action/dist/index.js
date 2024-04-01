@@ -24734,25 +24734,42 @@ exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const http = __importStar(__nccwpck_require__(6255));
 const httpAuth = __importStar(__nccwpck_require__(5526));
+const USER_AGENT = "consid-germany/gates";
+const AUDIENCE = "consid-germany/gates";
 async function run() {
     try {
         const gitHubApiBaseUrl = core.getInput("gitHubApiBaseUrl");
         const group = core.getInput("group");
         const service = core.getInput("service");
         const environment = core.getInput("environment");
-        const idToken = await core.getIDToken("consid-germany/gates");
+        const idToken = await core.getIDToken(AUDIENCE);
         const auth = new httpAuth.BearerCredentialHandler(idToken);
-        const client = new http.HttpClient("consid-germany/gates", [auth]);
-        const response = await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
-        console.log(response.message.statusCode);
-        console.log((await response.readBody()));
-        core.setFailed("some error");
+        const client = new http.HttpClient(USER_AGENT, [auth]);
+        const gateStateResponse = await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        switch (gateStateResponse.message.statusCode) {
+            case 200:
+                checkGate(await gateStateResponse.readBody());
+                break;
+            case 204:
+                core.setFailed("Gate could not be found.");
+                break;
+            default:
+                core.setFailed("Request to check gate state failed");
+                break;
+        }
     }
     catch (error) {
         core.setFailed(`${error}`);
     }
 }
 exports.run = run;
+function checkGate(gateStateJson) {
+    const gateState = JSON.parse(gateStateJson);
+    core.summary.addDetails("Gate State", gateState.state);
+    if (gateState.state !== "open") {
+        core.setFailed("Gate is closed.");
+    }
+}
 
 
 /***/ }),
