@@ -10,6 +10,22 @@
         "replacements": [
           {
             "files": [
+              "openapi.yaml"
+            ],
+            "from": "version: \".*\"",
+            "to": "version: \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "openapi.yaml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
               "api/Cargo.toml"
             ],
             "from": "name = \"gates-api\"\nversion = \".*\"",
