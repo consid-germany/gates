@@ -1,7 +1,6 @@
 import * as core from "@actions/core";
 
 const USER_AGENT = "consid-germany/gates";
-
 const AUDIENCE = "consid-germany/gates";
 
 interface GateState {
