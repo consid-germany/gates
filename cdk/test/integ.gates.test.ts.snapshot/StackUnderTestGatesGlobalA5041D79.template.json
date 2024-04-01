@@ -1,0 +1,105 @@
+{
+ "Resources": {
+  "IpSet": {
+   "Type": "AWS::WAFv2::IPSet",
+   "Properties": {
+    "Addresses": [],
+    "IPAddressVersion": "IPV4",
+    "Name": "consid-gates-integ-ip-allow-list",
+    "Scope": "CLOUDFRONT"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "WebAcl": {
+   "Type": "AWS::WAFv2::WebACL",
+   "Properties": {
+    "DefaultAction": {
+     "Block": {}
+    },
+    "Name": "consid-gates-integ-waf",
+    "Rules": [
+     {
+      "Action": {
+       "Allow": {}
+      },
+      "Name": "consid-gates-integ-waf-ip-allow-list-rule",
+      "Priority": 0,
+      "Statement": {
+       "IPSetReferenceStatement": {
+        "Arn": {
+         "Fn::GetAtt": [
+          "IpSet",
+          "Arn"
+         ]
+        }
+       }
+      },
+      "VisibilityConfig": {
+       "CloudWatchMetricsEnabled": true,
+       "MetricName": "consid-gates-integ-waf-ip-allow-list",
+       "SampledRequestsEnabled": true
+      }
+     }
+    ],
+    "Scope": "CLOUDFRONT",
+    "VisibilityConfig": {
+     "CloudWatchMetricsEnabled": true,
+     "MetricName": "consid-gates-integ-waf",
+     "SampledRequestsEnabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "WebAclWebAclArnCB84A729": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Name": "/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn",
+    "Type": "String",
+    "Value": {
+     "Fn::GetAtt": [
+      "WebAcl",
+      "Arn"
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/consid/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

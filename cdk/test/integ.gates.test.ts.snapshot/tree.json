@@ -1,0 +1,3112 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "StackUnderTest": {
+        "id": "StackUnderTest",
+        "path": "StackUnderTest",
+        "children": {
+          "Gates": {
+            "id": "Gates",
+            "path": "StackUnderTest/Gates",
+            "children": {
+              "Global": {
+                "id": "Global",
+                "path": "StackUnderTest/Gates/Global",
+                "children": {
+                  "IpSet": {
+                    "id": "IpSet",
+                    "path": "StackUnderTest/Gates/Global/IpSet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::WAFv2::IPSet",
+                      "aws:cdk:cloudformation:props": {
+                        "addresses": [],
+                        "ipAddressVersion": "IPV4",
+                        "name": "consid-gates-integ-ip-allow-list",
+                        "scope": "CLOUDFRONT"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_wafv2.CfnIPSet",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "WebAcl": {
+                    "id": "WebAcl",
+                    "path": "StackUnderTest/Gates/Global/WebAcl",
+                    "children": {
+                      "WebAclArn": {
+                        "id": "WebAclArn",
+                        "path": "StackUnderTest/Gates/Global/WebAcl/WebAclArn",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/Global/WebAcl/WebAclArn/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::SSM::Parameter",
+                              "aws:cdk:cloudformation:props": {
+                                "name": "/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn",
+                                "type": "String",
+                                "value": {
+                                  "Fn::GetAtt": [
+                                    "WebAcl",
+                                    "Arn"
+                                  ]
+                                }
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_ssm.CfnParameter",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_ssm.StringParameter",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::WAFv2::WebACL",
+                      "aws:cdk:cloudformation:props": {
+                        "defaultAction": {
+                          "block": {}
+                        },
+                        "name": "consid-gates-integ-waf",
+                        "rules": [
+                          {
+                            "name": "consid-gates-integ-waf-ip-allow-list-rule",
+                            "visibilityConfig": {
+                              "cloudWatchMetricsEnabled": true,
+                              "metricName": "consid-gates-integ-waf-ip-allow-list",
+                              "sampledRequestsEnabled": true
+                            },
+                            "priority": 0,
+                            "action": {
+                              "allow": {}
+                            },
+                            "statement": {
+                              "ipSetReferenceStatement": {
+                                "arn": {
+                                  "Fn::GetAtt": [
+                                    "IpSet",
+                                    "Arn"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "scope": "CLOUDFRONT",
+                        "visibilityConfig": {
+                          "cloudWatchMetricsEnabled": true,
+                          "metricName": "consid-gates-integ-waf",
+                          "sampledRequestsEnabled": true
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_wafv2.CfnWebACL",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "BootstrapVersion": {
+                    "id": "BootstrapVersion",
+                    "path": "StackUnderTest/Gates/Global/BootstrapVersion",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CfnParameter",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "CheckBootstrapVersion": {
+                    "id": "CheckBootstrapVersion",
+                    "path": "StackUnderTest/Gates/Global/CheckBootstrapVersion",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CfnRule",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Stack",
+                  "version": "2.131.0"
+                }
+              },
+              "GatesTable": {
+                "id": "GatesTable",
+                "path": "StackUnderTest/Gates/GatesTable",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/GatesTable/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::DynamoDB::GlobalTable",
+                      "aws:cdk:cloudformation:props": {
+                        "attributeDefinitions": [
+                          {
+                            "attributeName": "group",
+                            "attributeType": "S"
+                          },
+                          {
+                            "attributeName": "service_environment",
+                            "attributeType": "S"
+                          }
+                        ],
+                        "billingMode": "PAY_PER_REQUEST",
+                        "keySchema": [
+                          {
+                            "attributeName": "group",
+                            "keyType": "HASH"
+                          },
+                          {
+                            "attributeName": "service_environment",
+                            "keyType": "RANGE"
+                          }
+                        ],
+                        "replicas": [
+                          {
+                            "region": "eu-central-1"
+                          }
+                        ],
+                        "tableName": "consid-gates-integ"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_dynamodb.CfnGlobalTable",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.TableV2",
+                  "version": "2.131.0"
+                }
+              },
+              "ApiFunction": {
+                "id": "ApiFunction",
+                "path": "StackUnderTest/Gates/ApiFunction",
+                "children": {
+                  "ServiceRole": {
+                    "id": "ServiceRole",
+                    "path": "StackUnderTest/Gates/ApiFunction/ServiceRole",
+                    "children": {
+                      "ImportServiceRole": {
+                        "id": "ImportServiceRole",
+                        "path": "StackUnderTest/Gates/ApiFunction/ServiceRole/ImportServiceRole",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.Resource",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/ApiFunction/ServiceRole/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                          "aws:cdk:cloudformation:props": {
+                            "assumeRolePolicyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": "sts:AssumeRole",
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "Service": "lambda.amazonaws.com"
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "managedPolicyArns": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                                  ]
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "DefaultPolicy": {
+                        "id": "DefaultPolicy",
+                        "path": "StackUnderTest/Gates/ApiFunction/ServiceRole/DefaultPolicy",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/ApiFunction/ServiceRole/DefaultPolicy/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                              "aws:cdk:cloudformation:props": {
+                                "policyDocument": {
+                                  "Statement": [
+                                    {
+                                      "Action": [
+                                        "dynamodb:BatchGetItem",
+                                        "dynamodb:BatchWriteItem",
+                                        "dynamodb:ConditionCheckItem",
+                                        "dynamodb:DeleteItem",
+                                        "dynamodb:DescribeTable",
+                                        "dynamodb:GetItem",
+                                        "dynamodb:GetRecords",
+                                        "dynamodb:GetShardIterator",
+                                        "dynamodb:PutItem",
+                                        "dynamodb:Query",
+                                        "dynamodb:Scan",
+                                        "dynamodb:UpdateItem"
+                                      ],
+                                      "Effect": "Allow",
+                                      "Resource": {
+                                        "Fn::GetAtt": [
+                                          "GatesGatesTable3C4585D6",
+                                          "Arn"
+                                        ]
+                                      }
+                                    }
+                                  ],
+                                  "Version": "2012-10-17"
+                                },
+                                "policyName": "GatesApiFunctionServiceRoleDefaultPolicyBE4E8926",
+                                "roles": [
+                                  {
+                                    "Ref": "GatesApiFunctionServiceRole83DABBDD"
+                                  }
+                                ]
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.Policy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Role",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Code": {
+                    "id": "Code",
+                    "path": "StackUnderTest/Gates/ApiFunction/Code",
+                    "children": {
+                      "Stage": {
+                        "id": "Stage",
+                        "path": "StackUnderTest/Gates/ApiFunction/Code/Stage",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.AssetStaging",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "AssetBucket": {
+                        "id": "AssetBucket",
+                        "path": "StackUnderTest/Gates/ApiFunction/Code/AssetBucket",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/ApiFunction/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                      "aws:cdk:cloudformation:props": {
+                        "architectures": [
+                          "arm64"
+                        ],
+                        "code": {
+                          "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                          "s3Key": "ffed7f8046e77467314c26d035974a9d3ead58b1cf6ab2afd266084de7a4df3e.zip"
+                        },
+                        "environment": {
+                          "variables": {
+                            "GATES_DYNAMO_DB_TABLE_NAME": {
+                              "Ref": "GatesGatesTable3C4585D6"
+                            }
+                          }
+                        },
+                        "functionName": "consid-gates-integ-api",
+                        "handler": "provided",
+                        "role": {
+                          "Fn::GetAtt": [
+                            "GatesApiFunctionServiceRole83DABBDD",
+                            "Arn"
+                          ]
+                        },
+                        "runtime": "provided.al2023"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogRetention": {
+                    "id": "LogRetention",
+                    "path": "StackUnderTest/Gates/ApiFunction/LogRetention",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/ApiFunction/LogRetention/Resource",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_logs.LogRetention",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogGroup": {
+                    "id": "LogGroup",
+                    "path": "StackUnderTest/Gates/ApiFunction/LogGroup",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.Function",
+                  "version": "2.131.0"
+                }
+              },
+              "VerifyOriginSecret": {
+                "id": "VerifyOriginSecret",
+                "path": "StackUnderTest/Gates/VerifyOriginSecret",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecret/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::SecretsManager::Secret",
+                      "aws:cdk:cloudformation:props": {
+                        "generateSecretString": {
+                          "excludePunctuation": true
+                        },
+                        "name": "consid-gates-integ-verify-origin-secret"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_secretsmanager.CfnSecret",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "RotationSchedule": {
+                    "id": "RotationSchedule",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecret/RotationSchedule",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecret/RotationSchedule/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::SecretsManager::RotationSchedule",
+                          "aws:cdk:cloudformation:props": {
+                            "rotationLambdaArn": {
+                              "Fn::GetAtt": [
+                                "GatesVerifyOriginSecretRotationFunctionC6EDE179",
+                                "Arn"
+                              ]
+                            },
+                            "rotationRules": {
+                              "scheduleExpression": "rate(1 day)"
+                            },
+                            "secretId": {
+                              "Ref": "GatesVerifyOriginSecret18F23E34"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_secretsmanager.CfnRotationSchedule",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_secretsmanager.RotationSchedule",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Policy": {
+                    "id": "Policy",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecret/Policy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecret/Policy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::SecretsManager::ResourcePolicy",
+                          "aws:cdk:cloudformation:props": {
+                            "resourcePolicy": {
+                              "Statement": [
+                                {
+                                  "Action": "secretsmanager:DeleteSecret",
+                                  "Effect": "Deny",
+                                  "Principal": {
+                                    "AWS": "arn:aws:iam::669698671509:root"
+                                  },
+                                  "Resource": "*"
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "secretId": {
+                              "Ref": "GatesVerifyOriginSecret18F23E34"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_secretsmanager.CfnResourcePolicy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_secretsmanager.ResourcePolicy",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_secretsmanager.Secret",
+                  "version": "2.131.0"
+                }
+              },
+              "VerifyOriginAuthFunction": {
+                "id": "VerifyOriginAuthFunction",
+                "path": "StackUnderTest/Gates/VerifyOriginAuthFunction",
+                "children": {
+                  "ServiceRole": {
+                    "id": "ServiceRole",
+                    "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole",
+                    "children": {
+                      "ImportServiceRole": {
+                        "id": "ImportServiceRole",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/ImportServiceRole",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.Resource",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                          "aws:cdk:cloudformation:props": {
+                            "assumeRolePolicyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": "sts:AssumeRole",
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "Service": "lambda.amazonaws.com"
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "managedPolicyArns": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                                  ]
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "DefaultPolicy": {
+                        "id": "DefaultPolicy",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/DefaultPolicy",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/DefaultPolicy/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                              "aws:cdk:cloudformation:props": {
+                                "policyDocument": {
+                                  "Statement": [
+                                    {
+                                      "Action": [
+                                        "secretsmanager:DescribeSecret",
+                                        "secretsmanager:GetSecretValue"
+                                      ],
+                                      "Effect": "Allow",
+                                      "Resource": {
+                                        "Ref": "GatesVerifyOriginSecret18F23E34"
+                                      }
+                                    }
+                                  ],
+                                  "Version": "2012-10-17"
+                                },
+                                "policyName": "GatesVerifyOriginAuthFunctionServiceRoleDefaultPolicy2AB27DCE",
+                                "roles": [
+                                  {
+                                    "Ref": "GatesVerifyOriginAuthFunctionServiceRole9C769B25"
+                                  }
+                                ]
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.Policy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Role",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Code": {
+                    "id": "Code",
+                    "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/Code",
+                    "children": {
+                      "Stage": {
+                        "id": "Stage",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/Code/Stage",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.AssetStaging",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "AssetBucket": {
+                        "id": "AssetBucket",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/Code/AssetBucket",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                      "aws:cdk:cloudformation:props": {
+                        "code": {
+                          "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                          "s3Key": "9f880a74088103505757bdb47748ddd742aa8f93415b2336c48cc33bc0e8c845.zip"
+                        },
+                        "environment": {
+                          "variables": {
+                            "SECRET_ID": {
+                              "Fn::Join": [
+                                "-",
+                                [
+                                  {
+                                    "Fn::Select": [
+                                      0,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Fn::Select": [
+                                      1,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Fn::Select": [
+                                      2,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Fn::Select": [
+                                      3,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Fn::Select": [
+                                      4,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Fn::Select": [
+                                      5,
+                                      {
+                                        "Fn::Split": [
+                                          "-",
+                                          {
+                                            "Fn::Select": [
+                                              6,
+                                              {
+                                                "Fn::Split": [
+                                                  ":",
+                                                  {
+                                                    "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              ]
+                            },
+                            "X_VERIFY_ORIGIN_HEADER_NAME": "x-verify-origin"
+                          }
+                        },
+                        "functionName": "consid-gates-integ-verify-origin-auth",
+                        "handler": "index.handler",
+                        "role": {
+                          "Fn::GetAtt": [
+                            "GatesVerifyOriginAuthFunctionServiceRole9C769B25",
+                            "Arn"
+                          ]
+                        },
+                        "runtime": "nodejs20.x"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogRetention": {
+                    "id": "LogRetention",
+                    "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/LogRetention",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/LogRetention/Resource",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_logs.LogRetention",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogGroup": {
+                    "id": "LogGroup",
+                    "path": "StackUnderTest/Gates/VerifyOriginAuthFunction/LogGroup",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.Function",
+                  "version": "2.131.0"
+                }
+              },
+              "HttpApi": {
+                "id": "HttpApi",
+                "path": "StackUnderTest/Gates/HttpApi",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/HttpApi/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Api",
+                      "aws:cdk:cloudformation:props": {
+                        "name": "consid-gates-integ-api",
+                        "protocolType": "HTTP"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnApi",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "StackUnderTest/Gates/HttpApi/DefaultRoute",
+                    "children": {
+                      "ApiFunctionApiIntegration": {
+                        "id": "ApiFunctionApiIntegration",
+                        "path": "StackUnderTest/Gates/HttpApi/DefaultRoute/ApiFunctionApiIntegration",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/HttpApi/DefaultRoute/ApiFunctionApiIntegration/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
+                              "aws:cdk:cloudformation:props": {
+                                "apiId": {
+                                  "Ref": "GatesHttpApi627E4AAB"
+                                },
+                                "integrationType": "AWS_PROXY",
+                                "integrationUri": {
+                                  "Fn::GetAtt": [
+                                    "GatesApiFunctionF003CA0A",
+                                    "Arn"
+                                  ]
+                                },
+                                "payloadFormatVersion": "2.0"
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnIntegration",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpIntegration",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "ApiFunctionApiIntegration-Permission": {
+                        "id": "ApiFunctionApiIntegration-Permission",
+                        "path": "StackUnderTest/Gates/HttpApi/DefaultRoute/ApiFunctionApiIntegration-Permission",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                          "aws:cdk:cloudformation:props": {
+                            "action": "lambda:InvokeFunction",
+                            "functionName": {
+                              "Fn::GetAtt": [
+                                "GatesApiFunctionF003CA0A",
+                                "Arn"
+                              ]
+                            },
+                            "principal": "apigateway.amazonaws.com",
+                            "sourceArn": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "arn:aws:execute-api:eu-central-1:669698671509:",
+                                  {
+                                    "Ref": "GatesHttpApi627E4AAB"
+                                  },
+                                  "/*/*"
+                                ]
+                              ]
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/HttpApi/DefaultRoute/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesHttpApi627E4AAB"
+                            },
+                            "authorizationType": "CUSTOM",
+                            "authorizerId": {
+                              "Ref": "GatesHttpApiVerifyOriginAuthorizer1F98DA52"
+                            },
+                            "routeKey": "$default",
+                            "target": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "integrations/",
+                                  {
+                                    "Ref": "GatesHttpApiDefaultRouteApiFunctionApiIntegration707B1703"
+                                  }
+                                ]
+                              ]
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpRoute",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "VerifyOriginAuthorizer": {
+                    "id": "VerifyOriginAuthorizer",
+                    "path": "StackUnderTest/Gates/HttpApi/VerifyOriginAuthorizer",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/HttpApi/VerifyOriginAuthorizer/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Authorizer",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesHttpApi627E4AAB"
+                            },
+                            "authorizerPayloadFormatVersion": "2.0",
+                            "authorizerResultTtlInSeconds": 300,
+                            "authorizerType": "REQUEST",
+                            "authorizerUri": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/",
+                                  {
+                                    "Fn::GetAtt": [
+                                      "GatesVerifyOriginAuthFunctionD0559F11",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/invocations"
+                                ]
+                              ]
+                            },
+                            "enableSimpleResponses": true,
+                            "identitySource": [
+                              "$request.header.x-verify-origin"
+                            ],
+                            "name": "VerifyOriginAuthorizer"
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnAuthorizer",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpAuthorizer",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "StackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758-Permission": {
+                    "id": "StackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758-Permission",
+                    "path": "StackUnderTest/Gates/HttpApi/StackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758-Permission",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                      "aws:cdk:cloudformation:props": {
+                        "action": "lambda:InvokeFunction",
+                        "functionName": {
+                          "Fn::GetAtt": [
+                            "GatesVerifyOriginAuthFunctionD0559F11",
+                            "Arn"
+                          ]
+                        },
+                        "principal": "apigateway.amazonaws.com",
+                        "sourceArn": {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:aws:execute-api:eu-central-1:669698671509:",
+                              {
+                                "Ref": "GatesHttpApi627E4AAB"
+                              },
+                              "/authorizers/",
+                              {
+                                "Ref": "GatesHttpApiVerifyOriginAuthorizer1F98DA52"
+                              }
+                            ]
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultStage": {
+                    "id": "DefaultStage",
+                    "path": "StackUnderTest/Gates/HttpApi/DefaultStage",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/HttpApi/DefaultStage/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Stage",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesHttpApi627E4AAB"
+                            },
+                            "autoDeploy": true,
+                            "stageName": "$default"
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnStage",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpStage",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpApi",
+                  "version": "2.131.0"
+                }
+              },
+              "GitHubJwtAuthFunction": {
+                "id": "GitHubJwtAuthFunction",
+                "path": "StackUnderTest/Gates/GitHubJwtAuthFunction",
+                "children": {
+                  "ServiceRole": {
+                    "id": "ServiceRole",
+                    "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/ServiceRole",
+                    "children": {
+                      "ImportServiceRole": {
+                        "id": "ImportServiceRole",
+                        "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/ServiceRole/ImportServiceRole",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.Resource",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/ServiceRole/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                          "aws:cdk:cloudformation:props": {
+                            "assumeRolePolicyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": "sts:AssumeRole",
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "Service": "lambda.amazonaws.com"
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "managedPolicyArns": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                                  ]
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Role",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Code": {
+                    "id": "Code",
+                    "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/Code",
+                    "children": {
+                      "Stage": {
+                        "id": "Stage",
+                        "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/Code/Stage",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.AssetStaging",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "AssetBucket": {
+                        "id": "AssetBucket",
+                        "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/Code/AssetBucket",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                      "aws:cdk:cloudformation:props": {
+                        "code": {
+                          "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                          "s3Key": "6a5fcc269f86c8457dbf3606de5eb54dc03f9ec62deeed00d67ae9cea95cb4d2.zip"
+                        },
+                        "environment": {
+                          "variables": {
+                            "ALLOWED_SUB_PATTERNS": "[]"
+                          }
+                        },
+                        "functionName": "consid-gates-integ-github-jwt-auth",
+                        "handler": "index.handler",
+                        "role": {
+                          "Fn::GetAtt": [
+                            "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4",
+                            "Arn"
+                          ]
+                        },
+                        "runtime": "nodejs20.x"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogRetention": {
+                    "id": "LogRetention",
+                    "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/LogRetention",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/LogRetention/Resource",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_logs.LogRetention",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogGroup": {
+                    "id": "LogGroup",
+                    "path": "StackUnderTest/Gates/GitHubJwtAuthFunction/LogGroup",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.Function",
+                  "version": "2.131.0"
+                }
+              },
+              "GitHubHttpApi": {
+                "id": "GitHubHttpApi",
+                "path": "StackUnderTest/Gates/GitHubHttpApi",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/GitHubHttpApi/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Api",
+                      "aws:cdk:cloudformation:props": {
+                        "name": "consid-gates-integ-github-api",
+                        "protocolType": "HTTP"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnApi",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultRoute",
+                    "children": {
+                      "ApiFunctionGitHubHttpApiIntegration": {
+                        "id": "ApiFunctionGitHubHttpApiIntegration",
+                        "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/ApiFunctionGitHubHttpApiIntegration",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/ApiFunctionGitHubHttpApiIntegration/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
+                              "aws:cdk:cloudformation:props": {
+                                "apiId": {
+                                  "Ref": "GatesGitHubHttpApiBE8182E0"
+                                },
+                                "integrationType": "AWS_PROXY",
+                                "integrationUri": {
+                                  "Fn::GetAtt": [
+                                    "GatesApiFunctionF003CA0A",
+                                    "Arn"
+                                  ]
+                                },
+                                "payloadFormatVersion": "2.0"
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnIntegration",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpIntegration",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "ApiFunctionGitHubHttpApiIntegration-Permission": {
+                        "id": "ApiFunctionGitHubHttpApiIntegration-Permission",
+                        "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/ApiFunctionGitHubHttpApiIntegration-Permission",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                          "aws:cdk:cloudformation:props": {
+                            "action": "lambda:InvokeFunction",
+                            "functionName": {
+                              "Fn::GetAtt": [
+                                "GatesApiFunctionF003CA0A",
+                                "Arn"
+                              ]
+                            },
+                            "principal": "apigateway.amazonaws.com",
+                            "sourceArn": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "arn:aws:execute-api:eu-central-1:669698671509:",
+                                  {
+                                    "Ref": "GatesGitHubHttpApiBE8182E0"
+                                  },
+                                  "/*/*"
+                                ]
+                              ]
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesGitHubHttpApiBE8182E0"
+                            },
+                            "authorizationType": "CUSTOM",
+                            "authorizerId": {
+                              "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24"
+                            },
+                            "routeKey": "$default",
+                            "target": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "integrations/",
+                                  {
+                                    "Ref": "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationEDC355FC"
+                                  }
+                                ]
+                              ]
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpRoute",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "GitHubJwtAuthorizer": {
+                    "id": "GitHubJwtAuthorizer",
+                    "path": "StackUnderTest/Gates/GitHubHttpApi/GitHubJwtAuthorizer",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/GitHubHttpApi/GitHubJwtAuthorizer/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Authorizer",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesGitHubHttpApiBE8182E0"
+                            },
+                            "authorizerPayloadFormatVersion": "2.0",
+                            "authorizerResultTtlInSeconds": 300,
+                            "authorizerType": "REQUEST",
+                            "authorizerUri": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/",
+                                  {
+                                    "Fn::GetAtt": [
+                                      "GatesGitHubJwtAuthFunctionD9D90D99",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/invocations"
+                                ]
+                              ]
+                            },
+                            "enableSimpleResponses": true,
+                            "identitySource": [
+                              "$request.header.Authorization"
+                            ],
+                            "name": "GitHubJwtAuthorizer"
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnAuthorizer",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpAuthorizer",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "StackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150-Permission": {
+                    "id": "StackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150-Permission",
+                    "path": "StackUnderTest/Gates/GitHubHttpApi/StackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150-Permission",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                      "aws:cdk:cloudformation:props": {
+                        "action": "lambda:InvokeFunction",
+                        "functionName": {
+                          "Fn::GetAtt": [
+                            "GatesGitHubJwtAuthFunctionD9D90D99",
+                            "Arn"
+                          ]
+                        },
+                        "principal": "apigateway.amazonaws.com",
+                        "sourceArn": {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:aws:execute-api:eu-central-1:669698671509:",
+                              {
+                                "Ref": "GatesGitHubHttpApiBE8182E0"
+                              },
+                              "/authorizers/",
+                              {
+                                "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24"
+                              }
+                            ]
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultStage": {
+                    "id": "DefaultStage",
+                    "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultStage",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/GitHubHttpApi/DefaultStage/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Stage",
+                          "aws:cdk:cloudformation:props": {
+                            "apiId": {
+                              "Ref": "GatesGitHubHttpApiBE8182E0"
+                            },
+                            "autoDeploy": true,
+                            "stageName": "$default"
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnStage",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpStage",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_apigatewayv2.HttpApi",
+                  "version": "2.131.0"
+                }
+              },
+              "FrontendAssetsBucket": {
+                "id": "FrontendAssetsBucket",
+                "path": "StackUnderTest/Gates/FrontendAssetsBucket",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/FrontendAssetsBucket/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::S3::Bucket",
+                      "aws:cdk:cloudformation:props": {
+                        "ownershipControls": {
+                          "rules": [
+                            {
+                              "objectOwnership": "BucketOwnerEnforced"
+                            }
+                          ]
+                        },
+                        "publicAccessBlockConfiguration": {
+                          "blockPublicAcls": true,
+                          "blockPublicPolicy": true,
+                          "ignorePublicAcls": true,
+                          "restrictPublicBuckets": true
+                        },
+                        "tags": [
+                          {
+                            "key": "aws-cdk:auto-delete-objects",
+                            "value": "true"
+                          },
+                          {
+                            "key": "aws-cdk:cr-owned:12b71e9c",
+                            "value": "true"
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.CfnBucket",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Policy": {
+                    "id": "Policy",
+                    "path": "StackUnderTest/Gates/FrontendAssetsBucket/Policy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/FrontendAssetsBucket/Policy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::S3::BucketPolicy",
+                          "aws:cdk:cloudformation:props": {
+                            "bucket": {
+                              "Ref": "GatesFrontendAssetsBucketE60AF483"
+                            },
+                            "policyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": [
+                                    "s3:DeleteObject*",
+                                    "s3:GetBucket*",
+                                    "s3:List*",
+                                    "s3:PutBucketPolicy"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "AWS": {
+                                      "Fn::GetAtt": [
+                                        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                                        "Arn"
+                                      ]
+                                    }
+                                  },
+                                  "Resource": [
+                                    {
+                                      "Fn::GetAtt": [
+                                        "GatesFrontendAssetsBucketE60AF483",
+                                        "Arn"
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Join": [
+                                        "",
+                                        [
+                                          {
+                                            "Fn::GetAtt": [
+                                              "GatesFrontendAssetsBucketE60AF483",
+                                              "Arn"
+                                            ]
+                                          },
+                                          "/*"
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "Action": [
+                                    "s3:GetBucket*",
+                                    "s3:GetObject*",
+                                    "s3:List*"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "CanonicalUser": {
+                                      "Fn::GetAtt": [
+                                        "GatesOriginAccessIdentity8F67F10C",
+                                        "S3CanonicalUserId"
+                                      ]
+                                    }
+                                  },
+                                  "Resource": [
+                                    {
+                                      "Fn::GetAtt": [
+                                        "GatesFrontendAssetsBucketE60AF483",
+                                        "Arn"
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Join": [
+                                        "",
+                                        [
+                                          {
+                                            "Fn::GetAtt": [
+                                              "GatesFrontendAssetsBucketE60AF483",
+                                              "Arn"
+                                            ]
+                                          },
+                                          "/*"
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "Action": "s3:GetObject",
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "CanonicalUser": {
+                                      "Fn::GetAtt": [
+                                        "GatesOriginAccessIdentity8F67F10C",
+                                        "S3CanonicalUserId"
+                                      ]
+                                    }
+                                  },
+                                  "Resource": {
+                                    "Fn::Join": [
+                                      "",
+                                      [
+                                        {
+                                          "Fn::GetAtt": [
+                                            "GatesFrontendAssetsBucketE60AF483",
+                                            "Arn"
+                                          ]
+                                        },
+                                        "/*"
+                                      ]
+                                    ]
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.CfnBucketPolicy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketPolicy",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "AutoDeleteObjectsCustomResource": {
+                    "id": "AutoDeleteObjectsCustomResource",
+                    "path": "StackUnderTest/Gates/FrontendAssetsBucket/AutoDeleteObjectsCustomResource",
+                    "children": {
+                      "Default": {
+                        "id": "Default",
+                        "path": "StackUnderTest/Gates/FrontendAssetsBucket/AutoDeleteObjectsCustomResource/Default",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CustomResource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3.Bucket",
+                  "version": "2.131.0"
+                }
+              },
+              "OriginAccessIdentity": {
+                "id": "OriginAccessIdentity",
+                "path": "StackUnderTest/Gates/OriginAccessIdentity",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/OriginAccessIdentity/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+                      "aws:cdk:cloudformation:props": {
+                        "cloudFrontOriginAccessIdentityConfig": {
+                          "comment": "Allows CloudFront to reach the bucket"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_cloudfront.CfnCloudFrontOriginAccessIdentity",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_cloudfront.OriginAccessIdentity",
+                  "version": "2.131.0"
+                }
+              },
+              "WebAclArn": {
+                "id": "WebAclArn",
+                "path": "StackUnderTest/Gates/WebAclArn",
+                "children": {
+                  "WebAclArn": {
+                    "id": "WebAclArn",
+                    "path": "StackUnderTest/Gates/WebAclArn/WebAclArn",
+                    "children": {
+                      "Provider": {
+                        "id": "Provider",
+                        "path": "StackUnderTest/Gates/WebAclArn/WebAclArn/Provider",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_lambda.SingletonFunction",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/WebAclArn/WebAclArn/Resource",
+                        "children": {
+                          "Default": {
+                            "id": "Default",
+                            "path": "StackUnderTest/Gates/WebAclArn/WebAclArn/Resource/Default",
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.CfnResource",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CustomResource",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "CustomResourcePolicy": {
+                        "id": "CustomResourcePolicy",
+                        "path": "StackUnderTest/Gates/WebAclArn/WebAclArn/CustomResourcePolicy",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/WebAclArn/WebAclArn/CustomResourcePolicy/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                              "aws:cdk:cloudformation:props": {
+                                "policyDocument": {
+                                  "Statement": [
+                                    {
+                                      "Action": "ssm:GetParameter",
+                                      "Effect": "Allow",
+                                      "Resource": "arn:aws:ssm:us-east-1:669698671509:parameter/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn"
+                                    }
+                                  ],
+                                  "Version": "2012-10-17"
+                                },
+                                "policyName": "GatesWebAclArnCustomResourcePolicyAB620720",
+                                "roles": [
+                                  {
+                                    "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+                                  }
+                                ]
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.Policy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.custom_resources.AwsCustomResource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "constructs.Construct",
+                  "version": "10.3.0"
+                }
+              },
+              "WebDistribution": {
+                "id": "WebDistribution",
+                "path": "StackUnderTest/Gates/WebDistribution",
+                "children": {
+                  "CFDistribution": {
+                    "id": "CFDistribution",
+                    "path": "StackUnderTest/Gates/WebDistribution/CFDistribution",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::CloudFront::Distribution",
+                      "aws:cdk:cloudformation:props": {
+                        "distributionConfig": {
+                          "enabled": true,
+                          "defaultRootObject": "index.html",
+                          "httpVersion": "http2",
+                          "priceClass": "PriceClass_100",
+                          "ipv6Enabled": false,
+                          "webAclId": {
+                            "Fn::GetAtt": [
+                              "GatesWebAclArnBF181ED9",
+                              "Parameter.Value"
+                            ]
+                          },
+                          "origins": [
+                            {
+                              "id": "origin1",
+                              "domainName": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    {
+                                      "Ref": "GatesHttpApi627E4AAB"
+                                    },
+                                    ".execute-api.eu-central-1.amazonaws.com"
+                                  ]
+                                ]
+                              },
+                              "originCustomHeaders": [
+                                {
+                                  "headerName": "x-verify-origin",
+                                  "headerValue": {
+                                    "Fn::Join": [
+                                      "",
+                                      [
+                                        "{{resolve:secretsmanager:",
+                                        {
+                                          "Ref": "GatesVerifyOriginSecret18F23E34"
+                                        },
+                                        ":SecretString:::}}"
+                                      ]
+                                    ]
+                                  }
+                                }
+                              ],
+                              "customOriginConfig": {
+                                "httpPort": 80,
+                                "httpsPort": 443,
+                                "originKeepaliveTimeout": 5,
+                                "originReadTimeout": 30,
+                                "originProtocolPolicy": "https-only",
+                                "originSslProtocols": [
+                                  "TLSv1.2"
+                                ]
+                              },
+                              "connectionAttempts": 3,
+                              "connectionTimeout": 10
+                            },
+                            {
+                              "id": "origin2",
+                              "domainName": {
+                                "Fn::GetAtt": [
+                                  "GatesFrontendAssetsBucketE60AF483",
+                                  "RegionalDomainName"
+                                ]
+                              },
+                              "s3OriginConfig": {
+                                "originAccessIdentity": {
+                                  "Fn::Join": [
+                                    "",
+                                    [
+                                      "origin-access-identity/cloudfront/",
+                                      {
+                                        "Ref": "GatesOriginAccessIdentity8F67F10C"
+                                      }
+                                    ]
+                                  ]
+                                }
+                              },
+                              "connectionAttempts": 3,
+                              "connectionTimeout": 10
+                            }
+                          ],
+                          "defaultCacheBehavior": {
+                            "allowedMethods": [
+                              "GET",
+                              "HEAD",
+                              "OPTIONS"
+                            ],
+                            "cachedMethods": [
+                              "GET",
+                              "HEAD"
+                            ],
+                            "compress": true,
+                            "forwardedValues": {
+                              "queryString": false,
+                              "cookies": {
+                                "forward": "none"
+                              }
+                            },
+                            "targetOriginId": "origin2",
+                            "viewerProtocolPolicy": "redirect-to-https"
+                          },
+                          "cacheBehaviors": [
+                            {
+                              "allowedMethods": [
+                                "DELETE",
+                                "GET",
+                                "HEAD",
+                                "OPTIONS",
+                                "PATCH",
+                                "POST",
+                                "PUT"
+                              ],
+                              "cachedMethods": [
+                                "GET",
+                                "HEAD"
+                              ],
+                              "compress": true,
+                              "defaultTtl": 0,
+                              "forwardedValues": {
+                                "queryString": false,
+                                "cookies": {
+                                  "forward": "none"
+                                }
+                              },
+                              "targetOriginId": "origin1",
+                              "viewerProtocolPolicy": "redirect-to-https",
+                              "pathPattern": "/api"
+                            },
+                            {
+                              "allowedMethods": [
+                                "DELETE",
+                                "GET",
+                                "HEAD",
+                                "OPTIONS",
+                                "PATCH",
+                                "POST",
+                                "PUT"
+                              ],
+                              "cachedMethods": [
+                                "GET",
+                                "HEAD"
+                              ],
+                              "compress": true,
+                              "defaultTtl": 0,
+                              "forwardedValues": {
+                                "queryString": false,
+                                "cookies": {
+                                  "forward": "none"
+                                }
+                              },
+                              "targetOriginId": "origin1",
+                              "viewerProtocolPolicy": "redirect-to-https",
+                              "pathPattern": "/api/*"
+                            }
+                          ],
+                          "viewerCertificate": {
+                            "cloudFrontDefaultCertificate": true
+                          }
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_cloudfront.CfnDistribution",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_cloudfront.CloudFrontWebDistribution",
+                  "version": "2.131.0"
+                }
+              },
+              "VerifyOriginSecretRotationFunction": {
+                "id": "VerifyOriginSecretRotationFunction",
+                "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction",
+                "children": {
+                  "ServiceRole": {
+                    "id": "ServiceRole",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole",
+                    "children": {
+                      "ImportServiceRole": {
+                        "id": "ImportServiceRole",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/ImportServiceRole",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.Resource",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                          "aws:cdk:cloudformation:props": {
+                            "assumeRolePolicyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": "sts:AssumeRole",
+                                  "Effect": "Allow",
+                                  "Principal": {
+                                    "Service": "lambda.amazonaws.com"
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "managedPolicyArns": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                                  ]
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "DefaultPolicy": {
+                        "id": "DefaultPolicy",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/DefaultPolicy",
+                        "children": {
+                          "Resource": {
+                            "id": "Resource",
+                            "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/DefaultPolicy/Resource",
+                            "attributes": {
+                              "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                              "aws:cdk:cloudformation:props": {
+                                "policyDocument": {
+                                  "Statement": [
+                                    {
+                                      "Action": [
+                                        "cloudfront:GetDistribution",
+                                        "cloudfront:GetDistributionConfig",
+                                        "cloudfront:UpdateDistribution"
+                                      ],
+                                      "Effect": "Allow",
+                                      "Resource": {
+                                        "Fn::Join": [
+                                          "",
+                                          [
+                                            "arn:aws:cloudfront::669698671509:distribution/",
+                                            {
+                                              "Ref": "GatesWebDistributionCFDistribution5449A610"
+                                            }
+                                          ]
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "Action": [
+                                        "secretsmanager:DescribeSecret",
+                                        "secretsmanager:GetSecretValue",
+                                        "secretsmanager:PutSecretValue",
+                                        "secretsmanager:UpdateSecretVersionStage"
+                                      ],
+                                      "Effect": "Allow",
+                                      "Resource": {
+                                        "Ref": "GatesVerifyOriginSecret18F23E34"
+                                      }
+                                    },
+                                    {
+                                      "Action": "secretsmanager:GetRandomPassword",
+                                      "Effect": "Allow",
+                                      "Resource": "*"
+                                    }
+                                  ],
+                                  "Version": "2012-10-17"
+                                },
+                                "policyName": "GatesVerifyOriginSecretRotationFunctionServiceRoleDefaultPolicy636B9A18",
+                                "roles": [
+                                  {
+                                    "Ref": "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1"
+                                  }
+                                ]
+                              }
+                            },
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.Policy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Role",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Code": {
+                    "id": "Code",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/Code",
+                    "children": {
+                      "Stage": {
+                        "id": "Stage",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/Code/Stage",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.AssetStaging",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "AssetBucket": {
+                        "id": "AssetBucket",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/Code/AssetBucket",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                      "aws:cdk:cloudformation:props": {
+                        "code": {
+                          "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                          "s3Key": "65d7893e7a3574ba56a4cb4b0726e753949c284dd54c51a40f3fa10a794b0410.zip"
+                        },
+                        "environment": {
+                          "variables": {
+                            "CLOUDFRONT_DISTRIBUTION_ID": {
+                              "Ref": "GatesWebDistributionCFDistribution5449A610"
+                            },
+                            "X_VERIFY_ORIGIN_HEADER_NAME": "x-verify-origin",
+                            "ORIGIN_TEST_URL": {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  "https://",
+                                  {
+                                    "Ref": "GatesHttpApi627E4AAB"
+                                  },
+                                  ".execute-api.eu-central-1.amazonaws.com/api/"
+                                ]
+                              ]
+                            }
+                          }
+                        },
+                        "functionName": {
+                          "Fn::Join": [
+                            "",
+                            [
+                              {
+                                "Fn::Join": [
+                                  "-",
+                                  [
+                                    {
+                                      "Fn::Select": [
+                                        0,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Select": [
+                                        1,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Select": [
+                                        2,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Select": [
+                                        3,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Select": [
+                                        4,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Select": [
+                                        5,
+                                        {
+                                          "Fn::Split": [
+                                            "-",
+                                            {
+                                              "Fn::Select": [
+                                                6,
+                                                {
+                                                  "Fn::Split": [
+                                                    ":",
+                                                    {
+                                                      "Ref": "GatesVerifyOriginSecret18F23E34"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              },
+                              "-rotation"
+                            ]
+                          ]
+                        },
+                        "handler": "index.handler",
+                        "role": {
+                          "Fn::GetAtt": [
+                            "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1",
+                            "Arn"
+                          ]
+                        },
+                        "runtime": "nodejs20.x",
+                        "timeout": 30
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogRetention": {
+                    "id": "LogRetention",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/LogRetention",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/LogRetention/Resource",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_logs.LogRetention",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "LogGroup": {
+                    "id": "LogGroup",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/LogGroup",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "InvokeN0--a2GKfZP0JmDqDE--Vhhu6+A0TUv3NyNbk4YM+FKNc=": {
+                    "id": "InvokeN0--a2GKfZP0JmDqDE--Vhhu6+A0TUv3NyNbk4YM+FKNc=",
+                    "path": "StackUnderTest/Gates/VerifyOriginSecretRotationFunction/InvokeN0--a2GKfZP0JmDqDE--Vhhu6+A0TUv3NyNbk4YM+FKNc=",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                      "aws:cdk:cloudformation:props": {
+                        "action": "lambda:InvokeFunction",
+                        "functionName": {
+                          "Fn::GetAtt": [
+                            "GatesVerifyOriginSecretRotationFunctionC6EDE179",
+                            "Arn"
+                          ]
+                        },
+                        "principal": "secretsmanager.amazonaws.com"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.Function",
+                  "version": "2.131.0"
+                }
+              },
+              "BucketDeployment": {
+                "id": "BucketDeployment",
+                "path": "StackUnderTest/Gates/BucketDeployment",
+                "children": {
+                  "AwsCliLayer": {
+                    "id": "AwsCliLayer",
+                    "path": "StackUnderTest/Gates/BucketDeployment/AwsCliLayer",
+                    "children": {
+                      "Code": {
+                        "id": "Code",
+                        "path": "StackUnderTest/Gates/BucketDeployment/AwsCliLayer/Code",
+                        "children": {
+                          "Stage": {
+                            "id": "Stage",
+                            "path": "StackUnderTest/Gates/BucketDeployment/AwsCliLayer/Code/Stage",
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.AssetStaging",
+                              "version": "2.131.0"
+                            }
+                          },
+                          "AssetBucket": {
+                            "id": "AssetBucket",
+                            "path": "StackUnderTest/Gates/BucketDeployment/AwsCliLayer/Code/AssetBucket",
+                            "constructInfo": {
+                              "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                              "version": "2.131.0"
+                            }
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Gates/BucketDeployment/AwsCliLayer/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::Lambda::LayerVersion",
+                          "aws:cdk:cloudformation:props": {
+                            "content": {
+                              "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                              "s3Key": "3322b7049fb0ed2b7cbb644a2ada8d1116ff80c32dca89e6ada846b5de26f961.zip"
+                            },
+                            "description": "/opt/awscli/aws"
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_lambda.CfnLayerVersion",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.lambda_layer_awscli.AwsCliLayer",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "CustomResourceHandler": {
+                    "id": "CustomResourceHandler",
+                    "path": "StackUnderTest/Gates/BucketDeployment/CustomResourceHandler",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.SingletonFunction",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Asset1": {
+                    "id": "Asset1",
+                    "path": "StackUnderTest/Gates/BucketDeployment/Asset1",
+                    "children": {
+                      "Stage": {
+                        "id": "Stage",
+                        "path": "StackUnderTest/Gates/BucketDeployment/Asset1/Stage",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.AssetStaging",
+                          "version": "2.131.0"
+                        }
+                      },
+                      "AssetBucket": {
+                        "id": "AssetBucket",
+                        "path": "StackUnderTest/Gates/BucketDeployment/Asset1/AssetBucket",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "CustomResource": {
+                    "id": "CustomResource",
+                    "path": "StackUnderTest/Gates/BucketDeployment/CustomResource",
+                    "children": {
+                      "Default": {
+                        "id": "Default",
+                        "path": "StackUnderTest/Gates/BucketDeployment/CustomResource/Default",
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.CfnResource",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CustomResource",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_deployment.BucketDeployment",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.3.0"
+            }
+          },
+          "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a": {
+            "id": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a",
+            "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a",
+            "children": {
+              "Code": {
+                "id": "Code",
+                "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Code",
+                "children": {
+                  "Stage": {
+                    "id": "Stage",
+                    "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Code/Stage",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "AssetBucket": {
+                    "id": "AssetBucket",
+                    "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Code/AssetBucket",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                  "version": "2.131.0"
+                }
+              },
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole",
+                "children": {
+                  "ImportServiceRole": {
+                    "id": "ImportServiceRole",
+                    "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/ImportServiceRole",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultPolicy": {
+                    "id": "DefaultPolicy",
+                    "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                          "aws:cdk:cloudformation:props": {
+                            "policyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": [
+                                    "logs:DeleteRetentionPolicy",
+                                    "logs:PutRetentionPolicy"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": "*"
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "policyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+                            "roles": [
+                              {
+                                "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Policy",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.131.0"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.3.0"
+            }
+          },
+          "Custom::S3AutoDeleteObjectsCustomResourceProvider": {
+            "id": "Custom::S3AutoDeleteObjectsCustomResourceProvider",
+            "path": "StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider",
+            "children": {
+              "Staging": {
+                "id": "Staging",
+                "path": "StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider/Staging",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.AssetStaging",
+                  "version": "2.131.0"
+                }
+              },
+              "Role": {
+                "id": "Role",
+                "path": "StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.131.0"
+                }
+              },
+              "Handler": {
+                "id": "Handler",
+                "path": "StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CustomResourceProviderBase",
+              "version": "2.131.0"
+            }
+          },
+          "AWS679f53fac002430cb0da5b7982bd2287": {
+            "id": "AWS679f53fac002430cb0da5b7982bd2287",
+            "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287",
+            "children": {
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole",
+                "children": {
+                  "ImportServiceRole": {
+                    "id": "ImportServiceRole",
+                    "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/ImportServiceRole",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.131.0"
+                }
+              },
+              "Code": {
+                "id": "Code",
+                "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/Code",
+                "children": {
+                  "Stage": {
+                    "id": "Stage",
+                    "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/Code/Stage",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "AssetBucket": {
+                    "id": "AssetBucket",
+                    "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/Code/AssetBucket",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                  "version": "2.131.0"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                  "aws:cdk:cloudformation:props": {
+                    "code": {
+                      "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                      "s3Key": "ed6cd104ff5f101d06dae8cb2b87cc6e6d69b9a22055b467ea6cae10ff023023.zip"
+                    },
+                    "handler": "index.handler",
+                    "role": {
+                      "Fn::GetAtt": [
+                        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+                        "Arn"
+                      ]
+                    },
+                    "runtime": "nodejs18.x",
+                    "timeout": 120
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.Function",
+              "version": "2.131.0"
+            }
+          },
+          "Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C": {
+            "id": "Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C",
+            "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C",
+            "children": {
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole",
+                "children": {
+                  "ImportServiceRole": {
+                    "id": "ImportServiceRole",
+                    "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/ImportServiceRole",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "DefaultPolicy": {
+                    "id": "DefaultPolicy",
+                    "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                          "aws:cdk:cloudformation:props": {
+                            "policyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": [
+                                    "s3:GetBucket*",
+                                    "s3:GetObject*",
+                                    "s3:List*"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": [
+                                    "arn:aws:s3:::cdk-consid-assets-669698671509-eu-central-1",
+                                    "arn:aws:s3:::cdk-consid-assets-669698671509-eu-central-1/*"
+                                  ]
+                                },
+                                {
+                                  "Action": [
+                                    "s3:Abort*",
+                                    "s3:DeleteObject*",
+                                    "s3:GetBucket*",
+                                    "s3:GetObject*",
+                                    "s3:List*",
+                                    "s3:PutObject",
+                                    "s3:PutObjectLegalHold",
+                                    "s3:PutObjectRetention",
+                                    "s3:PutObjectTagging",
+                                    "s3:PutObjectVersionTagging"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": [
+                                    {
+                                      "Fn::GetAtt": [
+                                        "GatesFrontendAssetsBucketE60AF483",
+                                        "Arn"
+                                      ]
+                                    },
+                                    {
+                                      "Fn::Join": [
+                                        "",
+                                        [
+                                          {
+                                            "Fn::GetAtt": [
+                                              "GatesFrontendAssetsBucketE60AF483",
+                                              "Arn"
+                                            ]
+                                          },
+                                          "/*"
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "Action": [
+                                    "cloudfront:CreateInvalidation",
+                                    "cloudfront:GetInvalidation"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": "*"
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "policyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+                            "roles": [
+                              {
+                                "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                          "version": "2.131.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Policy",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.131.0"
+                }
+              },
+              "Code": {
+                "id": "Code",
+                "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Code",
+                "children": {
+                  "Stage": {
+                    "id": "Stage",
+                    "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Code/Stage",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "AssetBucket": {
+                    "id": "AssetBucket",
+                    "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Code/AssetBucket",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                  "version": "2.131.0"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                  "aws:cdk:cloudformation:props": {
+                    "code": {
+                      "s3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+                      "s3Key": "2d56e153cac88d3e0c2f842e8e6f6783b8725bf91f95e0673b4725448a56e96d.zip"
+                    },
+                    "environment": {
+                      "variables": {
+                        "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+                      }
+                    },
+                    "handler": "index.handler",
+                    "layers": [
+                      {
+                        "Ref": "GatesBucketDeploymentAwsCliLayerA5E4E6D7"
+                      }
+                    ],
+                    "role": {
+                      "Fn::GetAtt": [
+                        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+                        "Arn"
+                      ]
+                    },
+                    "runtime": "python3.9",
+                    "timeout": 900
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.Function",
+              "version": "2.131.0"
+            }
+          },
+          "BootstrapVersion": {
+            "id": "BootstrapVersion",
+            "path": "StackUnderTest/BootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnParameter",
+              "version": "2.131.0"
+            }
+          },
+          "CheckBootstrapVersion": {
+            "id": "CheckBootstrapVersion",
+            "path": "StackUnderTest/CheckBootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnRule",
+              "version": "2.131.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.131.0"
+        }
+      },
+      "IntegTest": {
+        "id": "IntegTest",
+        "path": "IntegTest",
+        "children": {
+          "DefaultTest": {
+            "id": "DefaultTest",
+            "path": "IntegTest/DefaultTest",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "IntegTest/DefaultTest/Default",
+                "constructInfo": {
+                  "fqn": "constructs.Construct",
+                  "version": "10.3.0"
+                }
+              },
+              "DeployAssert": {
+                "id": "DeployAssert",
+                "path": "IntegTest/DefaultTest/DeployAssert",
+                "children": {
+                  "BootstrapVersion": {
+                    "id": "BootstrapVersion",
+                    "path": "IntegTest/DefaultTest/DeployAssert/BootstrapVersion",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CfnParameter",
+                      "version": "2.131.0"
+                    }
+                  },
+                  "CheckBootstrapVersion": {
+                    "id": "CheckBootstrapVersion",
+                    "path": "IntegTest/DefaultTest/DeployAssert/CheckBootstrapVersion",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.CfnRule",
+                      "version": "2.131.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Stack",
+                  "version": "2.131.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "@aws-cdk/integ-tests-alpha.IntegTestCase",
+              "version": "2.131.0-alpha.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "@aws-cdk/integ-tests-alpha.IntegTest",
+          "version": "2.131.0-alpha.0"
+        }
+      },
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.3.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.131.0"
+    }
+  }
+}

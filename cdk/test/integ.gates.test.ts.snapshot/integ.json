@@ -1,0 +1,29 @@
+{
+  "version": "36.0.0",
+  "testCases": {
+    "IntegTest/DefaultTest": {
+      "stacks": [
+        "StackUnderTest"
+      ],
+      "regions": [
+        "eu-central-1"
+      ],
+      "cdkCommandOptions": {
+        "deploy": {
+          "args": {
+            "stacks": [
+              "*"
+            ]
+          }
+        },
+        "destroy": {
+          "args": {
+            "force": true
+          }
+        }
+      },
+      "assertionStack": "IntegTest/DefaultTest/DeployAssert",
+      "assertionStackName": "IntegTestDefaultTestDeployAssertE3E7D2A4"
+    }
+  }
+}

@@ -1,0 +1,536 @@
+{
+  "version": "36.0.0",
+  "artifacts": {
+    "StackUnderTestGatesGlobalA5041D79.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "StackUnderTestGatesGlobalA5041D79.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+      }
+    },
+    "StackUnderTestGatesGlobalA5041D79": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://669698671509/us-east-1",
+      "properties": {
+        "templateFile": "StackUnderTestGatesGlobalA5041D79.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "owner": "consid"
+        },
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-deploy-role-669698671509-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-cfn-exec-role-669698671509-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-consid-assets-669698671509-us-east-1/33d7c481b26d86d45c34eaa07147b76b91f7f61b34e2c81abb17c05b0eddb010.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version",
+        "additionalDependencies": [
+          "StackUnderTestGatesGlobalA5041D79.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-lookup-role-669698671509-us-east-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+        },
+        "stackName": "consid-gates-integ-test-global"
+      },
+      "dependencies": [
+        "StackUnderTestGatesGlobalA5041D79.assets"
+      ],
+      "metadata": {
+        "/StackUnderTest/Gates/Global": [
+          {
+            "type": "aws:cdk:stack-tags",
+            "data": [
+              {
+                "Key": "owner",
+                "Value": "consid"
+              }
+            ]
+          }
+        ],
+        "/StackUnderTest/Gates/Global/IpSet": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IpSet"
+          }
+        ],
+        "/StackUnderTest/Gates/Global/WebAcl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebAcl"
+          }
+        ],
+        "/StackUnderTest/Gates/Global/WebAcl/WebAclArn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "WebAclWebAclArnCB84A729"
+          }
+        ],
+        "/StackUnderTest/Gates/Global/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/StackUnderTest/Gates/Global/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "StackUnderTest/Gates/Global"
+    },
+    "StackUnderTest.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "StackUnderTest.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+      }
+    },
+    "StackUnderTest": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://669698671509/eu-central-1",
+      "properties": {
+        "templateFile": "StackUnderTest.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "owner": "consid"
+        },
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-deploy-role-669698671509-eu-central-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-cfn-exec-role-669698671509-eu-central-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-consid-assets-669698671509-eu-central-1/08d22325213f0551103d96172ba36d0da2a4645cfaa3348a0e24a42002a576d7.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version",
+        "additionalDependencies": [
+          "StackUnderTest.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-lookup-role-669698671509-eu-central-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+        },
+        "stackName": "consid-gates-integ-test"
+      },
+      "dependencies": [
+        "StackUnderTestGatesGlobalA5041D79",
+        "StackUnderTest.assets"
+      ],
+      "metadata": {
+        "/StackUnderTest": [
+          {
+            "type": "aws:cdk:stack-tags",
+            "data": [
+              {
+                "Key": "owner",
+                "Value": "consid"
+              }
+            ]
+          }
+        ],
+        "/StackUnderTest/Gates/GatesTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "GatesGatesTable3C4585D6"
+            }
+          }
+        ],
+        "/StackUnderTest/Gates/GatesTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGatesTable3C4585D6"
+          }
+        ],
+        "/StackUnderTest/Gates/ApiFunction/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesApiFunctionServiceRole83DABBDD"
+          }
+        ],
+        "/StackUnderTest/Gates/ApiFunction/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesApiFunctionServiceRoleDefaultPolicyBE4E8926"
+          }
+        ],
+        "/StackUnderTest/Gates/ApiFunction/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesApiFunctionF003CA0A"
+          }
+        ],
+        "/StackUnderTest/Gates/ApiFunction/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesApiFunctionLogRetentionA0468E8E"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecret/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecret18F23E34"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecret/RotationSchedule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationScheduleFDB62406"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecret/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretPolicy31E5281D"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginAuthFunctionServiceRole9C769B25"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginAuthFunction/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginAuthFunctionServiceRoleDefaultPolicy2AB27DCE"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginAuthFunction/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginAuthFunctionD0559F11"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginAuthFunction/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginAuthFunctionLogRetention4036C0AB"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApi627E4AAB"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/DefaultRoute/ApiFunctionApiIntegration/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiDefaultRouteApiFunctionApiIntegration707B1703"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/DefaultRoute/ApiFunctionApiIntegration-Permission": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiDefaultRouteApiFunctionApiIntegrationPermissionD6FACAB0"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/DefaultRoute/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiDefaultRoute1B5C358E"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/VerifyOriginAuthorizer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiVerifyOriginAuthorizer1F98DA52"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/StackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758-Permission": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiStackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758Permission2909A08E"
+          }
+        ],
+        "/StackUnderTest/Gates/HttpApi/DefaultStage/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesHttpApiDefaultStageC45E17FD"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubJwtAuthFunction/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubJwtAuthFunction/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubJwtAuthFunctionD9D90D99"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubJwtAuthFunction/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubJwtAuthFunctionLogRetention6879C75B"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiBE8182E0"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/ApiFunctionGitHubHttpApiIntegration/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationEDC355FC"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/ApiFunctionGitHubHttpApiIntegration-Permission": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationPermissionAFF080C7"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/DefaultRoute/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiDefaultRoute565DD5A9"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/GitHubJwtAuthorizer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/StackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150-Permission": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiStackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150Permission8CF16E79"
+          }
+        ],
+        "/StackUnderTest/Gates/GitHubHttpApi/DefaultStage/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesGitHubHttpApiDefaultStage993225D6"
+          }
+        ],
+        "/StackUnderTest/Gates/FrontendAssetsBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesFrontendAssetsBucketE60AF483"
+          }
+        ],
+        "/StackUnderTest/Gates/FrontendAssetsBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesFrontendAssetsBucketPolicy5A2B312D"
+          }
+        ],
+        "/StackUnderTest/Gates/FrontendAssetsBucket/AutoDeleteObjectsCustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesFrontendAssetsBucketAutoDeleteObjectsCustomResourceC5020104"
+          }
+        ],
+        "/StackUnderTest/Gates/OriginAccessIdentity/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesOriginAccessIdentity8F67F10C"
+          }
+        ],
+        "/StackUnderTest/Gates/WebAclArn/WebAclArn": [
+          {
+            "type": "aws:cdk:warning",
+            "data": "installLatestAwsSdk was not specified, and defaults to true. You probably do not want this. Set the global context flag '@aws-cdk/customresources:installLatestAwsSdkDefault' to false to switch this behavior off project-wide, or set the property explicitly to true if you know you need to call APIs that are not in Lambda's built-in SDK version. [ack: @aws-cdk/custom-resources:installLatestAwsSdkNotSpecified]"
+          }
+        ],
+        "/StackUnderTest/Gates/WebAclArn/WebAclArn/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesWebAclArnBF181ED9"
+          }
+        ],
+        "/StackUnderTest/Gates/WebAclArn/WebAclArn/CustomResourcePolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesWebAclArnCustomResourcePolicyAB620720"
+          }
+        ],
+        "/StackUnderTest/Gates/WebDistribution/CFDistribution": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesWebDistributionCFDistribution5449A610"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecretRotationFunction/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationFunctionServiceRoleDefaultPolicy636B9A18"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecretRotationFunction/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationFunctionC6EDE179"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecretRotationFunction/LogRetention/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationFunctionLogRetentionDBB13CD2"
+          }
+        ],
+        "/StackUnderTest/Gates/VerifyOriginSecretRotationFunction/InvokeN0--a2GKfZP0JmDqDE--Vhhu6+A0TUv3NyNbk4YM+FKNc=": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesVerifyOriginSecretRotationFunctionInvokeN0a2GKfZP0JmDqDEVhhu6A0TUv3NyNbk4YMFKNc46D90F48"
+          }
+        ],
+        "/StackUnderTest/Gates/BucketDeployment/AwsCliLayer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesBucketDeploymentAwsCliLayerA5E4E6D7"
+          }
+        ],
+        "/StackUnderTest/Gates/BucketDeployment/CustomResource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GatesBucketDeploymentCustomResource9BB17594"
+          }
+        ],
+        "/StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+          }
+        ],
+        "/StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB"
+          }
+        ],
+        "/StackUnderTest/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A"
+          }
+        ],
+        "/StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+          }
+        ],
+        "/StackUnderTest/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F"
+          }
+        ],
+        "/StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ],
+        "/StackUnderTest/AWS679f53fac002430cb0da5b7982bd2287/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+          }
+        ],
+        "/StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+          }
+        ],
+        "/StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF"
+          }
+        ],
+        "/StackUnderTest/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536"
+          }
+        ],
+        "/StackUnderTest/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/StackUnderTest/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "StackUnderTest"
+    },
+    "IntegTestDefaultTestDeployAssertE3E7D2A4.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "IntegTestDefaultTestDeployAssertE3E7D2A4.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+      }
+    },
+    "IntegTestDefaultTestDeployAssertE3E7D2A4": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "IntegTestDefaultTestDeployAssertE3E7D2A4.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-consid-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-consid-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-consid-assets-${AWS::AccountId}-${AWS::Region}/13bd0f40fd46ed56e4ddefb6f07ea533dd20793c3258585f716158e2417e525c.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version",
+        "additionalDependencies": [
+          "IntegTestDefaultTestDeployAssertE3E7D2A4.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-consid-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/consid/version"
+        }
+      },
+      "dependencies": [
+        "IntegTestDefaultTestDeployAssertE3E7D2A4.assets"
+      ],
+      "metadata": {
+        "/IntegTest/DefaultTest/DeployAssert/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/IntegTest/DefaultTest/DeployAssert/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "IntegTest/DefaultTest/DeployAssert"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

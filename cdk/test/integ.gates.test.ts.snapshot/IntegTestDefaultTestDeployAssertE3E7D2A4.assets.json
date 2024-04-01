@@ -1,0 +1,19 @@
+{
+  "version": "36.0.0",
+  "files": {
+    "13bd0f40fd46ed56e4ddefb6f07ea533dd20793c3258585f716158e2417e525c": {
+      "source": {
+        "path": "IntegTestDefaultTestDeployAssertE3E7D2A4.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-consid-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "13bd0f40fd46ed56e4ddefb6f07ea533dd20793c3258585f716158e2417e525c.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-consid-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

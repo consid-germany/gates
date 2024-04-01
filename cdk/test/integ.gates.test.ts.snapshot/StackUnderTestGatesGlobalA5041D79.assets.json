@@ -1,0 +1,20 @@
+{
+  "version": "36.0.0",
+  "files": {
+    "33d7c481b26d86d45c34eaa07147b76b91f7f61b34e2c81abb17c05b0eddb010": {
+      "source": {
+        "path": "StackUnderTestGatesGlobalA5041D79.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "669698671509-us-east-1": {
+          "bucketName": "cdk-consid-assets-669698671509-us-east-1",
+          "objectKey": "33d7c481b26d86d45c34eaa07147b76b91f7f61b34e2c81abb17c05b0eddb010.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::669698671509:role/cdk-consid-file-publishing-role-669698671509-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

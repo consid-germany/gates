@@ -6,7 +6,6 @@ dist/
 
 lib
 
-*.js
 *.d.ts
 
 cdk.out

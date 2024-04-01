@@ -1,0 +1,2013 @@
+{
+ "Resources": {
+  "GatesGatesTable3C4585D6": {
+   "Type": "AWS::DynamoDB::GlobalTable",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "group",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "service_environment",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "group",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "service_environment",
+      "KeyType": "RANGE"
+     }
+    ],
+    "Replicas": [
+     {
+      "Region": "eu-central-1"
+     }
+    ],
+    "TableName": "consid-gates-integ"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesApiFunctionServiceRole83DABBDD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesApiFunctionServiceRoleDefaultPolicyBE4E8926": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "GatesGatesTable3C4585D6",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GatesApiFunctionServiceRoleDefaultPolicyBE4E8926",
+    "Roles": [
+     {
+      "Ref": "GatesApiFunctionServiceRole83DABBDD"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesApiFunctionF003CA0A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "ffed7f8046e77467314c26d035974a9d3ead58b1cf6ab2afd266084de7a4df3e.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "GATES_DYNAMO_DB_TABLE_NAME": {
+       "Ref": "GatesGatesTable3C4585D6"
+      }
+     }
+    },
+    "FunctionName": "consid-gates-integ-api",
+    "Handler": "provided",
+    "Role": {
+     "Fn::GetAtt": [
+      "GatesApiFunctionServiceRole83DABBDD",
+      "Arn"
+     ]
+    },
+    "Runtime": "provided.al2023"
+   },
+   "DependsOn": [
+    "GatesApiFunctionServiceRoleDefaultPolicyBE4E8926",
+    "GatesApiFunctionServiceRole83DABBDD"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesApiFunctionLogRetentionA0468E8E": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "GatesApiFunctionF003CA0A"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecret18F23E34": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "GenerateSecretString": {
+     "ExcludePunctuation": true
+    },
+    "Name": "consid-gates-integ-verify-origin-secret"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationScheduleFDB62406": {
+   "Type": "AWS::SecretsManager::RotationSchedule",
+   "Properties": {
+    "RotationLambdaARN": {
+     "Fn::GetAtt": [
+      "GatesVerifyOriginSecretRotationFunctionC6EDE179",
+      "Arn"
+     ]
+    },
+    "RotationRules": {
+     "ScheduleExpression": "rate(1 day)"
+    },
+    "SecretId": {
+     "Ref": "GatesVerifyOriginSecret18F23E34"
+    }
+   },
+   "DependsOn": [
+    "GatesVerifyOriginSecretRotationFunctionInvokeN0a2GKfZP0JmDqDEVhhu6A0TUv3NyNbk4YMFKNc46D90F48"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretPolicy31E5281D": {
+   "Type": "AWS::SecretsManager::ResourcePolicy",
+   "Properties": {
+    "ResourcePolicy": {
+     "Statement": [
+      {
+       "Action": "secretsmanager:DeleteSecret",
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "arn:aws:iam::669698671509:root"
+       },
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "SecretId": {
+     "Ref": "GatesVerifyOriginSecret18F23E34"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginAuthFunctionServiceRole9C769B25": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginAuthFunctionServiceRoleDefaultPolicy2AB27DCE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "GatesVerifyOriginSecret18F23E34"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GatesVerifyOriginAuthFunctionServiceRoleDefaultPolicy2AB27DCE",
+    "Roles": [
+     {
+      "Ref": "GatesVerifyOriginAuthFunctionServiceRole9C769B25"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginAuthFunctionD0559F11": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "9f880a74088103505757bdb47748ddd742aa8f93415b2336c48cc33bc0e8c845.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "SECRET_ID": {
+       "Fn::Join": [
+        "-",
+        [
+         {
+          "Fn::Select": [
+           0,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "Fn::Select": [
+           1,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "Fn::Select": [
+           2,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "Fn::Select": [
+           3,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "Fn::Select": [
+           4,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "Fn::Select": [
+           5,
+           {
+            "Fn::Split": [
+             "-",
+             {
+              "Fn::Select": [
+               6,
+               {
+                "Fn::Split": [
+                 ":",
+                 {
+                  "Ref": "GatesVerifyOriginSecret18F23E34"
+                 }
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       ]
+      },
+      "X_VERIFY_ORIGIN_HEADER_NAME": "x-verify-origin"
+     }
+    },
+    "FunctionName": "consid-gates-integ-verify-origin-auth",
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GatesVerifyOriginAuthFunctionServiceRole9C769B25",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x"
+   },
+   "DependsOn": [
+    "GatesVerifyOriginAuthFunctionServiceRoleDefaultPolicy2AB27DCE",
+    "GatesVerifyOriginAuthFunctionServiceRole9C769B25"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginAuthFunctionLogRetention4036C0AB": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "GatesVerifyOriginAuthFunctionD0559F11"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApi627E4AAB": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "Name": "consid-gates-integ-api",
+    "ProtocolType": "HTTP"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiDefaultRouteApiFunctionApiIntegration707B1703": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesHttpApi627E4AAB"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "GatesApiFunctionF003CA0A",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiDefaultRouteApiFunctionApiIntegrationPermissionD6FACAB0": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GatesApiFunctionF003CA0A",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:eu-central-1:669698671509:",
+       {
+        "Ref": "GatesHttpApi627E4AAB"
+       },
+       "/*/*"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiDefaultRoute1B5C358E": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesHttpApi627E4AAB"
+    },
+    "AuthorizationType": "CUSTOM",
+    "AuthorizerId": {
+     "Ref": "GatesHttpApiVerifyOriginAuthorizer1F98DA52"
+    },
+    "RouteKey": "$default",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "GatesHttpApiDefaultRouteApiFunctionApiIntegration707B1703"
+       }
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiVerifyOriginAuthorizer1F98DA52": {
+   "Type": "AWS::ApiGatewayV2::Authorizer",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesHttpApi627E4AAB"
+    },
+    "AuthorizerPayloadFormatVersion": "2.0",
+    "AuthorizerResultTtlInSeconds": 300,
+    "AuthorizerType": "REQUEST",
+    "AuthorizerUri": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/",
+       {
+        "Fn::GetAtt": [
+         "GatesVerifyOriginAuthFunctionD0559F11",
+         "Arn"
+        ]
+       },
+       "/invocations"
+      ]
+     ]
+    },
+    "EnableSimpleResponses": true,
+    "IdentitySource": [
+     "$request.header.x-verify-origin"
+    ],
+    "Name": "VerifyOriginAuthorizer"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiStackUnderTestGatesHttpApiVerifyOriginAuthorizer439F9758Permission2909A08E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GatesVerifyOriginAuthFunctionD0559F11",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:eu-central-1:669698671509:",
+       {
+        "Ref": "GatesHttpApi627E4AAB"
+       },
+       "/authorizers/",
+       {
+        "Ref": "GatesHttpApiVerifyOriginAuthorizer1F98DA52"
+       }
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesHttpApiDefaultStageC45E17FD": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesHttpApi627E4AAB"
+    },
+    "AutoDeploy": true,
+    "StageName": "$default"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubJwtAuthFunctionD9D90D99": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "6a5fcc269f86c8457dbf3606de5eb54dc03f9ec62deeed00d67ae9cea95cb4d2.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "ALLOWED_SUB_PATTERNS": "[]"
+     }
+    },
+    "FunctionName": "consid-gates-integ-github-jwt-auth",
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x"
+   },
+   "DependsOn": [
+    "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubJwtAuthFunctionLogRetention6879C75B": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "GatesGitHubJwtAuthFunctionD9D90D99"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiBE8182E0": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "Name": "consid-gates-integ-github-api",
+    "ProtocolType": "HTTP"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationEDC355FC": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesGitHubHttpApiBE8182E0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "GatesApiFunctionF003CA0A",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationPermissionAFF080C7": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GatesApiFunctionF003CA0A",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:eu-central-1:669698671509:",
+       {
+        "Ref": "GatesGitHubHttpApiBE8182E0"
+       },
+       "/*/*"
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiDefaultRoute565DD5A9": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesGitHubHttpApiBE8182E0"
+    },
+    "AuthorizationType": "CUSTOM",
+    "AuthorizerId": {
+     "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24"
+    },
+    "RouteKey": "$default",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "GatesGitHubHttpApiDefaultRouteApiFunctionGitHubHttpApiIntegrationEDC355FC"
+       }
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24": {
+   "Type": "AWS::ApiGatewayV2::Authorizer",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesGitHubHttpApiBE8182E0"
+    },
+    "AuthorizerPayloadFormatVersion": "2.0",
+    "AuthorizerResultTtlInSeconds": 300,
+    "AuthorizerType": "REQUEST",
+    "AuthorizerUri": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/",
+       {
+        "Fn::GetAtt": [
+         "GatesGitHubJwtAuthFunctionD9D90D99",
+         "Arn"
+        ]
+       },
+       "/invocations"
+      ]
+     ]
+    },
+    "EnableSimpleResponses": true,
+    "IdentitySource": [
+     "$request.header.Authorization"
+    ],
+    "Name": "GitHubJwtAuthorizer"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiStackUnderTestGatesGitHubHttpApiGitHubJwtAuthorizer3BCB2150Permission8CF16E79": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GatesGitHubJwtAuthFunctionD9D90D99",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:eu-central-1:669698671509:",
+       {
+        "Ref": "GatesGitHubHttpApiBE8182E0"
+       },
+       "/authorizers/",
+       {
+        "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24"
+       }
+      ]
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesGitHubHttpApiDefaultStage993225D6": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "ApiId": {
+     "Ref": "GatesGitHubHttpApiBE8182E0"
+    },
+    "AutoDeploy": true,
+    "StageName": "$default"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesFrontendAssetsBucketE60AF483": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "OwnershipControls": {
+     "Rules": [
+      {
+       "ObjectOwnership": "BucketOwnerEnforced"
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     },
+     {
+      "Key": "aws-cdk:cr-owned:12b71e9c",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesFrontendAssetsBucketPolicy5A2B312D": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "GatesFrontendAssetsBucketE60AF483"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:PutBucketPolicy"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GatesFrontendAssetsBucketE60AF483",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "GatesFrontendAssetsBucketE60AF483",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "GatesOriginAccessIdentity8F67F10C",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GatesFrontendAssetsBucketE60AF483",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "GatesFrontendAssetsBucketE60AF483",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "GatesOriginAccessIdentity8F67F10C",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "GatesFrontendAssetsBucketE60AF483",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesFrontendAssetsBucketAutoDeleteObjectsCustomResourceC5020104": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "GatesFrontendAssetsBucketE60AF483"
+    }
+   },
+   "DependsOn": [
+    "GatesFrontendAssetsBucketPolicy5A2B312D"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesOriginAccessIdentity8F67F10C": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "Allows CloudFront to reach the bucket"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesWebAclArnBF181ED9": {
+   "Type": "Custom::CrossRegionStringRef",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": "{\"service\":\"SSM\",\"action\":\"getParameter\",\"parameters\":{\"Name\":\"/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn\"},\"region\":\"us-east-1\",\"physicalResourceId\":{\"id\":\"0\"}}",
+    "Update": "{\"service\":\"SSM\",\"action\":\"getParameter\",\"parameters\":{\"Name\":\"/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn\"},\"region\":\"us-east-1\",\"physicalResourceId\":{\"id\":\"0\"}}",
+    "InstallLatestAwsSdk": "false"
+   },
+   "DependsOn": [
+    "GatesWebAclArnCustomResourcePolicyAB620720"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesWebAclArnCustomResourcePolicyAB620720": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "ssm:GetParameter",
+       "Effect": "Allow",
+       "Resource": "arn:aws:ssm:us-east-1:669698671509:parameter/cdk/consid/exports/consid-gates-integ-test-global/StackUnderTest/Gates/Global/WebAcl/WebAclArn"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GatesWebAclArnCustomResourcePolicyAB620720",
+    "Roles": [
+     {
+      "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesWebDistributionCFDistribution5449A610": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "CacheBehaviors": [
+      {
+       "AllowedMethods": [
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT"
+       ],
+       "CachedMethods": [
+        "GET",
+        "HEAD"
+       ],
+       "Compress": true,
+       "DefaultTTL": 0,
+       "ForwardedValues": {
+        "Cookies": {
+         "Forward": "none"
+        },
+        "QueryString": false
+       },
+       "PathPattern": "/api",
+       "TargetOriginId": "origin1",
+       "ViewerProtocolPolicy": "redirect-to-https"
+      },
+      {
+       "AllowedMethods": [
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT"
+       ],
+       "CachedMethods": [
+        "GET",
+        "HEAD"
+       ],
+       "Compress": true,
+       "DefaultTTL": 0,
+       "ForwardedValues": {
+        "Cookies": {
+         "Forward": "none"
+        },
+        "QueryString": false
+       },
+       "PathPattern": "/api/*",
+       "TargetOriginId": "origin1",
+       "ViewerProtocolPolicy": "redirect-to-https"
+      }
+     ],
+     "DefaultCacheBehavior": {
+      "AllowedMethods": [
+       "GET",
+       "HEAD",
+       "OPTIONS"
+      ],
+      "CachedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "Compress": true,
+      "ForwardedValues": {
+       "Cookies": {
+        "Forward": "none"
+       },
+       "QueryString": false
+      },
+      "TargetOriginId": "origin2",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "DefaultRootObject": "index.html",
+     "Enabled": true,
+     "HttpVersion": "http2",
+     "IPV6Enabled": false,
+     "Origins": [
+      {
+       "ConnectionAttempts": 3,
+       "ConnectionTimeout": 10,
+       "CustomOriginConfig": {
+        "HTTPPort": 80,
+        "HTTPSPort": 443,
+        "OriginKeepaliveTimeout": 5,
+        "OriginProtocolPolicy": "https-only",
+        "OriginReadTimeout": 30,
+        "OriginSSLProtocols": [
+         "TLSv1.2"
+        ]
+       },
+       "DomainName": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Ref": "GatesHttpApi627E4AAB"
+          },
+          ".execute-api.eu-central-1.amazonaws.com"
+         ]
+        ]
+       },
+       "Id": "origin1",
+       "OriginCustomHeaders": [
+        {
+         "HeaderName": "x-verify-origin",
+         "HeaderValue": {
+          "Fn::Join": [
+           "",
+           [
+            "{{resolve:secretsmanager:",
+            {
+             "Ref": "GatesVerifyOriginSecret18F23E34"
+            },
+            ":SecretString:::}}"
+           ]
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "ConnectionAttempts": 3,
+       "ConnectionTimeout": 10,
+       "DomainName": {
+        "Fn::GetAtt": [
+         "GatesFrontendAssetsBucketE60AF483",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "origin2",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "GatesOriginAccessIdentity8F67F10C"
+           }
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "PriceClass": "PriceClass_100",
+     "ViewerCertificate": {
+      "CloudFrontDefaultCertificate": true
+     },
+     "WebACLId": {
+      "Fn::GetAtt": [
+       "GatesWebAclArnBF181ED9",
+       "Parameter.Value"
+      ]
+     }
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationFunctionServiceRoleDefaultPolicy636B9A18": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "cloudfront:GetDistribution",
+        "cloudfront:GetDistributionConfig",
+        "cloudfront:UpdateDistribution"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:cloudfront::669698671509:distribution/",
+          {
+           "Ref": "GatesWebDistributionCFDistribution5449A610"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue",
+        "secretsmanager:UpdateSecretVersionStage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "GatesVerifyOriginSecret18F23E34"
+       }
+      },
+      {
+       "Action": "secretsmanager:GetRandomPassword",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GatesVerifyOriginSecretRotationFunctionServiceRoleDefaultPolicy636B9A18",
+    "Roles": [
+     {
+      "Ref": "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationFunctionC6EDE179": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "65d7893e7a3574ba56a4cb4b0726e753949c284dd54c51a40f3fa10a794b0410.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "CLOUDFRONT_DISTRIBUTION_ID": {
+       "Ref": "GatesWebDistributionCFDistribution5449A610"
+      },
+      "X_VERIFY_ORIGIN_HEADER_NAME": "x-verify-origin",
+      "ORIGIN_TEST_URL": {
+       "Fn::Join": [
+        "",
+        [
+         "https://",
+         {
+          "Ref": "GatesHttpApi627E4AAB"
+         },
+         ".execute-api.eu-central-1.amazonaws.com/api/"
+        ]
+       ]
+      }
+     }
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Fn::Join": [
+         "-",
+         [
+          {
+           "Fn::Select": [
+            0,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "Fn::Select": [
+            1,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "Fn::Select": [
+            2,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "Fn::Select": [
+            3,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "Fn::Select": [
+            4,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "Fn::Select": [
+            5,
+            {
+             "Fn::Split": [
+              "-",
+              {
+               "Fn::Select": [
+                6,
+                {
+                 "Fn::Split": [
+                  ":",
+                  {
+                   "Ref": "GatesVerifyOriginSecret18F23E34"
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        ]
+       },
+       "-rotation"
+      ]
+     ]
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "GatesVerifyOriginSecretRotationFunctionServiceRoleDefaultPolicy636B9A18",
+    "GatesVerifyOriginSecretRotationFunctionServiceRoleFE1D56C1"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationFunctionLogRetentionDBB13CD2": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "GatesVerifyOriginSecretRotationFunctionC6EDE179"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesVerifyOriginSecretRotationFunctionInvokeN0a2GKfZP0JmDqDEVhhu6A0TUv3NyNbk4YMFKNc46D90F48": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GatesVerifyOriginSecretRotationFunctionC6EDE179",
+      "Arn"
+     ]
+    },
+    "Principal": "secretsmanager.amazonaws.com"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesBucketDeploymentAwsCliLayerA5E4E6D7": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "3322b7049fb0ed2b7cbb644a2ada8d1116ff80c32dca89e6ada846b5de26f961.zip"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "GatesBucketDeploymentCustomResource9BB17594": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     "cdk-consid-assets-669698671509-eu-central-1"
+    ],
+    "SourceObjectKeys": [
+     "c0afadd675a72196d0d95c0cbe90678bf8f9938040a73be10285d753c73ddc8b.zip"
+    ],
+    "DestinationBucketName": {
+     "Ref": "GatesFrontendAssetsBucketE60AF483"
+    },
+    "Prune": true,
+    "DistributionId": {
+     "Ref": "GatesWebDistributionCFDistribution5449A610"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:DeleteRetentionPolicy",
+        "logs:PutRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": "nodejs18.x",
+    "Timeout": 900,
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "4e26bf2d0a26f2097fb2b261f22bb51e3f6b4b52635777b1e54edbd8e2d58c35.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "6c1e9b465fa4b2d651dbc9ce3e732d8702a7b19137327684a71d89f1d355f1a2.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "GatesFrontendAssetsBucketE60AF483"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "ed6cd104ff5f101d06dae8cb2b87cc6e6d69b9a22055b467ea6cae10ff023023.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "PermissionsBoundary": "arn:aws:iam::669698671509:policy/consid-aws-cdk-permission-boundary"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws:s3:::cdk-consid-assets-669698671509-eu-central-1",
+        "arn:aws:s3:::cdk-consid-assets-669698671509-eu-central-1/*"
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GatesFrontendAssetsBucketE60AF483",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "GatesFrontendAssetsBucketE60AF483",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-consid-assets-669698671509-eu-central-1",
+     "S3Key": "2d56e153cac88d3e0c2f842e8e6f6783b8725bf91f95e0673b4725448a56e96d.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+     }
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "GatesBucketDeploymentAwsCliLayerA5E4E6D7"
+     }
+    ],
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete"
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/consid/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
