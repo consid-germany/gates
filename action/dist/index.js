@@ -24742,7 +24742,7 @@ async function run() {
         core.info(`idToken: ${idToken}`);
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient("consid-germany/gates", [auth]);
-        const response = await client.get("https://i4v0wbxlbi.execute-api.eu-central-1.amazonaws.com/api/");
+        const response = await client.get("https://github.gates.consid.tech/api/");
         console.log((await response.readBody()));
         core.setFailed("some error");
     }
