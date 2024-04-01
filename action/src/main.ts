@@ -28,6 +28,8 @@ export async function run(): Promise<void> {
             case 200:
                 if (isClosed(await gateStateResponse.json())) {
                     core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
+                } else {
+                    core.notice(`Gate ${group}/${service}/${environment} is open.`)
                 }
                 break;
             case 204:

@@ -24753,6 +24753,9 @@ async function run() {
                 if (isClosed(await gateStateResponse.json())) {
                     core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
                 }
+                else {
+                    core.notice(`Gate ${group}/${service}/${environment} is open.`);
+                }
                 break;
             case 204:
                 core.setFailed(`Gate ${group}/${service}/${environment} could not be found.`);
