@@ -62,6 +62,7 @@
       {
         "assets": [
           "CHANGELOG.md",
+          "api/Cargo.toml",
           "action/package.json",
           "cdk/package.json",
           "ui/package.json"
