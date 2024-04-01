@@ -24732,12 +24732,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const http = __importStar(__nccwpck_require__(6255));
+const httpAuth = __importStar(__nccwpck_require__(5526));
 async function run() {
     try {
         const group = core.getInput("group");
         core.info(`Group: ${group}`);
         const idToken = await core.getIDToken();
         core.info(`idToken: ${idToken}`);
+        const auth = new httpAuth.BearerCredentialHandler(idToken);
+        const client = new http.HttpClient("consid-germany/gates", [auth]);
+        const response = await client.get("https://i4v0wbxlbi.execute-api.eu-central-1.amazonaws.com/api/");
+        console.log((await response.readBody()));
         core.setFailed("some error");
     }
     catch (error) {
