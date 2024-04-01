@@ -24748,11 +24748,14 @@ async function run() {
         const gateStateResponse = await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
         switch (gateStateResponse.message.statusCode) {
             case 200:
-                return checkGate(await gateStateResponse.readBody());
+                await checkGate(await gateStateResponse.readBody());
+                break;
             case 204:
-                return core.setFailed("Gate could not be found.");
+                core.setFailed("Gate could not be found.");
+                break;
             default:
-                return core.setFailed("Request to check gate state failed");
+                core.setFailed("Request to check gate state failed");
+                break;
         }
     }
     catch (error) {
@@ -24760,9 +24763,9 @@ async function run() {
     }
 }
 exports.run = run;
-function checkGate(gateStateJson) {
+async function checkGate(gateStateJson) {
     const gateState = JSON.parse(gateStateJson);
-    core.summary.addDetails("Gate State", gateState.state);
+    await core.summary.addDetails("Gate State", gateState.state).write();
     if (gateState.state !== "open") {
         core.setFailed("Gate is closed.");
     }
