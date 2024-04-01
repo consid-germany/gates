@@ -24762,6 +24762,7 @@ async function run() {
         //         //core.setFailed("Request to check gate state failed");
         //         break;
         // }
+        return;
     }
     catch (error) {
         core.setFailed(`${error}`);

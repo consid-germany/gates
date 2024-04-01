@@ -38,6 +38,9 @@ export async function run(): Promise<void> {
         //         //core.setFailed("Request to check gate state failed");
         //         break;
         // }
+
+        return;
+
     } catch (error) {
         core.setFailed(`${error}`);
     }
