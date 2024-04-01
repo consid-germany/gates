@@ -13,7 +13,14 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: 20
+      - uses: cycjimmy/semantic-release-action@v4
         with:
-          node-version: 20
-      - run: npx semantic-release
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/exec
+            @semantic-release/git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
