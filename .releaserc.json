@@ -61,7 +61,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./build.sh"
+        "prepareCmd": "./build.sh",
+        "publishCmd": "./publish.sh"
       }
     ],
     [
