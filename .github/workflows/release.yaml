@@ -13,9 +13,15 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-#      - uses: actions/setup-node@v4
-#        with:
-#          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "api"
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          cache: enable
       - uses: cycjimmy/semantic-release-action@v4
         with:
           extra_plugins: |
