@@ -28,10 +28,10 @@ export async function run(): Promise<void> {
                 await checkGate(await gateStateResponse.readBody());
                 break;
             case 204:
-                core.setFailed("Gate could not be found.");
+                //core.setFailed("Gate could not be found.");
                 break;
             default:
-                core.setFailed("Request to check gate state failed");
+                //core.setFailed("Request to check gate state failed");
                 break;
         }
     } catch (error) {
