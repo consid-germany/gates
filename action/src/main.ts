@@ -14,7 +14,7 @@ export async function run(): Promise<void> {
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient("consid-germany/gates", [auth]);
 
-        const response = await client.get(`https://${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        const response = await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
 
         console.log(response.message.statusCode);
         console.log((await response.readBody()));
