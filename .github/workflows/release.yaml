@@ -33,5 +33,6 @@ jobs:
             @semantic-release/git
             semantic-release-replace-plugin
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_REGISTRY: npm.pkg.github.com
