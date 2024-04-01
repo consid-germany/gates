@@ -25,14 +25,11 @@ export async function run(): Promise<void> {
 
         switch (gateStateResponse.message.statusCode) {
             case 200:
-                checkGate(await gateStateResponse.readBody());
-                break;
+                return checkGate(await gateStateResponse.readBody());
             case 204:
-                core.setFailed("Gate could not be found.");
-                break;
+                return core.setFailed("Gate could not be found.");
             default:
-                core.setFailed("Request to check gate state failed");
-                break;
+                return core.setFailed("Request to check gate state failed");
         }
     } catch (error) {
         core.setFailed(`${error}`);
