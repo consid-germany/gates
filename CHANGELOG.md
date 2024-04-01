@@ -1,3 +1,11 @@
+# [1.12.0](https://github.com/consid-germany/gates/compare/v1.11.0...v1.12.0) (2024-04-01)
+
+
+### Features
+
+* **cdk:** add integ test snapshot ([e30b962](https://github.com/consid-germany/gates/commit/e30b962cde3aaa8435dda730515f41aa6a492cbc))
+* **release:** update release workflow ([5e9ce44](https://github.com/consid-germany/gates/commit/5e9ce44a716289b6dea14270e8d3fd04b2e27ff2))
+
 # [1.11.0](https://github.com/consid-germany/gates/compare/v1.10.0...v1.11.0) (2024-04-01)
 
 
