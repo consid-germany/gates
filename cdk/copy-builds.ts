@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const BUILD_DIR = path.join(__dirname, "build");
-const _DIR = path.join(__dirname, "build");
+const API_BUILD_DIR = path.join(__dirname, "..", "api", "target", "lambda", "gates-api");
+const UI_BUILD_DIR = path.join(__dirname, "..", "ui", "build");
+
 const BUILD_DIR = path.join(__dirname, "build");
 
 if (fs.existsSync(BUILD_DIR)) {
@@ -11,4 +12,5 @@ if (fs.existsSync(BUILD_DIR)) {
 
 fs.mkdirSync(BUILD_DIR);
 
-fs.cpSync();
+fs.cpSync(API_BUILD_DIR, path.join(BUILD_DIR, "api"), {recursive: true});
+fs.cpSync(UI_BUILD_DIR, path.join(BUILD_DIR, "ui"), {recursive: true});

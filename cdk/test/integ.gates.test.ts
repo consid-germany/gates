@@ -2,6 +2,10 @@ import * as cdk from "aws-cdk-lib";
 import { IntegTest } from "@aws-cdk/integ-tests-alpha";
 import { Gates } from "../src";
 
+Date.now = function() {
+    return 0;
+};
+
 const app = new cdk.App({
     context: {
         "@aws-cdk/core:bootstrapQualifier": "consid",
@@ -23,12 +27,11 @@ const stackUnderTest = new cdk.Stack(app, "StackUnderTest", {
 });
 
 new Gates(stackUnderTest, "Gates", {
-    appName: "consid-gates",
-    ipAllowList: ["93.230.165.116/32"],
-    domain: {
-        domainName: "gates.consid.tech",
-        zoneDomainName: "consid.tech",
-    },
+    appName: "consid-gates-integ",
+    ipAllowList: [],
+    gitHubApi: {
+        allowedSubPatterns: []
+    }
 });
 
 new IntegTest(app, "IntegTest", {

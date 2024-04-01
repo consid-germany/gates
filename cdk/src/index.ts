@@ -1,5 +1,5 @@
-import { Construct } from "constructs";
-import { Duration, Stack } from "aws-cdk-lib";
+import {Construct} from "constructs";
+import {Duration, Stack} from "aws-cdk-lib";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53_targets from "aws-cdk-lib/aws-route53-targets";
@@ -9,6 +9,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as apigatewayv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigatewayv2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import {TableV2} from "aws-cdk-lib/aws-dynamodb";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as s3 from "aws-cdk-lib/aws-s3";
@@ -17,11 +18,15 @@ import GlobalStackProvider from "./global-stack";
 import CrossRegionStringRef from "./cross-region-string-ref";
 import * as path from "path";
 import * as apigatewayv2_authorizers from "aws-cdk-lib/aws-apigatewayv2-authorizers";
-import { TableV2 } from "aws-cdk-lib/aws-dynamodb";
 
 export interface Domain {
     readonly domainName: string;
     readonly zoneDomainName?: string;
+    readonly gitHubApiSubdomain?: string;
+}
+
+export interface GitHubApi {
+    readonly allowedSubPatterns: string[];
 }
 
 export interface GatesProps {
@@ -34,11 +39,12 @@ export interface GatesProps {
 
     readonly ipAllowList?: string[];
 
+    readonly gitHubApi?: GitHubApi;
+
     readonly globalStackName?: string;
+    readonly frontendAssetsBucketName?: string;
 
     readonly demoMode?: boolean;
-
-    readonly frontendAssetsBucketName?: string;
 }
 
 const SCOPE_CLOUDFRONT = "CLOUDFRONT";
@@ -60,17 +66,34 @@ export class Gates extends Construct {
             tags: this.stack.tags.tagValues(),
         });
 
+        const hostedZone = this.lookupHostedZone(props.domain);
+
         const gatesTable = this.createGatesTable(appName);
         const apiFunction = this.createApiFunction(appName, gatesTable, props.demoMode);
-        const verifyOriginSecret = this.createVerifyOriginSecret(appName);
 
+        const verifyOriginSecret = this.createVerifyOriginSecret(appName);
         const verifyOriginAuthFunction = this.createVerifyOriginAuthFunction(
             appName,
             verifyOriginSecret,
         );
 
-        const gatesApi = this.createGatesApi(appName, apiFunction, verifyOriginAuthFunction);
-        //const gatesGitHubApi = this.createGitHubApi();
+        const gatesApi = this.createGatesApi(
+            appName,
+            apiFunction,
+            verifyOriginAuthFunction,
+        );
+
+        if (props.gitHubApi !== undefined) {
+            const gitHubJwtAuthFunction = this.createGitHubJwtAuthFunction(appName, props.gitHubApi.allowedSubPatterns);
+
+            this.createGitHubApi(
+                appName,
+                apiFunction,
+                gitHubJwtAuthFunction,
+                hostedZone,
+                props.domain
+            );
+        }
 
         const frontendAssetsBucket = this.createFrontendAssetsBucket(
             props.frontendAssetsBucketName,
@@ -81,30 +104,112 @@ export class Gates extends Construct {
             frontendAssetsBucket,
             gatesApi,
             verifyOriginSecret,
+            hostedZone,
             props.domain,
             props.ipAllowList,
         );
 
-        this.createARecord(webDistribution, props.domain);
         this.createVerifyOriginSecretRotation(verifyOriginSecret, webDistribution, gatesApi);
         this.createFrontendAssetsDeployment(frontendAssetsBucket, webDistribution);
     }
 
-    private createARecord(webDistribution: cloudfront.CloudFrontWebDistribution, domain?: Domain) {
+    private lookupHostedZone(domain?: Domain) {
         if (domain === undefined) {
-            return;
+            return undefined;
         }
-
-        const hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
+        return route53.HostedZone.fromLookup(this, "HostedZone", {
             domainName: domain.zoneDomainName || domain.domainName,
         });
+    }
 
-        new route53.ARecord(this, "ARecord", {
-            recordName: domain.domainName,
-            target: route53.RecordTarget.fromAlias(
-                new route53_targets.CloudFrontTarget(webDistribution),
+    private createGitHubJwtAuthFunction(appName: string, allowedSubPatterns: string[]) {
+        return new lambda.Function(this, "GitHubJwtAuthFunction", {
+            functionName: `${appName}-github-jwt-auth`,
+            runtime: lambda.Runtime.NODEJS_20_X,
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "..", "build", "function", "github-jwt-authorizer"),
             ),
-            zone: hostedZone,
+            handler: "index.handler",
+            logRetention: logs.RetentionDays.ONE_WEEK,
+            environment: {
+                ALLOWED_SUB_PATTERNS: JSON.stringify(allowedSubPatterns),
+            },
+        });
+    }
+
+    private createGitHubApi(
+        appName: string,
+        apiFunction: lambda.Function,
+        gitHubJwtAuthFunction: lambda.Function,
+        hostedZone?: route53.IHostedZone,
+        domain?: Domain,
+    ) {
+        const apiFunctionIntegration = new apigatewayv2_integrations.HttpLambdaIntegration(
+            "ApiFunctionGitHubHttpApiIntegration",
+            apiFunction,
+        );
+
+        // TODO improve undefiend handling (sub methods)
+        if (domain !== undefined && hostedZone !== undefined) {
+            // TODO default value as const
+            const gitHubApiDomainName = `${domain.gitHubApiSubdomain || "github"}.${domain.domainName}`;
+
+            const gitHubSubdomainCertificate = new acm.Certificate(this, "GitHubHttpApiCertificate", {
+                domainName: gitHubApiDomainName,
+                validation: acm.CertificateValidation.fromDns(hostedZone),
+            });
+
+            const gitHubHttpApiDomainName = new apigatewayv2.DomainName(this, "GitHubHttpApiDomain", {
+                domainName: "github.gates.consid.tech", // TODO
+                certificate: gitHubSubdomainCertificate,
+            });
+
+            const gitHubJwtAuthorizer = new apigatewayv2_authorizers.HttpLambdaAuthorizer(
+                "GitHubJwtAuthorizer",
+                gitHubJwtAuthFunction,
+                {
+                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
+                },
+            );
+
+            const httpApi = new apigatewayv2.HttpApi(this, "GitHubHttpApi", {
+                apiName: `${appName}-github-api`,
+                defaultDomainMapping: {
+                    domainName: gitHubHttpApiDomainName
+                },
+            });
+
+            httpApi.addRoutes({
+                integration: apiFunctionIntegration,
+                authorizer: gitHubJwtAuthorizer,
+                path: "/api/gates/{group}/{service}/{environment}/state",
+                methods: [apigatewayv2.HttpMethod.GET]
+            });
+
+            new route53.ARecord(this, "GitHubHttpApiARecord", {
+                recordName: gitHubApiDomainName,
+                target: route53.RecordTarget.fromAlias(
+                    new route53_targets.ApiGatewayv2DomainProperties(
+                        gitHubHttpApiDomainName.regionalDomainName,
+                        gitHubHttpApiDomainName.regionalHostedZoneId),
+                ),
+                zone: hostedZone,
+            });
+
+            return httpApi;
+        }
+
+        return new apigatewayv2.HttpApi(this, "GitHubHttpApi", {
+            apiName: `${appName}-github-api`,
+            defaultIntegration: apiFunctionIntegration,
+            defaultAuthorizer: new apigatewayv2_authorizers.HttpLambdaAuthorizer(
+                "GitHubJwtAuthorizer",
+                gitHubJwtAuthFunction,
+                {
+                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
+                },
+            ),
+
         });
     }
 
@@ -113,7 +218,7 @@ export class Gates extends Construct {
         webDistribution: cloudfront.CloudFrontWebDistribution,
     ) {
         new s3_deployment.BucketDeployment(this, "BucketDeployment", {
-            sources: [s3_deployment.Source.asset(path.join(__dirname, "..", "..", "ui/build"))],
+            sources: [s3_deployment.Source.asset(path.join(__dirname, "..", "build", "ui"))],
             destinationBucket: frontendAssetsBucket,
             distribution: webDistribution,
         });
@@ -132,13 +237,14 @@ export class Gates extends Construct {
         frontendAssetsBucket: s3.Bucket,
         httpApi: apigatewayv2.HttpApi,
         verifyOriginSecret: secretsmanager.Secret,
+        hostedZone?: route53.IHostedZone,
         domain?: Domain,
         ipAllowList?: string[],
     ) {
         const cloudfrontOAI = new cloudfront.OriginAccessIdentity(this, "OriginAccessIdentity");
         frontendAssetsBucket.grantRead(cloudfrontOAI);
 
-        return new cloudfront.CloudFrontWebDistribution(this, "WebDistribution", {
+        const webDistribution = new cloudfront.CloudFrontWebDistribution(this, "WebDistribution", {
             webACLId: this.createGlobalWebAcl(appName, ipAllowList),
             enableIpV6: false,
             viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -179,6 +285,18 @@ export class Gates extends Construct {
                 },
             ],
         });
+
+        if (domain !== undefined && hostedZone !== undefined) {
+            new route53.ARecord(this, "ARecord", {
+                recordName: domain.domainName,
+                target: route53.RecordTarget.fromAlias(
+                    new route53_targets.CloudFrontTarget(webDistribution),
+                ),
+                zone: hostedZone,
+            });
+        }
+
+        return webDistribution;
     }
 
     private createGatesApi(
@@ -187,7 +305,7 @@ export class Gates extends Construct {
         verifyOriginAuthFunction: lambda.Function,
     ) {
         const apiFunctionIntegration = new apigatewayv2_integrations.HttpLambdaIntegration(
-            "ApiFunctionIntegration",
+            "ApiFunctionApiIntegration",
             apiFunction,
         );
 
@@ -217,7 +335,7 @@ export class Gates extends Construct {
                 functionName: `${verifyOriginSecret.secretName}-rotation`,
                 runtime: lambda.Runtime.NODEJS_20_X,
                 code: lambda.Code.fromAsset(
-                    path.join(__dirname, "..", "lib", "function", "verify-origin-secret-rotation"),
+                    path.join(__dirname, "..", "build", "function", "verify-origin-secret-rotation"),
                 ),
                 handler: "index.handler",
                 logRetention: logs.RetentionDays.ONE_WEEK,
@@ -251,7 +369,7 @@ export class Gates extends Construct {
             functionName: `${appName}-verify-origin-auth`,
             runtime: lambda.Runtime.NODEJS_20_X,
             code: lambda.Code.fromAsset(
-                path.join(__dirname, "..", "lib", "function", "verify-origin-authorizer"),
+                path.join(__dirname, "..", "build", "function", "verify-origin-authorizer"),
             ),
             handler: "index.handler",
             logRetention: logs.RetentionDays.ONE_WEEK,
@@ -281,7 +399,7 @@ export class Gates extends Construct {
             runtime: lambda.Runtime.PROVIDED_AL2023,
             architecture: lambda.Architecture.ARM_64,
             code: lambda.Code.fromAsset(
-                path.join(__dirname, "..", "..", "api/target/lambda/gates-api"),
+                path.join(__dirname, "..", "build", "api"),
             ),
             handler: "provided",
             environment: {
@@ -322,17 +440,17 @@ export class Gates extends Construct {
             domainName: domain.zoneDomainName || domain.domainName,
         });
 
-        const certificate = new acm.Certificate(this.globalStack, "Certificate", {
+        const certificate = new acm.Certificate(this.globalStack, "GlobalCertificate", {
             domainName: domain.domainName,
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 
-        const certificateArn = new CrossRegionStringRef(this, "CertificateArn", {
+        const certificateArn = new CrossRegionStringRef(this, "GlobalCertificateArn", {
             constructInOtherRegion: certificate,
             value: (certificate) => certificate.certificateArn,
         }).value;
 
-        return acm.Certificate.fromCertificateArn(this, "Certificate", certificateArn);
+        return acm.Certificate.fromCertificateArn(this, "GlobalCertificate", certificateArn);
     }
 
     private createGlobalWebAcl(appName: string, ipAllowList?: string[]) {

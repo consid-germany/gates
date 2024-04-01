@@ -8,7 +8,7 @@ const PATHS_TO_HANDLER = fs
     .map((element) => path.join(element.path, element.name, "handler.ts"))
     .filter((file) => fs.existsSync(file));
 
-const OUTDIR = path.join(__dirname, "..", "..", "lib", "function");
+const OUTDIR = path.join(__dirname, "..", "..", "build", "function");
 
 (async () => {
     await esbuild.build({
