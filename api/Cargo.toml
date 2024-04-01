@@ -2,6 +2,8 @@
 name = "gates-api"
 version = "1.11.0"
 edition = "2021"
+license = "MIT"
+authors = ["Consid Germany"]
 
 [features]
 local = []
