@@ -24761,7 +24761,7 @@ async function run() {
                 core.setFailed(`Gate ${group}/${service}/${environment} could not be found.`);
                 break;
             default:
-                core.setFailed(`Request to check gate state of ${group}/${service}/${environment} failed`);
+                core.setFailed(`Request to check gate ${group}/${service}/${environment} failed: ${gateStateResponse.status} ${gateStateResponse.statusText}`);
                 break;
         }
     }
