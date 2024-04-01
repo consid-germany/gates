@@ -1,7 +1,22 @@
 {
 	"name": "@consid-germany/gates-ui",
 	"version": "1.11.0",
+	"description": "",
 	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/consid-germany/gates.git"
+	},
+	"author": {
+		"name": "Consid GmbH",
+		"email": "hamburg@consid.com",
+		"organization": true
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/consid-germany/gates/issues"
+	},
+	"homepage": "https://github.com/consid-germany/gates",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
