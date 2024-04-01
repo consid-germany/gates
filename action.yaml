@@ -2,6 +2,9 @@ name: 'Check Gate State'
 description: 'Checks the state of a gate and cancels the workflow if the gate is closed.'
 author: "Consid GmbH"
 inputs:
+  gitHubApiBaseUrl:
+    description: 'TODO'
+    required: true
   group:
     description: 'TODO'
     required: true
