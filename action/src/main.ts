@@ -21,11 +21,9 @@ export async function run(): Promise<void> {
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient(USER_AGENT, [auth]);
 
-        try {
-            await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
-        } catch (e) {
-            core.info("catched error")
-        }
+
+        //await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+
 
         // switch (gateStateResponse.message.statusCode) {
         //     case 200:
