@@ -70,6 +70,7 @@
         "assets": [
           "CHANGELOG.md",
           "api/Cargo.toml",
+          "api/Cargo.lock",
           "action/package.json",
           "action/dist/**/*",
           "cdk/package.json",
