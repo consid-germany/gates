@@ -24732,8 +24732,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const http = __importStar(__nccwpck_require__(6255));
-const httpAuth = __importStar(__nccwpck_require__(5526));
 const USER_AGENT = "consid-germany/gates";
 const AUDIENCE = "consid-germany/gates";
 async function run() {
@@ -24742,10 +24740,16 @@ async function run() {
         const group = core.getInput("group");
         const service = core.getInput("service");
         const environment = core.getInput("environment");
-        const idToken = await core.getIDToken(AUDIENCE);
-        const auth = new httpAuth.BearerCredentialHandler(idToken);
-        const client = new http.HttpClient(USER_AGENT, [auth]);
-        await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        const gateStateResponse = await fetch(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "User-Agent": USER_AGENT,
+                "Authorization": `Bearer ${await core.getIDToken(AUDIENCE)}`,
+            }
+        });
+        core.info(String(gateStateResponse.status));
+        core.info(await gateStateResponse.json());
         // switch (gateStateResponse.message.statusCode) {
         //     case 200:
         //         await checkGate(await gateStateResponse.readBody());

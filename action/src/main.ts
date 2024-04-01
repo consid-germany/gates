@@ -1,6 +1,4 @@
 import * as core from "@actions/core";
-import * as http from "@actions/http-client";
-import * as httpAuth from '@actions/http-client/lib/auth'
 
 const USER_AGENT = "consid-germany/gates";
 
@@ -17,13 +15,17 @@ export async function run(): Promise<void> {
         const service = core.getInput("service");
         const environment = core.getInput("environment");
 
-        const idToken = await core.getIDToken(AUDIENCE);
-        const auth = new httpAuth.BearerCredentialHandler(idToken);
-        const client = new http.HttpClient(USER_AGENT, [auth]);
+        const gateStateResponse = await fetch(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`, {
+            method: "GET",
+            headers: {
+                "Accept" : "application/json",
+                "User-Agent" : USER_AGENT,
+                "Authorization": `Bearer ${await core.getIDToken(AUDIENCE)}`,
+            }
+        })
 
-
-        await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
-
+        core.info(String(gateStateResponse.status));
+        core.info(await gateStateResponse.json());
 
         // switch (gateStateResponse.message.statusCode) {
         //     case 200:
