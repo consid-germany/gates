@@ -57,6 +57,13 @@
         ]
       }
     ],
+    "@semantic-release/github",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./build.sh"
+      }
+    ],
     [
       "@semantic-release/git",
       {
@@ -64,11 +71,11 @@
           "CHANGELOG.md",
           "api/Cargo.toml",
           "action/package.json",
+          "action/dist/**/*",
           "cdk/package.json",
           "ui/package.json"
         ]
       }
-    ],
-    "@semantic-release/github"
+    ]
   ]
 }
