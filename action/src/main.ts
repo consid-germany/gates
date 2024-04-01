@@ -22,7 +22,7 @@ export async function run(): Promise<void> {
         const client = new http.HttpClient(USER_AGENT, [auth]);
 
 
-        //await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
 
 
         // switch (gateStateResponse.message.statusCode) {

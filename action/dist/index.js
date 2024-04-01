@@ -24745,7 +24745,7 @@ async function run() {
         const idToken = await core.getIDToken(AUDIENCE);
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient(USER_AGENT, [auth]);
-        //await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
+        await client.get(`${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`);
         // switch (gateStateResponse.message.statusCode) {
         //     case 200:
         //         await checkGate(await gateStateResponse.readBody());
