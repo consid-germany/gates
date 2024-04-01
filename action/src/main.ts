@@ -5,7 +5,8 @@ import * as httpAuth from '@actions/http-client/lib/auth'
 export async function run(): Promise<void> {
     try {
         const group = core.getInput("group");
-        core.info(`Group: ${group}`);
+        const service = core.getInput("service");
+        const environment = core.getInput("environment");
 
         const idToken = await core.getIDToken("consid-germany/gates");
         core.info(`idToken: ${idToken}`);
@@ -14,7 +15,7 @@ export async function run(): Promise<void> {
         const auth = new httpAuth.BearerCredentialHandler(idToken);
         const client = new http.HttpClient("consid-germany/gates", [auth]);
 
-        const response = await client.get("https://github.gates.consid.tech/api/");
+        const response = await client.get(`https://github.gates.consid.tech/api/gates/${group}/${service}/${environment}/state`);
 
         console.log((await response.readBody()));
 
