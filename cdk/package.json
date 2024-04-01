@@ -25,7 +25,8 @@
     "integ-test": "integ-runner --parallel-regions eu-central-1 -v",
     "integ-watch": "integ-runner --parallel-regions eu-central-1 -v --watch",
     "check": "prettier src/**/*.ts --check",
-    "format": "prettier src/**/*.ts --write"
+    "format": "prettier src/**/*.ts --write",
+    "publish": "publib-npm"
   },
   "keywords": [
     ""
@@ -53,6 +54,7 @@
     "jsii-pacmak": "^1.94.0",
     "nock": "^13.5.4",
     "prettier": "^3.2.5",
+    "publib": "^0.2.812",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vitest-mock-extended": "^1.3.1",
