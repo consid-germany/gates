@@ -458,7 +458,7 @@ fn decode_string(
         .ok_or(format!("field {field} could not be found"))?
         .as_s()
         .map_err(|_| format!("field {field} could not be parsed as string"))
-        .map(std::clone::Clone::clone)
+        .cloned()
 }
 
 fn decode_datetime_utc(
