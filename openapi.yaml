@@ -4,6 +4,10 @@ info:
   title: Gates API
   version: 1.12.0
   description: OpenAPI specification for the gates API
+  license:
+    name: MIT Licence
+    identifier: MIT
+    url: https://github.com/consid-germany/gates/blob/main/LICENSE
   contact:
     url: https://github.com/consid-germany/gates
 
