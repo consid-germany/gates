@@ -64,7 +64,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "api"
-          shared-key: "api"
 
       - name: Install cargo-lambda
         uses: jaxxstorm/action-install-gh-release@v1.11.0
