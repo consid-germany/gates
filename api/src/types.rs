@@ -1,10 +1,19 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use crate::types::active_hours::ActiveHoursPerWeek;
 
 pub mod representation;
 pub mod use_cases;
 pub mod app_state;
+mod active_hours;
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Config {
+    pub system_time: DateTime<Utc>,
+    pub active_hours_per_week: ActiveHoursPerWeek,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateKey {
