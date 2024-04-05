@@ -1,5 +1,8 @@
 # gates
 
+[![ci](https://github.com/consid-germany/gates/actions/workflows/ci.yaml/badge.svg)](https://github.com/consid-germany/gates/actions/workflows/ci.yaml)
+[![release](https://github.com/consid-germany/gates/actions/workflows/release.yaml/badge.svg)](https://github.com/consid-germany/gates/actions/workflows/release.yaml)
+
 **gates** is an open-source tool that assists software development 
 teams in managing the deployment of software artifacts across multiple pipelines and environments.
 The tool provides toggles (gates) which can be in the state `open` or `closed`
