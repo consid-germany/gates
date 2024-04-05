@@ -54,7 +54,7 @@ jobs:
         working-directory: api
         run: cargo test --all-features
 
-  api-conformance:
+  check-openapi-conformance:
     needs: lint-and-check
     runs-on: ubuntu-latest
     steps:
