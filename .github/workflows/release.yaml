@@ -14,18 +14,24 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "api"
+          shared-key: "api"
+
       - name: Install cargo-lambda
         uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: cargo-lambda/cargo-lambda
           cache: enable
+
       - uses: korandoru/setup-zig@v1
         with:
           zig-version: 0.11.0
+
       - uses: cycjimmy/semantic-release-action@v4
         with:
           extra_plugins: |

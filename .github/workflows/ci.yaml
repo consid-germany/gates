@@ -11,3 +11,6 @@ jobs:
 
   api:
     uses: ./.github/workflows/api.yaml
+
+  openapi:
+    uses: ./.github/workflows/openapi.yaml
