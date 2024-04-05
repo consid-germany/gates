@@ -5,4 +5,6 @@ on:
 jobs:
   ui:
     uses: ./.github/workflows/ui.yaml
-    if: false
+
+  api:
+    uses: ./.github/workflows/api.yaml

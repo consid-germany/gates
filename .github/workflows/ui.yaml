@@ -11,18 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           cache: 'npm'
           cache-dependency-path: ui
+
       - uses: SpicyPizza/create-envfile@v2
         with:
           directory: ui
           envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+
       - run: npm ci
         working-directory: ui
+
       - run: npm run lint
         working-directory: ui
+
       - run: npm run check
         working-directory: ui
 
@@ -31,16 +36,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           cache: 'npm'
           cache-dependency-path: ui
+
       - uses: SpicyPizza/create-envfile@v2
         with:
           directory: ui
           envkey_PUBLIC_API_BASE_URL: ${{ inputs.api-base-url }}
+
       - run: npm ci
         working-directory: ui
+
       - run: npm run test:unit
         working-directory: ui
 
@@ -87,7 +96,7 @@ jobs:
         working-directory: api
 
       - name: Get api info
-        run: curl --retry 3 --retry-all-errors http://localhost:9000/api/
+        run: curl --retry 3 --retry-all-errors ${{ inputs.api-base-url }}/
 
       - uses: actions/cache@v4
         id: cache-playwright
