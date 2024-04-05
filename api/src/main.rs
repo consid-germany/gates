@@ -179,6 +179,7 @@ mod acceptance_tests {
     use crate::types::app_state::AppState;
     use crate::types::GateState;
     use crate::types::representation;
+    use crate::use_cases;
 
     #[tokio::test]
     async fn should_create_and_list_gates() {
@@ -290,7 +291,17 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        initialize_two_gates(&server).await;
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "develop".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "live".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
 
         let response = server.get("/api/gates").await;
 
@@ -398,7 +409,17 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        initialize_two_gates(&server).await;
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "develop".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "live".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
 
         // when
         let response = server.delete("/api/gates/somegroup/someservice/live").await;
@@ -568,7 +589,17 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        initialize_two_gates(&server).await;
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "develop".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "live".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
 
         // when
         let response = server
@@ -617,7 +648,17 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        initialize_two_gates(&server).await;
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "develop".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "live".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
 
         // when
         // try to set state of live - CLOSED on sunday
@@ -675,7 +716,17 @@ mod acceptance_tests {
 
         let server = TestServer::new(router).expect("failed to create test server");
 
-        initialize_two_gates(&server).await;
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "develop".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
+
+        let response = server
+            .post("/api/gates")
+            .json(&create_gate_payload("somegroup".to_owned(), "someservice".to_owned(), "live".to_owned()))
+            .await;
+        assert_eq!(response.status_code(), StatusCode::OK);
 
         // when
         let response = server
@@ -727,27 +778,12 @@ mod acceptance_tests {
         );
     }
 
-    async fn initialize_two_gates(server: &TestServer) {
-        // when
-        let response = server
-            .post("/api/gates")
-            .json(&crate::use_cases::create_gate::route::Payload {
-                group: "somegroup".to_owned(),
-                service: "someservice".to_owned(),
-                environment: "develop".to_owned(),
-            })
-            .await;
-        assert_eq!(response.status_code(), StatusCode::OK);
-
-        let response = server
-            .post("/api/gates")
-            .json(&crate::use_cases::create_gate::route::Payload {
-                group: "somegroup".to_owned(),
-                service: "someservice".to_owned(),
-                environment: "live".to_owned(),
-            })
-            .await;
-        assert_eq!(response.status_code(), StatusCode::OK);
+    const fn create_gate_payload(group: String, service: String, environment: String) -> use_cases::create_gate::route::Payload {
+        use_cases::create_gate::route::Payload {
+            group,
+            service,
+            environment,
+        }
     }
 
     fn expected_gate_representation(

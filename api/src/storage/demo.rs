@@ -5,14 +5,14 @@ use crate::storage;
 use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
 
-type Storage = dyn storage::Storage + Send + Sync;
+type DynStorage = dyn storage::Storage + Send + Sync;
 
-pub struct DemoDbStorage {
-    pub proxy: Box<Storage>,
+pub struct ReadOnlyStorage {
+    pub proxy: Box<DynStorage>,
 }
 
 #[async_trait]
-impl storage::Storage for DemoDbStorage {
+impl storage::Storage for ReadOnlyStorage {
     async fn insert(&self, _: &Gate) -> Result<(), InsertError> {
         Err(InsertError::Other("not allowed in demo mode".to_owned()))
     }
@@ -81,8 +81,8 @@ impl storage::Storage for DemoDbStorage {
     }
 }
 
-impl DemoDbStorage {
-    pub fn new(proxy: Box<Storage>) -> Self {
+impl ReadOnlyStorage {
+    pub fn new(proxy: Box<DynStorage>) -> Self {
         Self { proxy }
     }
 }
@@ -94,7 +94,7 @@ mod unit_test {
     use chrono::{DateTime, Utc};
     use mockall::predicate::eq;
 
-    use crate::storage::demo::DemoDbStorage;
+    use crate::storage::demo::ReadOnlyStorage;
     use crate::storage::{MockStorage, Storage};
     use crate::types::{Comment, Gate, GateKey, GateState};
 
@@ -103,7 +103,7 @@ mod unit_test {
         // when
         let mock_storage = MockStorage::new();
 
-        let actual = DemoDbStorage {
+        let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
         }
         .insert(&Gate {
@@ -126,7 +126,7 @@ mod unit_test {
         // when
         let mock_storage = MockStorage::new();
 
-        let actual = DemoDbStorage {
+        let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
         }
         .delete(GateKey {
@@ -172,7 +172,7 @@ mod unit_test {
                     display_order: None,
                 })
             });
-        let actual = DemoDbStorage {
+        let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
         }
         .update_comment_and_last_updated(
@@ -230,7 +230,7 @@ mod unit_test {
                     display_order: None,
                 }))
             });
-        let actual = DemoDbStorage::new(Box::new(storage))
+        let actual = ReadOnlyStorage::new(Box::new(storage))
             .find_one(GateKey {
                 group: "input".to_owned(),
                 service: "input".to_owned(),
@@ -270,7 +270,7 @@ mod unit_test {
                 display_order: None,
             }]))
         });
-        let actual = DemoDbStorage::new(Box::new(storage)).find_all().await;
+        let actual = ReadOnlyStorage::new(Box::new(storage)).find_all().await;
         assert!(actual.is_ok());
         assert_eq!(
             actual.unwrap(),
@@ -312,7 +312,7 @@ mod unit_test {
                     display_order: None,
                 })
             });
-        let actual = DemoDbStorage::new(Box::new(storage))
+        let actual = ReadOnlyStorage::new(Box::new(storage))
             .update_state_and_last_updated(
                 GateKey {
                     group: "input".to_owned(),
@@ -364,7 +364,7 @@ mod unit_test {
                     display_order: Some(display_order),
                 })
             });
-        let actual = DemoDbStorage::new(Box::new(storage))
+        let actual = ReadOnlyStorage::new(Box::new(storage))
             .update_display_order_and_last_updated(
                 GateKey {
                     group: "input".to_owned(),
@@ -416,7 +416,7 @@ mod unit_test {
                     display_order: None,
                 })
             });
-        let actual = DemoDbStorage::new(Box::new(storage))
+        let actual = ReadOnlyStorage::new(Box::new(storage))
             .delete_comment_by_id_and_update_last_updated(
                 GateKey {
                     group: "input".to_owned(),

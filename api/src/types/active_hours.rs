@@ -2,7 +2,7 @@
 pub struct UtcTime { hour: u8, minute: u8, second: u8}
 
 impl UtcTime {
-    fn new(hour: u8, minute: u8, second: u8) -> Result<Self, &'static str> {
+    fn _new(hour: u8, minute: u8, second: u8) -> Result<Self, &'static str> {
         if (0..=23).contains(&hour) && (0..=59).contains(&minute) && (0..=59).contains(&second) {
             Ok(Self { hour, minute, second })
         } else {
@@ -10,7 +10,7 @@ impl UtcTime {
         }
     }
 
-    fn to_string(&self) -> String {
+    fn _to_string(&self) -> String {
         format!("{:02}:{:02}:{:02}Z", self.hour, self.minute, self.second)
     }
 }

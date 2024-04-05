@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use types::GateState;
 
-use crate::storage::demo::DemoDbStorage;
+use crate::storage::demo::ReadOnlyStorage;
 use crate::storage::dynamodb::DynamoDbStorage;
 use crate::types;
 use crate::types::{Comment, Gate, GateKey};
@@ -41,7 +41,7 @@ async fn get_storage(
     database: impl Future<Output = DynamoDbStorage> + Sized + Send,
 ) -> Arc<dyn Storage + Send + Sync> {
     if is_demo_mode() {
-        Arc::new(DemoDbStorage::new(Box::new(database.await)))
+        Arc::new(ReadOnlyStorage::new(Box::new(database.await)))
     } else {
         Arc::new(database.await)
     }
