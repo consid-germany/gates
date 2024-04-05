@@ -2,17 +2,25 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
+pub mod app_state;
 pub mod representation;
 pub mod use_cases;
-pub mod app_state;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct UtcTime { hour: u8, minute: u8, second: u8}
+pub struct UtcTime {
+    hour: u8,
+    minute: u8,
+    second: u8,
+}
 
 impl UtcTime {
     fn _new(hour: u8, minute: u8, second: u8) -> Result<Self, &'static str> {
         if (0..=23).contains(&hour) && (0..=59).contains(&minute) && (0..=59).contains(&second) {
-            Ok(Self { hour, minute, second })
+            Ok(Self {
+                hour,
+                minute,
+                second,
+            })
         } else {
             Err("Invalid time format: must have 0 <= hour <= 23, 0 <= minute <= 59 and 0 <= second <= 59")
         }
@@ -24,7 +32,10 @@ impl UtcTime {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ActiveHours { pub start: UtcTime, pub end: UtcTime }
+pub struct ActiveHours {
+    pub start: UtcTime,
+    pub end: UtcTime,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActiveHoursPerWeek {
