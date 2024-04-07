@@ -49,6 +49,7 @@ export interface GatesProps {
 
 const SCOPE_CLOUDFRONT = "CLOUDFRONT";
 const DEFAULT_APP_NAME = "gates";
+const DEFAULT_GITHUB_SUBDOMAIN = "github";
 const X_VERIFY_ORIGIN_HEADER_NAME = "x-verify-origin";
 
 export class Gates extends Construct {
@@ -149,68 +150,57 @@ export class Gates extends Construct {
             apiFunction,
         );
 
-        // TODO improve undefiend handling (sub methods)
-        if (domain !== undefined && hostedZone !== undefined) {
-            // TODO default value as const
-            const gitHubApiDomainName = `${domain.gitHubApiSubdomain || "github"}.${domain.domainName}`;
+        const gitHubJwtAuthorizer = new apigatewayv2_authorizers.HttpLambdaAuthorizer(
+            "GitHubJwtAuthorizer",
+            gitHubJwtAuthFunction,
+            {
+                responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
+            },
+        );
 
-            const gitHubSubdomainCertificate = new acm.Certificate(this, "GitHubHttpApiCertificate", {
-                domainName: gitHubApiDomainName,
-                validation: acm.CertificateValidation.fromDns(hostedZone),
-            });
+        const httpApi = new apigatewayv2.HttpApi(this, "GitHubHttpApi", {
+            apiName: `${appName}-github-api`,
+            defaultDomainMapping: this.createGitHubDomainMapping(hostedZone, domain),
+        });
 
-            const gitHubHttpApiDomainName = new apigatewayv2.DomainName(this, "GitHubHttpApiDomain", {
-                domainName: "github.gates.consid.tech", // TODO
-                certificate: gitHubSubdomainCertificate,
-            });
+        httpApi.addRoutes({
+            integration: apiFunctionIntegration,
+            authorizer: gitHubJwtAuthorizer,
+            path: "/api/gates/{group}/{service}/{environment}/state",
+            methods: [apigatewayv2.HttpMethod.GET]
+        });
+    }
 
-            const gitHubJwtAuthorizer = new apigatewayv2_authorizers.HttpLambdaAuthorizer(
-                "GitHubJwtAuthorizer",
-                gitHubJwtAuthFunction,
-                {
-                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
-                },
-            );
-
-            const httpApi = new apigatewayv2.HttpApi(this, "GitHubHttpApi", {
-                apiName: `${appName}-github-api`,
-                defaultDomainMapping: {
-                    domainName: gitHubHttpApiDomainName
-                },
-            });
-
-            httpApi.addRoutes({
-                integration: apiFunctionIntegration,
-                authorizer: gitHubJwtAuthorizer,
-                path: "/api/gates/{group}/{service}/{environment}/state",
-                methods: [apigatewayv2.HttpMethod.GET]
-            });
-
-            new route53.ARecord(this, "GitHubHttpApiARecord", {
-                recordName: gitHubApiDomainName,
-                target: route53.RecordTarget.fromAlias(
-                    new route53_targets.ApiGatewayv2DomainProperties(
-                        gitHubHttpApiDomainName.regionalDomainName,
-                        gitHubHttpApiDomainName.regionalHostedZoneId),
-                ),
-                zone: hostedZone,
-            });
-
-            return httpApi;
+    private createGitHubDomainMapping(hostedZone?: route53.IHostedZone, domain?: Domain): apigatewayv2.DomainMappingOptions | undefined {
+        if (hostedZone === undefined || domain === undefined) {
+            return undefined;
         }
 
-        return new apigatewayv2.HttpApi(this, "GitHubHttpApi", {
-            apiName: `${appName}-github-api`,
-            defaultIntegration: apiFunctionIntegration,
-            defaultAuthorizer: new apigatewayv2_authorizers.HttpLambdaAuthorizer(
-                "GitHubJwtAuthorizer",
-                gitHubJwtAuthFunction,
-                {
-                    responseTypes: [apigatewayv2_authorizers.HttpLambdaResponseType.SIMPLE],
-                },
-            ),
+        const gitHubApiDomainName = `${domain.gitHubApiSubdomain || DEFAULT_GITHUB_SUBDOMAIN}.${domain.domainName}`;
 
+        const gitHubSubdomainCertificate = new acm.Certificate(this, "GitHubHttpApiCertificate", {
+            domainName: gitHubApiDomainName,
+            validation: acm.CertificateValidation.fromDns(hostedZone),
         });
+
+        const gitHubHttpApiDomainName = new apigatewayv2.DomainName(this, "GitHubHttpApiDomain", {
+            domainName: gitHubApiDomainName,
+            certificate: gitHubSubdomainCertificate,
+        });
+
+        new route53.ARecord(this, "GitHubHttpApiARecord", {
+            recordName: gitHubApiDomainName,
+            target: route53.RecordTarget.fromAlias(
+                new route53_targets.ApiGatewayv2DomainProperties(
+                    gitHubHttpApiDomainName.regionalDomainName,
+                    gitHubHttpApiDomainName.regionalHostedZoneId),
+            ),
+            zone: hostedZone,
+        });
+
+        return {
+            domainName: gitHubHttpApiDomainName
+        };
     }
 
     private createFrontendAssetsDeployment(
