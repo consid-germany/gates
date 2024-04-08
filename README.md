@@ -23,7 +23,11 @@ create or delete gates.*
 
 ## Quick Start - GitHub Action
 
-TODO
+To use gates within your GitHub deployment pipeline you can simply use the consid-germany/gates action as shown in the block below.
+The parameters explained:
+```gitHubApiBaseUrl``` points to your version of gates
+```group```, ```service```, ```environment``` are mandatory for identification of the gate, which state is checked. 
+If the response is ```open``` the action will continue.
 
 ```yaml
 jobs:
