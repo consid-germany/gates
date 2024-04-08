@@ -43,6 +43,25 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /config:
+    get:
+      operationId: get_config
+      tags:
+        - config
+      summary: Get config
+      description: Returns an object with `system_time`.  # add global configuration attributes later
+      responses:
+        '200':
+          description: Returns an object with `system_time`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /gates:
     get:
       operationId: list_gates
@@ -624,3 +643,15 @@ components:
         - id
         - message
         - created
+
+    Config:
+      type: object
+      description: Contains global configuration.
+      properties:
+        system_time:
+          type: string
+          description: The global current system time.
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+      required:
+        - system_time

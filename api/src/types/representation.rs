@@ -52,6 +52,11 @@ pub struct Comment {
     pub created: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Config {
+    pub system_time: DateTime<Utc>,
+}
+
 impl From<types::Gate> for Gate {
     fn from(value: types::Gate) -> Self {
         Self {

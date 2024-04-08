@@ -9,8 +9,8 @@ use tower_http::trace::TraceLayer;
 
 use crate::types::app_state::AppState;
 use crate::use_cases::{
-    add_comment, api_info, create_gate, delete_comment, delete_gate, get_gate, get_gate_state,
-    list_gates, update_display_order, update_gate_state,
+    add_comment, api_info, create_gate, delete_comment, delete_gate, get_config, get_gate,
+    get_gate_state, list_gates, update_display_order, update_gate_state,
 };
 
 mod clock;
@@ -66,18 +66,18 @@ fn create_router(app_state: AppState) -> Router {
             "/:group/:service/:environment/comments/:comment_id",
             delete(delete_comment::route::handler),
         )
-        .with_state(app_state)
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(tracing::Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(tracing::Level::INFO)),
         );
-
     Router::new().nest(
         "/api/",
         Router::new()
             .route("/", get(api_info::route::handler))
-            .nest("/gates", gates_router),
+            .route("/config", get(get_config::route::handler))
+            .nest("/gates", gates_router)
+            .with_state(app_state),
     )
 }
 
@@ -96,7 +96,6 @@ mod integration_tests_lambda {
     use crate::types::app_state::AppState;
     use crate::types::{representation, GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
-
     #[tokio::test]
     async fn should_handle_api_gateway_proxy_request() {
         // given
@@ -172,7 +171,7 @@ mod acceptance_tests {
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
-    use chrono::{DateTime, FixedOffset};
+    use chrono::{DateTime, FixedOffset, Utc};
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
@@ -181,8 +180,7 @@ mod acceptance_tests {
     use crate::types::app_state::AppState;
     use crate::types::representation;
     use crate::types::GateState;
-    use crate::use_cases;
-    use crate::{create_router, date_time_switch, id_provider, storage};
+    use crate::{create_router, date_time_switch, id_provider, storage, use_cases};
 
     #[tokio::test]
     async fn should_create_and_list_gates() {
@@ -729,6 +727,42 @@ mod acceptance_tests {
         );
     }
 
+    #[tokio::test]
+    async fn should_get_config() {
+        // given
+        let now: DateTime<Utc> = DateTime::from(
+            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("failed to parse date"),
+        );
+        let mut mock_clock = MockClock::new();
+        mock_clock.expect_now().return_const(now);
+
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = storage::test(port).await;
+        let router = create_router(AppState::new(
+            Arc::new(dynamodb_storage),
+            Arc::new(mock_clock),
+            Arc::new(id_provider::default()),
+            Arc::new(date_time_switch::default()),
+        ));
+
+        let server = TestServer::new(router).expect("failed to create test server");
+
+        // when
+        // try to set get the config with the system_time
+        let response = server.get("/api/config").await;
+
+        // then
+        assert_eq!(response.status_code(), StatusCode::OK);
+        assert_eq!(
+            response.json::<representation::Config>(),
+            representation::Config { system_time: now },
+        );
+    }
     #[tokio::test]
     async fn should_set_display_order() {
         // given

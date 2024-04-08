@@ -40,6 +40,49 @@ jobs:
           environment: test
 ```
 
+## Quick Start - Rust
+
+There are predefined [run configurations](api/.run) for JetBrains IDEs like RustRover. Otherwise use the commands below.
+
+### Run unit tests
+
+```bash
+cd api
+cargo test --all-features
+```
+
+### Local Testing against API
+
+The Rust backend is provided via [OpenAPI](openapi.yaml).
+
+Requirements:
+- Docker
+- Cargo Lambda
+
+#### Installing Cargo Lambda (on Mac)
+
+```bash
+brew tap cargo-lambda/cargo-lambda
+brew install cargo-lambda
+```
+
+#### Running the backend locally
+
+1. start docker
+2. run dynamodb-local:
+
+   ```bash
+   docker run --rm -d --name dynamodb-local -p 8000:8000 amazon/dynamodb-local
+   ```
+3. run cargo lambda:
+
+   ```bash
+   cd api
+   cargo lambda watch --features local
+   ```
+
+4. backend is now accessible via: http://localhost:9000/api/
+
 ## Quick Start - Deployment
 
 The simplest and fastest way to get up and running with **gates** 

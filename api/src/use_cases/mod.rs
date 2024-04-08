@@ -3,6 +3,7 @@ pub mod api_info;
 pub mod create_gate;
 pub mod delete_comment;
 pub mod delete_gate;
+pub mod get_config;
 pub mod get_gate;
 pub mod get_gate_state;
 pub mod list_gates;
