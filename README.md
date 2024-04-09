@@ -86,7 +86,7 @@ brew install cargo-lambda
 
 4. backend is now accessible via: http://localhost:9000/api/
 
-## Quick Start - Deployment
+## Quick Start - Deployment only
 
 The simplest and fastest way to get up and running with **gates** 
 from scratch is to deploy the stack in your AWS account with the provided AWS CDK construct. Follow the instructions below.
@@ -122,6 +122,7 @@ package and create it.
 The `Gates` construct needs to be created within a stack that has an environment (`env`) configuration providing the `region` and `account` of 
 the target AWS account where the application should be deployed.
 
+Example stack for using with your bin directory:
 ```ts
 import * as cdk from "aws-cdk-lib";
 import { Gates } from "@consid-germany/gates";
@@ -146,7 +147,7 @@ new Gates(stack, "Gates", {
 
 ### 5) Deploy the app
 
-TODO
+Run this command to deploy into your aws account.
 
 ```bash
 npx cdk@latest deploy
