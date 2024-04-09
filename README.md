@@ -163,3 +163,7 @@ TODO
 ### Restrict access by IP CIDRs
 
 TODO
+
+## Infrastructure Overview
+
+![Overview Infrastructure](docs/infrastructure.png)
