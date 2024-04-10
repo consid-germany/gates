@@ -96,6 +96,7 @@ mod integration_tests_lambda {
     use crate::types::app_state::AppState;
     use crate::types::{representation, GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
+
     #[tokio::test]
     async fn should_handle_api_gateway_proxy_request() {
         // given
@@ -106,7 +107,7 @@ mod integration_tests_lambda {
 
         let dynamodb_storage = storage::test(port).await;
 
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+        let now = DateTime::parse_from_rfc3339("2023-06-05T13:00:00+00:00") // monday afternoon
             .expect("failed to parse date");
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
@@ -183,11 +184,22 @@ mod acceptance_tests {
     use crate::types::GateState;
     use crate::{create_router, date_time_switch, id_provider, storage, types, use_cases};
 
+    fn inside_active_hours() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2023-06-05T13:00:00+00:00") // monday afternoon
+            .expect("failed to parse date")
+            .into()
+    }
+
+    fn outside_active_hours() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2023-06-04T13:00:00+00:00") // sunday afternoon
+            .expect("failed to parse date")
+            .into()
+    }
+
     #[tokio::test]
     async fn should_create_and_list_gates() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -248,7 +260,7 @@ mod acceptance_tests {
                                 environment: "develop".to_string(),
                                 state: GateState::default(),
                                 comments: vec![],
-                                last_updated: now.into(),
+                                last_updated: now,
                                 display_order: Option::default(),
                             },
                         },
@@ -260,7 +272,7 @@ mod acceptance_tests {
                                 environment: "live".to_string(),
                                 state: GateState::default(),
                                 comments: vec![],
-                                last_updated: now.into(),
+                                last_updated: now,
                                 display_order: Option::default(),
                             },
                         },
@@ -273,8 +285,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_open_and_close_gates() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -336,7 +347,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: GateState::Open,
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now,
                 display_order: Option::default(),
             }
         );
@@ -357,7 +368,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: GateState::Closed,
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now,
                 display_order: Option::default(),
             }
         );
@@ -373,7 +384,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: GateState::default(),
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now,
                 display_order: Option::default(),
             }
         );
@@ -382,8 +393,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_delete_gates() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -451,7 +461,7 @@ mod acceptance_tests {
                             environment: "develop".to_string(),
                             state: GateState::default(),
                             comments: vec![],
-                            last_updated: now.into(),
+                            last_updated: now,
                             display_order: Option::default(),
                         },
                     },],
@@ -463,8 +473,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_add_and_remove_comments() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -530,9 +539,9 @@ mod acceptance_tests {
                             comments: vec![representation::Comment {
                                 id: "some_id".to_owned(),
                                 message: "Some comment message".to_owned(),
-                                created: now.into(),
+                                created: now,
                             }],
-                            last_updated: now.into(),
+                            last_updated: now,
                             display_order: Option::default(),
                         },
                     },],
@@ -564,7 +573,7 @@ mod acceptance_tests {
                             environment: "develop".to_string(),
                             state: GateState::default(),
                             comments: vec![],
-                            last_updated: now.into(),
+                            last_updated: now,
                             display_order: Option::default(),
                         },
                     },],
@@ -574,10 +583,9 @@ mod acceptance_tests {
     }
 
     #[tokio::test]
-    async fn should_auto_close_gates() {
+    async fn should_get_gate_state() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-05-30T22:10:57+02:00") //Tuesday
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -647,10 +655,9 @@ mod acceptance_tests {
     }
 
     #[tokio::test]
-    async fn should_get_gate_state() {
+    async fn should_auto_close_gates() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-05-28T22:10:57+02:00") //sunday
-            .expect("failed to parse date");
+        let now = outside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -722,7 +729,7 @@ mod acceptance_tests {
                 environment: "live".to_string(),
                 state: GateState::Closed,
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now,
                 display_order: Option::default(),
             },
         );
@@ -731,10 +738,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_get_config() {
         // given
-        let now: DateTime<Utc> = DateTime::from(
-            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed to parse date"),
-        );
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -770,8 +774,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_set_display_order() {
         // given
-        let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+        let now = inside_active_hours();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -831,7 +834,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: GateState::default(),
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now,
                 display_order: Some(1),
             }
         );
@@ -850,12 +853,12 @@ mod acceptance_tests {
                     environments: vec![
                         representation::Environment {
                             name: "live".to_string(),
-                            gate: expected_gate_representation(now, "live".to_string()),
+                            gate: expected_gate_representation(now.into(), "live".to_string()),
                         },
                         representation::Environment {
                             name: "develop".to_string(),
                             gate: expected_gate_representation_with_display_order(
-                                now,
+                                now.into(),
                                 "develop".to_string(),
                                 1,
                             ),

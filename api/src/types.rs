@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveTime, Utc};
+use chrono::{DateTime, NaiveTime, Utc, Weekday};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
@@ -6,13 +6,20 @@ pub mod app_state;
 pub mod representation;
 pub mod use_cases;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActiveHours {
     pub start: NaiveTime,
     pub end: NaiveTime,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+impl ActiveHours {
+    pub fn is_outside_of_active_hours(&self, date_to_check: DateTime<Utc>) -> bool {
+        let time_to_check = date_to_check.time();
+        time_to_check < self.start || time_to_check > self.end
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActiveHoursPerWeek {
     pub monday: Option<ActiveHours>,
     pub tuesday: Option<ActiveHours>,
@@ -24,25 +31,37 @@ pub struct ActiveHoursPerWeek {
 }
 
 impl ActiveHoursPerWeek {
+    pub const fn active_hours_by_weekday(&self, weekday: Weekday) -> &Option<ActiveHours> {
+        match weekday {
+            Weekday::Mon => &self.monday,
+            Weekday::Tue => &self.tuesday,
+            Weekday::Wed => &self.wednesday,
+            Weekday::Thu => &self.thursday,
+            Weekday::Fri => &self.friday,
+            Weekday::Sat => &self.saturday,
+            Weekday::Sun => &self.sunday,
+        }
+    }
+
     pub fn default() -> Self {
         Self {
             monday: Some(ActiveHours {
-                start: NaiveTime::from_hms_opt(9, 0, 0).unwrap(),
-                end: NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
+                start: NaiveTime::from_hms_opt(7, 0, 0).unwrap(),
+                end: NaiveTime::from_hms_opt(18, 30, 0).unwrap(),
             }),
-            tuesday: Some(crate::types::ActiveHours {
+            tuesday: Some(ActiveHours {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
             }),
-            wednesday: Some(crate::types::ActiveHours {
+            wednesday: Some(ActiveHours {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(17, 0, 0).unwrap(),
             }),
-            thursday: Some(crate::types::ActiveHours {
+            thursday: Some(ActiveHours {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
             }),
-            friday: Some(crate::types::ActiveHours {
+            friday: Some(ActiveHours {
                 start: NaiveTime::from_hms_opt(10, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(16, 0, 0).unwrap(),
             }),
@@ -131,5 +150,97 @@ impl TryFrom<GateState> for String {
                 },
                 Ok,
             )
+    }
+}
+
+#[cfg(test)]
+mod unit_test {
+    use std::str::FromStr;
+
+    use chrono::{DateTime, NaiveTime, Utc};
+
+    use crate::types::ActiveHours;
+
+    fn given_active_hours() -> ActiveHours {
+        ActiveHours {
+            start: NaiveTime::from_str("07:00:00").unwrap(),
+            end: NaiveTime::from_str("18:30:00").unwrap(),
+        }
+    }
+
+    fn setup_date_time(time_str: &str) -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339(&format!("1970-01-01T{time_str}+00:00"))
+            .expect("failed to parse date")
+            .into()
+    }
+
+    #[test]
+    fn should_be_outside_of_active_hours_for_time_before_start() {
+        // given
+        let given_date_time = setup_date_time("06:00:00");
+        let active_hours = given_active_hours();
+        let expected = true;
+
+        // when
+        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+
+        // then
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn should_not_be_outside_of_active_hours_for_time_equal_to_start() {
+        // given
+        let given_date_time = setup_date_time("07:00:00");
+        let active_hours = given_active_hours();
+        let expected = false;
+
+        // when
+        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+
+        // then
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn should_not_be_outside_of_active_hours_for_time_between_start_and_end() {
+        // given
+        let given_date_time = setup_date_time("13:00:00");
+        let active_hours = given_active_hours();
+        let expected = false;
+
+        // when
+        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+
+        // then
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn should_not_be_outside_of_active_hours_for_time_equal_to_end() {
+        // given
+        let given_date_time = setup_date_time("18:30:00");
+        let active_hours = given_active_hours();
+        let expected = false;
+
+        // when
+        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+
+        // then
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn should_be_outside_of_active_hours_for_time_after_end() {
+        // given
+        let given_date_time = setup_date_time("19:00:00");
+        let active_hours = given_active_hours();
+        let expected = true;
+
+        // when
+        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+
+        // then
+        assert_eq!(expected, actual);
     }
 }

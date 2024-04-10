@@ -1,6 +1,7 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveTime, Utc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use std::convert::Into;
 
 use crate::types;
 use crate::types::GateState;
@@ -59,26 +60,41 @@ pub struct Config {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct ActiveHours {
+    pub start: NaiveTime,
+    pub end: NaiveTime,
+}
+
+impl From<types::ActiveHours> for ActiveHours {
+    fn from(value: types::ActiveHours) -> Self {
+        Self {
+            start: value.start,
+            end: value.end,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ActiveHoursPerWeek {
-    pub monday: Option<types::ActiveHours>,
-    pub tuesday: Option<types::ActiveHours>,
-    pub wednesday: Option<types::ActiveHours>,
-    pub thursday: Option<types::ActiveHours>,
-    pub friday: Option<types::ActiveHours>,
-    pub saturday: Option<types::ActiveHours>,
-    pub sunday: Option<types::ActiveHours>,
+    pub monday: Option<ActiveHours>,
+    pub tuesday: Option<ActiveHours>,
+    pub wednesday: Option<ActiveHours>,
+    pub thursday: Option<ActiveHours>,
+    pub friday: Option<ActiveHours>,
+    pub saturday: Option<ActiveHours>,
+    pub sunday: Option<ActiveHours>,
 }
 
 impl From<types::ActiveHoursPerWeek> for ActiveHoursPerWeek {
     fn from(value: types::ActiveHoursPerWeek) -> Self {
         Self {
-            monday: value.monday,
-            tuesday: value.tuesday,
-            wednesday: value.wednesday,
-            thursday: value.thursday,
-            friday: value.friday,
-            saturday: value.saturday,
-            sunday: value.sunday,
+            monday: value.monday.map(Into::into),
+            tuesday: value.tuesday.map(Into::into),
+            wednesday: value.wednesday.map(Into::into),
+            thursday: value.thursday.map(Into::into),
+            friday: value.friday.map(Into::into),
+            saturday: value.saturday.map(Into::into),
+            sunday: value.sunday.map(Into::into),
         }
     }
 }

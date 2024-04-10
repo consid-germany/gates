@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Cargo Clippy" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="command" value="clippy --all-targets --all-features -- -W clippy::all -W clippy::pedantic -W clippy::nursery " />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/api" />
     <envs />
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
