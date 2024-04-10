@@ -172,6 +172,7 @@ mod acceptance_tests {
     use axum::http::StatusCode;
     use axum_test::TestServer;
     use chrono::{DateTime, FixedOffset, Utc};
+    use representation::Config;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
@@ -180,7 +181,7 @@ mod acceptance_tests {
     use crate::types::app_state::AppState;
     use crate::types::representation;
     use crate::types::GateState;
-    use crate::{create_router, date_time_switch, id_provider, storage, use_cases};
+    use crate::{create_router, date_time_switch, id_provider, storage, types, use_cases};
 
     #[tokio::test]
     async fn should_create_and_list_gates() {
@@ -759,8 +760,11 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Config>(),
-            representation::Config { system_time: now },
+            response.json::<Config>(),
+            Config {
+                system_time: now,
+                active_hours_per_week: types::ActiveHoursPerWeek::default().into()
+            }
         );
     }
     #[tokio::test]

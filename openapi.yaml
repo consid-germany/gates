@@ -653,5 +653,47 @@ components:
           description: The global current system time.
           format: date-time
           example: 2023-05-26T21:36:18.345195Z
+        active_hours_per_week:
+          type: object
+          description: The active business hours of each day of the week from start to end
+          items:
+            $ref: "#/components/schemas/ActiveHoursPerWeek"
       required:
         - system_time
+        - active_hours_per_week
+
+    ActiveHoursPerWeek:
+      type: object
+      description: The start and end time of each day.
+      properties:
+        monday:
+          $ref: '#/components/schemas/ActiveHours'
+        tuesday:
+          $ref: '#/components/schemas/ActiveHours'
+        wednesday:
+          $ref: '#/components/schemas/ActiveHours'
+        thursday:
+          $ref: '#/components/schemas/ActiveHours'
+        friday:
+          $ref: '#/components/schemas/ActiveHours'
+        saturday:
+          $ref: '#/components/schemas/ActiveHours'
+        sunday:
+          $ref: '#/components/schemas/ActiveHours'
+
+    ActiveHours:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+      required:
+        - start
+        - end
+
+
+
+

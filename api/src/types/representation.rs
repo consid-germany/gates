@@ -55,6 +55,32 @@ pub struct Comment {
 #[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub system_time: DateTime<Utc>,
+    pub active_hours_per_week: ActiveHoursPerWeek,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct ActiveHoursPerWeek {
+    pub monday: Option<types::ActiveHours>,
+    pub tuesday: Option<types::ActiveHours>,
+    pub wednesday: Option<types::ActiveHours>,
+    pub thursday: Option<types::ActiveHours>,
+    pub friday: Option<types::ActiveHours>,
+    pub saturday: Option<types::ActiveHours>,
+    pub sunday: Option<types::ActiveHours>,
+}
+
+impl From<types::ActiveHoursPerWeek> for ActiveHoursPerWeek {
+    fn from(value: types::ActiveHoursPerWeek) -> Self {
+        Self {
+            monday: value.monday,
+            tuesday: value.tuesday,
+            wednesday: value.wednesday,
+            thursday: value.thursday,
+            friday: value.friday,
+            saturday: value.saturday,
+            sunday: value.sunday,
+        }
+    }
 }
 
 impl From<types::Gate> for Gate {
