@@ -1,0 +1,40 @@
+name: cdk
+on:
+  workflow_call:
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: cdk
+
+      - run: npm ci
+        working-directory: cdk
+
+      - run: npm run lint
+        working-directory: cdk
+
+      - run: npm run check
+        working-directory: cdk
+
+  unit-test:
+    needs: lint-and-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: cdk
+
+      - run: npm ci
+        working-directory: cdk
+
+      - run: npm run test
+        working-directory: cdk

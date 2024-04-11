@@ -1,0 +1,14 @@
+name: openapi
+on:
+  workflow_call:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+
+      - name: Validate openapi.yaml
+        run: npx @redocly/cli lint openapi.yaml

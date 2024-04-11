@@ -1,0 +1,117 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    [
+      "semantic-release-replace-plugin",
+      {
+        "replacements": [
+          {
+            "files": [
+              "openapi.yaml"
+            ],
+            "from": "version: .*",
+            "to": "version: ${nextRelease.version}",
+            "results": [
+              {
+                "file": "openapi.yaml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "api/Cargo.toml"
+            ],
+            "from": "name = \"gates-api\"\nversion = \".*\"",
+            "to": "name = \"gates-api\"\nversion = \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "api/Cargo.toml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "action/package.json",
+              "cdk/package.json",
+              "ui/package.json"
+            ],
+            "from": "\"version\": \".*\"",
+            "to": "\"version\": \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "action/package.json",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              },
+              {
+                "file": "cdk/package.json",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              },
+              {
+                "file": "ui/package.json",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "README.md"
+            ],
+            "from": "gates@.*",
+            "to": "gates@${nextRelease.version}",
+            "results": [
+              {
+                "file": "README.md",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          }
+        ]
+      }
+    ],
+    "@semantic-release/github",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./build.sh",
+        "publishCmd": "cd cdk && npm run publish"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "README.md",
+          "openapi.yaml",
+          "api/Cargo.toml",
+          "api/Cargo.lock",
+          "action/package.json",
+          "action/dist/**/*",
+          "cdk/package.json",
+          "ui/package.json"
+        ]
+      }
+    ]
+  ]
+}

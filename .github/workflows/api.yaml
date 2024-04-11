@@ -1,0 +1,105 @@
+name: api
+on:
+  workflow_call:
+    inputs:
+      api-base-url:
+        type: string
+        default: http://localhost:9000/api
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "api"
+
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          cache: enable
+
+      - name: Check formatting
+        working-directory: api
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        working-directory: api
+        run: cargo clippy --all-targets --all-features -- -W clippy::all -W clippy::pedantic -W clippy::nursery -D warnings
+
+  test:
+    needs: lint-and-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "api"
+
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          cache: enable
+
+      - name: Run Tests
+        working-directory: api
+        run: cargo test --all-features
+
+  check-openapi-conformance:
+    needs: lint-and-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "api"
+
+      - name: Install cargo-lambda
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          cache: enable
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install schemathesis
+        run: python -m pip install schemathesis
+
+      - name: Start dynamodb-local
+        run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+
+      - name: Build api
+        run: cargo build
+        working-directory: api
+
+      - name: Start api
+        run: npx pm2 start "cargo lambda watch --features local"
+        working-directory: api
+
+      - name: Get api info
+        run: curl --retry 3 --retry-all-errors ${{ inputs.api-base-url }}/
+
+      - name: Run Conformance Tests
+        run: schemathesis run --checks=all --base-url=${{ inputs.api-base-url }} --experimental=openapi-3.1 ./openapi.yaml
+
+      - name: Stop api
+        if: always()
+        run: npx pm2 delete all
+
+      - name: Stop dynamodb-local
+        if: always()
+        run: docker rm -f $(docker ps -a -q)

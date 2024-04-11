@@ -1,0 +1,22 @@
+name: 'Check Gate State'
+description: 'Checks the state of a gate and cancels the workflow if the gate state is closed.'
+author: "Consid GmbH"
+inputs:
+  gitHubApiBaseUrl:
+    description: 'URL of the GitHub API of your gates deployment.'
+    required: true
+  group:
+    description: 'Specify the group of the gate of which the gate state is checked during the workflow execution.'
+    required: true
+  service:
+    description: 'Specify the service of the gate of which the gate state is checked during the workflow execution.'
+    required: true
+  environment:
+    description: 'Specify the environment of the gate of which the gate state is checked during the workflow execution.'
+    required: true
+runs:
+  using: 'node20'
+  main: 'action/dist/index.js'
+branding:
+  icon: 'toggle-left'
+  color: 'green'

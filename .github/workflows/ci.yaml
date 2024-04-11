@@ -1,0 +1,22 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  action:
+    uses: ./.github/workflows/action.yaml
+
+  api:
+    uses: ./.github/workflows/api.yaml
+
+  cdk:
+    uses: ./.github/workflows/cdk.yaml
+
+  ui:
+    uses: ./.github/workflows/ui.yaml
+
+  openapi:
+    uses: ./.github/workflows/openapi.yaml

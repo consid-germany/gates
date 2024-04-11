@@ -1,0 +1,68 @@
+{
+	"name": "@consid-germany/gates-ui",
+	"version": "0.0.0",
+	"description": "Web frontend providing a user interface to view and toggle gates.",
+	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/consid-germany/gates.git"
+	},
+	"author": {
+		"name": "Consid GmbH",
+		"email": "hamburg@consid.com",
+		"organization": true
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/consid-germany/gates/issues"
+	},
+	"homepage": "https://github.com/consid-germany/gates",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "npm run test:integration && npm run test:unit",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write .",
+		"test:integration": "playwright test",
+		"test:unit": "vitest",
+		"postinstall": "openapi-typescript ./../openapi.yaml -o src/lib/generated/api.d.ts"
+	},
+	"devDependencies": {
+		"@fontsource-variable/plus-jakarta-sans": "^5.0.20",
+		"@playwright/test": "^1.43.0",
+		"@sveltejs/adapter-auto": "^3.2.0",
+		"@sveltejs/adapter-static": "^3.0.1",
+		"@sveltejs/kit": "^2.5.5",
+		"@sveltejs/vite-plugin-svelte": "^3.0.2",
+		"@testing-library/svelte": "^4.1.0",
+		"@testing-library/user-event": "^14.5.2",
+		"@types/eslint": "^8.56.7",
+		"@typescript-eslint/eslint-plugin": "^7.6.0",
+		"@typescript-eslint/parser": "^7.6.0",
+		"autoprefixer": "^10.4.19",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-svelte": "^2.36.0",
+		"flowbite": "^2.3.0",
+		"flowbite-svelte": "^0.44.24",
+		"jsdom": "^24.0.0",
+		"openapi-fetch": "^0.9.3",
+		"openapi-typescript": "^6.7.5",
+		"postcss": "^8.4.38",
+		"postcss-load-config": "^5.0.3",
+		"prettier": "^3.2.5",
+		"prettier-plugin-svelte": "^3.2.2",
+		"prettier-plugin-tailwindcss": "^0.5.13",
+		"svelte": "^4.2.13",
+		"svelte-check": "^3.6.9",
+		"tailwindcss": "^3.4.3",
+		"tslib": "^2.6.2",
+		"typescript": "^5.4.5",
+		"vite": "^5.2.8",
+		"vitest": "^1.4.0"
+	},
+	"type": "module"
+}

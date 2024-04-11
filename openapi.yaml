@@ -1,0 +1,692 @@
+openapi: 3.1.0
+
+info:
+  title: Gates API
+  version: 0.0.0
+  description: OpenAPI specification for the gates API
+  license:
+    name: MIT Licence
+    identifier: MIT
+    url: https://github.com/consid-germany/gates/blob/main/LICENSE
+  contact:
+    url: https://github.com/consid-germany/gates
+
+tags:
+  - name: api
+    description: Provides information about the API, e.g. version
+  - name: gate
+    description: Provides endpoints to manipulate and query gates
+
+servers:
+  - url: http://localhost:9000/api
+  - url: https://gates.consid.tech/api
+
+security: []
+
+paths:
+  /:
+    get:
+      operationId: api_info
+      tags:
+        - api
+      summary: Get API info
+      description: Returns an object with `name` and `version`. Use this to validate the API is up and running.
+      responses:
+        '200':
+          description: Returns an object with `name` and `version`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInfo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /config:
+    get:
+      operationId: get_config
+      tags:
+        - config
+      summary: Get config
+      description: Returns an object with `system_time`.  # add global configuration attributes later
+      responses:
+        '200':
+          description: Returns an object with `system_time`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates:
+    get:
+      operationId: list_gates
+      tags:
+        - gate
+      summary: List of all gates, aggregated by group and service name
+      description: A list of all available gates, aggregated and ordered by group and service. Will return an empty array if no gates found.
+      responses:
+        '200':
+          description: A list of all available gates, aggregated and ordered by group and service.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of gate groups
+                items:
+                  $ref: '#/components/schemas/Group'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      operationId: create_gate
+      tags:
+        - gate
+      summary: Create a new gate
+      description: |
+        **Create** or **add** a new gate for the combination of group, service and environment.
+        The default state of a new gate is `closed`.
+      requestBody:
+        $ref: '#/components/requestBodies/CreateGatePayload'
+      responses:
+        '200':
+          description: Gate is created and the newly created gate is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+          links:
+             ListGates:
+               operationId: list_gates
+             GetGate:
+               operationId: get_gate
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             UpdateGateState:
+               operationId: update_gate_state
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             UpdateDisplayOrder:
+               operationId: update_display_order
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             AddComment:
+               operationId: add_comment
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+             DeleteGate:
+               operationId: delete_gate
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}:
+    get:
+      operationId: get_gate
+      tags:
+        - gate
+      summary: Get gate by group, service and environment
+      description: Get information about a gate including e.g. state, comments and other data.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: The requested gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      operationId: delete_gate
+      tags:
+        - gate
+      summary: Delete a gate by group, service and environment
+      description: Remove a specific gate you don´t longer need. **This will delete the gate permanently**.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: Successfully deleted the gate.
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /gates/{group}/{service}/{environment}/state:
+    get:
+      operationId: get_gate_state
+      tags:
+        - gate
+      summary: Get the state of a gate by group, service and environment
+      description: This should be used if you want to explicitly know the state of a gate.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      responses:
+        '200':
+          description: The state of the requested gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateStateRep'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      operationId: update_gate_state
+      tags:
+        - gate
+      summary: Update the state of a gate
+      description: With this operation you can change the `state` of the gate, e.g. switch the gate state from `closed` to `open` and vice versa.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateGateStatePayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/display-order:
+    put:
+      operationId: update_display_order
+      tags:
+        - gate
+      summary: Update the display order of a gate
+      description: This can be used to sort the frontend representation of the gates. Sorting has to be done by the frontend.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateDisplayOrderPayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/comments:
+    post:
+      operationId: add_comment
+      tags:
+        - gate
+      summary: Add a comment to a gate
+      description: | 
+        You can add additional notes as `comment` to a gate. E.g. Providing information why you changed the gate state.
+        You may use the autogenerated id of the comment to specifically remove it using `delete comment`.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+      requestBody:
+        $ref: '#/components/requestBodies/AddCommentPayload'
+      responses:
+        '200':
+          description: Returns the updated gate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+          links:
+             DeleteComment:
+               operationId: delete_comment
+               parameters:
+                 group: '$response.body#/group'
+                 service: '$response.body#/service'
+                 environment: '$response.body#/environment'
+                 comment_id: '$response.body#/comments/0/id'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /gates/{group}/{service}/{environment}/comments/{comment_id}:
+    delete:
+      operationId: delete_comment
+      tags:
+        - gate
+      summary: Delete a comment from a gate
+      description: Use the autogenerated id to remove a specific comment.
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/environment'
+        - $ref: '#/components/parameters/comment_id'
+      responses:
+        '200':
+          description: Returns the updated gate.
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    group:
+      name: group
+      in: path
+      description: Group name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    service:
+      name: service
+      in: path
+      description: Service name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    environment:
+      name: environment
+      in: path
+      description: Environment name of the gate
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+    comment_id:
+      name: comment_id
+      in: path
+      description: Id of the comment
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-zA-Z-_]+$'
+        minLength: 1
+
+  requestBodies:
+    CreateGatePayload:
+      description: These parameters are needed to create or reset a gate
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              group:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: You can use this as a category to group your gates.
+                example: some-gate-group
+              service:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: This is another deeper nesting level to group your gates.
+                example: some-service
+              environment:
+                type: string
+                pattern: '^[0-9a-zA-Z-_]+$'
+                minLength: 1
+                description: Identifies a gate for group and service. This is the third level of nesting.
+                example: develop
+              display_order:
+                type: number
+                description: Specifies a way to order the gate for frontend display purpose.
+                example: 1
+            required:
+              - group
+              - service
+              - environment
+
+    UpdateGateStatePayload:
+      description: This is needed to update the state of the gate.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              state:
+                $ref: "#/components/schemas/GateState"
+            required:
+              - state
+
+    UpdateDisplayOrderPayload:
+      description: This parameter is needed to change the display order.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              display_order:
+                type: number
+                description: Is expected to be a positive number, but can basically be anything.
+                example: 1
+            required:
+              - display_order
+
+
+    AddCommentPayload:
+      description: If you want to add a comment, you need to set this.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                minLength: 1
+                description: This should be a thoughtful description of why this gate is here.
+                example: Running some tests (Max)
+            required:
+              - message
+
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: string
+            example: group, service and environment must not be empty
+
+    Forbidden:
+      description: Unauthorized request blocked.
+
+    Conflict:
+      description: Request could not be processed because of a conflict in the current state of the resource.
+
+    NoContent:
+      description: Requested resource could not be found.
+
+    UnprocessableContent:
+      description: Request body could not be processed.
+
+    InternalServerError:
+      description: Request failed (internal server error).
+      content:
+        application/json:
+          schema:
+            type: string
+            example: 'service error: ResourceNotFoundException: Cannot do operations on a non-existent table'
+
+  schemas:
+    ApiInfo:
+      type: object
+      description: Contains information about the API such as name and version.
+      properties:
+        name:
+          type: string
+          description: The name of the API.
+          example: gates-api
+        version:
+          type: string
+          description: The version of the API.
+          example: '0.0.0'
+      required:
+        - name
+        - version
+
+    Group:
+      description: This is the toplevel of arranging the gates. Gates are bracketed in an environment, environments are part of a service and services are in a group.
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The name of the group. Could be any string, but mainly we recommend an organizational orientation.
+          example: web shop department
+        services:
+          type: array
+          description: Service is the level between Group an Environment. A service is part of a group and has multiple environments.
+          items:
+            $ref: "#/components/schemas/Service"
+      required:
+        - name
+        - services
+
+    Service:
+      type: object
+      description: Service is the level between Group an Environment. A service is part of a group and has multiple environments. A group consists basically of services.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: This can be anything an should represent an business aspect of your services.
+          example: html frontpage delivery
+        environments:
+          type: array
+          description: Environments serve as a way to group your technical and procedural needs. Most teams have a production environment, a stageing env and a develop env.
+          items:
+            $ref: "#/components/schemas/Environment"
+      required:
+        - name
+        - environments
+
+    Environment:
+      type: object
+      description: Environments serve as a way to group your technical and procedural needs. An environemnt has a single parent called service and consists of many gates. Most teams have a production environment, a stageing env and a develop env. A good practive could be to close the production gate ,from Friday to Monday to reduce work on weekends if a mishap happens.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Identifies the stage of your gate. Meaningful choices are product, live, develop, integration, staging, etc...
+          example: develop
+        gate:
+            $ref: "#/components/schemas/Gate"
+      required:
+        - name
+        - gate
+
+    Gate:
+      type: object
+      description: The gate is lowest but most important part of the hierachy. This defines the actual object, that will be altered by all actions. You can open and close it.
+      properties:
+        group:
+          type: string
+          minLength: 1
+          description: The group that surrounds the service.
+          example: some-gate-group
+        service:
+          type: string
+          minLength: 1
+          description: The service that contains the environment.
+          example: some-service
+        environment:
+          type: string
+          minLength: 1
+          description: The environment for the specific gate.
+          example: develop
+        state:
+          $ref: "#/components/schemas/GateState"
+        display_order:
+          type: number
+          description: The way to describe how you want to arrange your gates.
+          example: 1
+        comments:
+          type: array
+          description: The comment describe why you open or closed the gate.
+          items:
+            $ref: "#/components/schemas/Comment"
+        last_updated:
+          type: string
+          description: Changes when a comment or gate is changed.
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+      required:
+        - group
+        - service
+        - environment
+        - state
+        - comments
+        - last_updated
+
+    GateStateRep:
+      type: object
+      description: Wrapper object for the state of a gate.
+      properties:
+        state:
+          $ref: "#/components/schemas/GateState"
+      required:
+        - group
+
+    GateState:
+      type: string
+      description: This can only be open or closed.
+      example: closed
+      enum:
+        - open
+        - closed
+
+    Comment:
+      type: object
+      description: Comments will help you identify the reasons for the gate.
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Identifies the comment.
+          example: e9qo5ibvyvk8ffmhu6qe6p30
+        message:
+          type: string
+          minLength: 1
+          description: Very important text to show why you did it.
+          example: Running some tests (Max)
+        created:
+          type: string
+          description: The exact moment the comment was created.
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+      required:
+        - id
+        - message
+        - created
+
+    Config:
+      type: object
+      description: Contains global configuration.
+      properties:
+        system_time:
+          type: string
+          description: The global current system time.
+          format: date-time
+          example: 2023-05-26T21:36:18.345195Z
+        active_hours_per_week:
+          $ref: "#/components/schemas/ActiveHoursPerWeek"
+      required:
+        - system_time
+        - active_hours_per_week
+
+    ActiveHoursPerWeek:
+      type: object
+      description: The active business hours of each day of the week from start to end.
+      properties:
+        monday:
+          $ref: '#/components/schemas/ActiveHours'
+        tuesday:
+          $ref: '#/components/schemas/ActiveHours'
+        wednesday:
+          $ref: '#/components/schemas/ActiveHours'
+        thursday:
+          $ref: '#/components/schemas/ActiveHours'
+        friday:
+          $ref: '#/components/schemas/ActiveHours'
+        saturday:
+          $ref: '#/components/schemas/ActiveHours'
+        sunday:
+          $ref: '#/components/schemas/ActiveHours'
+
+    ActiveHours:
+      type: object
+      properties:
+        start:
+          type: string
+          example: 07:00:00
+        end:
+          type: string
+          example: 18:30:00
+      required:
+        - start
+        - end
