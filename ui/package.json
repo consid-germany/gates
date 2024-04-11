@@ -1,6 +1,6 @@
 {
 	"name": "@consid-germany/gates-ui",
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"description": "Web frontend providing a user interface to view and toggle gates.",
 	"private": true,
 	"repository": {
