@@ -1,12 +1,13 @@
 use chrono::{DateTime, NaiveTime, Utc, Weekday};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use openapi::models;
 
 pub mod app_state;
 pub mod representation;
 pub mod use_cases;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActiveHours {
     pub start: NaiveTime,
     pub end: NaiveTime,
@@ -19,7 +20,7 @@ impl ActiveHours {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActiveHoursPerWeek {
     pub monday: Option<ActiveHours>,
     pub tuesday: Option<ActiveHours>,
@@ -41,7 +42,9 @@ impl ActiveHoursPerWeek {
             Weekday::Sat => &self.saturday,
             Weekday::Sun => &self.sunday,
         }
+
     }
+
 
     pub fn default() -> Self {
         Self {
@@ -67,6 +70,35 @@ impl ActiveHoursPerWeek {
             }),
             saturday: None,
             sunday: None,
+        }
+    }
+}
+
+impl From<ActiveHoursPerWeek> for models::ActiveHoursPerWeek {
+    fn from(value: ActiveHoursPerWeek) -> Self {
+        Self {
+            monday: value.monday.map(Into::into),
+            tuesday: value.tuesday.map(Into::into),
+            wednesday: value.wednesday.map(Into::into),
+            thursday: value.thursday.map(Into::into),
+            friday: value.friday.map(Into::into),
+            saturday: value.saturday.map(Into::into),
+            sunday: value.sunday.map(Into::into),
+        }
+    }
+}
+
+impl Into<Box<models::ActiveHours>> for ActiveHours {
+    fn into(self) -> Box<models::ActiveHours> {
+        Box::new(models::ActiveHours::from(self))
+    }
+}
+
+impl From<ActiveHours> for models::ActiveHours {
+    fn from(value: ActiveHours) -> Self {
+        Self {
+            start: value.start.to_string(),
+            end: value.end.to_string(),
         }
     }
 }

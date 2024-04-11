@@ -1,7 +1,6 @@
 use axum::response::IntoResponse;
 use axum::Json;
-
-use crate::types::representation::ApiInfo;
+use openapi::models::ApiInfo;
 
 pub async fn handler() -> impl IntoResponse {
     Json(ApiInfo {

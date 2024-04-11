@@ -1,16 +1,9 @@
 use chrono::{DateTime, NaiveTime, Utc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::convert::Into;
 
 use crate::types;
 use crate::types::GateState;
-
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct ApiInfo {
-    pub name: String,
-    pub version: String,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Group {
@@ -53,7 +46,7 @@ pub struct Comment {
     pub created: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
+/*#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub system_time: DateTime<Utc>,
     pub active_hours_per_week: ActiveHoursPerWeek,
@@ -90,21 +83,8 @@ pub struct ActiveHoursPerWeek {
     pub saturday: Option<ActiveHours>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sunday: Option<ActiveHours>,
-}
+}*/
 
-impl From<types::ActiveHoursPerWeek> for ActiveHoursPerWeek {
-    fn from(value: types::ActiveHoursPerWeek) -> Self {
-        Self {
-            monday: value.monday.map(Into::into),
-            tuesday: value.tuesday.map(Into::into),
-            wednesday: value.wednesday.map(Into::into),
-            thursday: value.thursday.map(Into::into),
-            friday: value.friday.map(Into::into),
-            saturday: value.saturday.map(Into::into),
-            sunday: value.sunday.map(Into::into),
-        }
-    }
-}
 
 impl From<types::Gate> for Gate {
     fn from(value: types::Gate) -> Self {

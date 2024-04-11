@@ -13,6 +13,8 @@ use crate::use_cases::{
     get_gate_state, list_gates, update_display_order, update_gate_state,
 };
 
+use openapi::models::ActiveHoursPerWeek;
+
 mod clock;
 mod date_time_switch;
 mod id_provider;
@@ -168,12 +170,14 @@ mod integration_tests_lambda {
 
 #[cfg(test)]
 mod acceptance_tests {
+    use openapi::models::Config;
     use std::sync::Arc;
+    use openapi::models::ActiveHoursPerWeek;
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
     use chrono::{DateTime, FixedOffset, Utc};
-    use representation::Config;
+    use openapi::models;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
@@ -761,13 +765,14 @@ mod acceptance_tests {
         // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
+        let openapi_active_hours_per_week: models::ActiveHoursPerWeek = types::ActiveHoursPerWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
             response.json::<Config>(),
             Config {
-                system_time: now,
-                active_hours_per_week: types::ActiveHoursPerWeek::default().into()
+                system_time: now.to_string(),
+                active_hours_per_week: serde_json::to_value(openapi_active_hours_per_week).unwrap()
             }
         );
     }
