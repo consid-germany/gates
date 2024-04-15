@@ -32,10 +32,7 @@ impl UseCase for UseCaseImpl {
         active_hours_per_week: ActiveHoursPerWeek,
     ) -> Result<Config, Error> {
         let openapi_active_hours_per_week: models::ActiveHoursPerWeek = active_hours_per_week.into();
-        Ok(Config {
-            system_time: clock.now().to_string(),
-            active_hours_per_week: serde_json::to_value(openapi_active_hours_per_week).unwrap()
-        })
+        Ok(Config::new(clock.now().to_string(), openapi_active_hours_per_week))
     }
 }
 
@@ -97,6 +94,6 @@ mod unit_tests {
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
         assert_eq!(config_result.system_time, now.to_string());
-        assert_eq!(config_result.active_hours_per_week, serde_json::to_value(expected_active_hours).unwrap());
+        assert_eq!(config_result.active_hours_per_week, Box::new(expected_active_hours));
     }
 }

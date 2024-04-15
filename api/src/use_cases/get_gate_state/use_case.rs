@@ -1,10 +1,11 @@
 use axum::async_trait;
+use openapi::models;
 
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{representation, GateKey};
+use crate::types::{ GateKey};
 
 #[derive(Debug)]
 pub struct Input {
@@ -36,7 +37,7 @@ pub trait UseCase {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Option<representation::GateStateRep>, Error>;
+    ) -> Result<Option<models::GateStateRep>, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -58,7 +59,7 @@ impl UseCase for UseCaseImpl {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Option<representation::GateStateRep>, Error> {
+    ) -> Result<Option<models::GateStateRep>, Error> {
         let gate = storage
             .find_one(GateKey {
                 group,
@@ -78,6 +79,7 @@ mod unit_tests {
 
     use chrono::{DateTime, Utc};
     use mockall::predicate::eq;
+    use openapi::models;
 
     use crate::clock::MockClock;
     use crate::date_time_switch::MockDateTimeSwitch;
@@ -164,8 +166,8 @@ mod unit_tests {
             )
             .await;
         assert!(left.is_ok());
-        let expected_gate = Some(representation::GateStateRep {
-            state: GateState::Closed,
+        let expected_gate = Some(models::GateStateRep {
+            state: GateState::Closed.into(),
         });
         assert_eq!(left.expect("could not unwrap gate"), expected_gate);
     }

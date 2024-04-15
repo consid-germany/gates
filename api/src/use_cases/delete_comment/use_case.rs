@@ -1,8 +1,9 @@
 use crate::clock::Clock;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{representation, GateKey};
+use crate::types::{ GateKey};
 use axum::async_trait;
+use openapi::models;
 
 #[derive(Debug)]
 pub struct Input {
@@ -34,7 +35,7 @@ pub trait UseCase {
         input: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error>;
+    ) -> Result<models::Gate, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -56,7 +57,7 @@ impl UseCase for UseCaseImpl {
         }: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error> {
+    ) -> Result<models::Gate, Error> {
         Ok(storage
             .delete_comment_by_id_and_update_last_updated(
                 GateKey {
@@ -118,13 +119,13 @@ mod unit_tests {
             )
             .await;
 
-        let expected = representation::Gate {
+        let expected = models::Gate {
             group: "group".to_string(),
             service: "service".to_string(),
             environment: "environment".to_string(),
-            state: GateState::Open,
+            state: models::GateState::Open,
             comments: vec![],
-            last_updated: now.into(),
+            last_updated: now.to_utc().to_string(),
             display_order: Option::default(),
         };
         assert_eq!(left.unwrap(), expected);

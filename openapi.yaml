@@ -609,12 +609,13 @@ components:
         state:
           $ref: "#/components/schemas/GateState"
       required:
-        - group
+        - state
 
     GateState:
       type: string
       description: This can only be open or closed.
       example: closed
+      default: closed
       enum:
         - open
         - closed
@@ -653,10 +654,7 @@ components:
           format: date-time
           example: 2023-05-26T21:36:18.345195Z
         active_hours_per_week:
-          type: object
-          description: The active business hours of each day of the week from start to end
-          items:
-            $ref: "#/components/schemas/ActiveHoursPerWeek"
+          $ref: "#/components/schemas/ActiveHoursPerWeek"
       required:
         - system_time
         - active_hours_per_week
