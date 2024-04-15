@@ -1,0 +1,20 @@
+name: Generate Models
+
+on:
+  workflow_call:
+
+jobs:
+  generate_openapi_models:
+    runs-on: ubuntu-latest  # You can choose other OS like macos-latest or windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2  # This action checks out your repository's code
+
+      - name: Install dependencies
+        run: |
+          # Add commands to install dependencies if needed
+          # For example: npm install
+
+      - name: Generate models
+        run: ./generate_open_api_model.sh  # Run your script

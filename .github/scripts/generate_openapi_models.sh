@@ -2,10 +2,17 @@
 
 # Move to the root directory
 cd ../..
-# Ensure openapi-generator-cli is installed
-if ! command -v openapi-generator-cli &> /dev/null; then
-    echo "Error: openapi-generator-cli is not installed. Please install it."
+
+# Check if Java is installed
+if ! command -v java &> /dev/null; then
+    echo "Java Development Kit (JDK) is not installed. Please install JDK."
+    # Provide instructions on how to install Java
     exit 1
+fi
+# Check if openapi-generator-cli is installed
+if ! command -v openapi-generator &> /dev/null; then
+    echo "openapi-generator-cli is not installed. Installing..."
+    npm install @openapitools/openapi-generator-cli -g
 fi
 
 # Ensure openapi.yaml exists
@@ -14,10 +21,8 @@ if [ ! -f "openapi.yaml" ]; then
     exit 1
 fi
 
-# Ensure Rust is selected as the generator
+# Rust is selected as the generator
 GENERATOR="rust"
-
-# Ensure the new directory is inside api directory
 
 # Ensure output directory is specified
 OUTPUT_DIR="openapi"
