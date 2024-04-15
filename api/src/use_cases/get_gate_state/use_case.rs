@@ -5,7 +5,7 @@ use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{ GateKey};
+use crate::types::GateKey;
 
 #[derive(Debug)]
 pub struct Input {
@@ -85,7 +85,7 @@ mod unit_tests {
     use crate::date_time_switch::MockDateTimeSwitch;
     use crate::storage;
     use crate::storage::MockStorage;
-    use crate::types::{representation, Gate, GateKey, GateState};
+    use crate::types::{Gate, GateKey, GateState};
     use crate::use_cases::get_gate_state::use_case::{Error, Input, UseCase, UseCaseImpl};
     use similar_asserts::assert_eq;
 

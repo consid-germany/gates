@@ -1,8 +1,8 @@
 use chrono::{DateTime, NaiveTime, Utc, Weekday};
-use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 use itertools::Itertools;
 use openapi::models;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 pub mod app_state;
 pub mod use_cases;
@@ -42,9 +42,7 @@ impl ActiveHoursPerWeek {
             Weekday::Sat => &self.saturday,
             Weekday::Sun => &self.sunday,
         }
-
     }
-
 
     pub fn default() -> Self {
         Self {
@@ -188,7 +186,9 @@ impl TryFrom<GateState> for String {
 
 impl From<Gate> for models::GateStateRep {
     fn from(value: Gate) -> Self {
-        Self { state: value.state.into() }
+        Self {
+            state: value.state.into(),
+        }
     }
 }
 
@@ -234,9 +234,9 @@ mod unit_test {
     use std::collections::HashSet;
     use std::str::FromStr;
 
+    use crate::types;
     use chrono::{DateTime, NaiveTime, Utc};
     use openapi::models;
-    use crate::types;
 
     use crate::types::ActiveHours;
 
@@ -323,7 +323,6 @@ mod unit_test {
         assert_eq!(expected, actual);
     }
 
-
     #[test]
     fn should_convert_domain_gate_to_open_api_gate() {
         let gate = some_gate("some-group", "some-service", "some-environment");
@@ -338,17 +337,23 @@ mod unit_test {
                     id: "Comment1".into(),
                     message: "Some comment message".into(),
                     created: DateTime::parse_from_rfc3339("2021-04-12T20:10:57Z")
-                        .expect("can not convert date").to_utc().to_string(),
+                        .expect("can not convert date")
+                        .to_utc()
+                        .to_string(),
                 },
                 models::Comment {
                     id: "Comment2".into(),
                     message: "Some other comment message".into(),
                     created: DateTime::parse_from_rfc3339("2022-04-12T20:10:57Z")
-                        .expect("can not convert date").to_utc().to_string()
+                        .expect("can not convert date")
+                        .to_utc()
+                        .to_string(),
                 },
             ],
             last_updated: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("can not convert date").to_utc().to_string(),
+                .expect("can not convert date")
+                .to_utc()
+                .to_string(),
             display_order: Option::default(),
         };
         assert_eq!(actual, expected);
@@ -363,9 +368,9 @@ mod unit_test {
                 .expect("can not convert date")
                 .into(),
         }
-            .into();
+        .into();
 
-        let expected= models::Comment {
+        let expected = models::Comment {
             id: "1234".to_string(),
             message: "Gate closed because of ticket #63468".to_owned(),
             created: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
@@ -395,12 +400,16 @@ mod unit_test {
                 types::Comment {
                     id: "Comment2".to_owned(),
                     message: "Some other comment message".to_owned(),
-                    created: DateTime::from(DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
-                        .expect("failed creating date")),
+                    created: DateTime::from(
+                        DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
+                            .expect("failed creating date"),
+                    ),
                 },
             ]),
-            last_updated: DateTime::from(DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed creating date")),
+            last_updated: DateTime::from(
+                DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                    .expect("failed creating date"),
+            ),
             display_order: Option::default(),
         }
     }

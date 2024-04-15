@@ -31,15 +31,19 @@ impl UseCase for UseCaseImpl {
         clock: &(dyn Clock + Send + Sync),
         active_hours_per_week: ActiveHoursPerWeek,
     ) -> Result<Config, Error> {
-        let openapi_active_hours_per_week: models::ActiveHoursPerWeek = active_hours_per_week.into();
-        Ok(Config::new(clock.now().to_string(), openapi_active_hours_per_week))
+        let openapi_active_hours_per_week: models::ActiveHoursPerWeek =
+            active_hours_per_week.into();
+        Ok(Config::new(
+            clock.now().to_string(),
+            openapi_active_hours_per_week,
+        ))
     }
 }
 
 #[cfg(test)]
 mod unit_tests {
     use crate::clock::MockClock;
-    use crate::types::{ ActiveHours, ActiveHoursPerWeek};
+    use crate::types::{ActiveHours, ActiveHoursPerWeek};
     use crate::use_cases::get_config::use_case::{UseCase, UseCaseImpl};
     use chrono::{DateTime, NaiveTime, Utc};
     use openapi::models;
@@ -94,6 +98,9 @@ mod unit_tests {
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
         assert_eq!(config_result.system_time, now.to_string());
-        assert_eq!(config_result.active_hours_per_week, Box::new(expected_active_hours));
+        assert_eq!(
+            config_result.active_hours_per_week,
+            Box::new(expected_active_hours)
+        );
     }
 }

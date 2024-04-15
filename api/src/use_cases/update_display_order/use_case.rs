@@ -1,6 +1,6 @@
 use crate::clock::Clock;
 use crate::storage::{Storage, UpdateError};
-use crate::types::{GateKey};
+use crate::types::GateKey;
 use axum::async_trait;
 use openapi::models;
 

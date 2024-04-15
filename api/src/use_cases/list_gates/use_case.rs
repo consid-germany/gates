@@ -6,7 +6,7 @@ use openapi::models;
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage::Storage;
-use crate::types::{ Gate};
+use crate::types::Gate;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
@@ -81,7 +81,12 @@ fn ordered_by_group(gates: Vec<Gate>) -> Vec<models::Group> {
                     gate: Box::new(item.into()),
                 });
             }
-            environments.sort_by(|a, b| a.gate.display_order.partial_cmp(&b.gate.display_order).unwrap());
+            environments.sort_by(|a, b| {
+                a.gate
+                    .display_order
+                    .partial_cmp(&b.gate.display_order)
+                    .unwrap()
+            });
             services.push(models::Service {
                 name: service.clone(),
                 environments,
@@ -193,14 +198,16 @@ mod unit_tests {
                         environments: vec![
                             models::Environment {
                                 name: "some environment".to_owned(),
-                                gate: Box::new(Gate {
-                                    key: gate1.key,
-                                    state: GateState::Closed,
-                                    comments: gate1.comments,
-                                    last_updated: gate1.last_updated,
-                                    display_order: gate1.display_order,
-                                }
-                                .into())
+                                gate: Box::new(
+                                    Gate {
+                                        key: gate1.key,
+                                        state: GateState::Closed,
+                                        comments: gate1.comments,
+                                        last_updated: gate1.last_updated,
+                                        display_order: gate1.display_order,
+                                    }
+                                    .into()
+                                )
                             },
                             models::Environment {
                                 name: "some other environment".to_owned(),

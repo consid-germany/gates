@@ -6,7 +6,7 @@ use openapi::models;
 use crate::clock::Clock;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{ Gate, GateKey, GateState};
+use crate::types::{Gate, GateKey, GateState};
 
 #[derive(Debug)]
 pub struct Input {

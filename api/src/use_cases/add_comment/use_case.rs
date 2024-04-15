@@ -1,7 +1,7 @@
 use crate::clock::Clock;
 use crate::id_provider::IdProvider;
 use crate::storage::{Storage, UpdateError};
-use crate::types::{ Comment, GateKey};
+use crate::types::{Comment, GateKey};
 use axum::async_trait;
 use openapi::models;
 
@@ -93,12 +93,10 @@ mod unit_tests {
     use chrono::DateTime;
     use itertools::concat;
     use similar_asserts::assert_eq;
-    use chrono::Utc;
 
     use crate::clock::MockClock;
     use crate::id_provider::MockIdProvider;
     use crate::storage::MockStorage;
-    use crate::types;
     use crate::types::{Comment, Gate, GateKey, GateState};
 
     use super::*;
@@ -174,9 +172,7 @@ mod unit_tests {
                     models::Comment {
                         id: "id".to_owned(),
                         message: "some new comment".to_owned(),
-                        created: now
-                            .to_utc()
-                            .to_string(),
+                        created: now.to_utc().to_string(),
                     },
                 ],
                 last_updated: now.to_utc().to_string(),

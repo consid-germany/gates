@@ -1,7 +1,7 @@
 use crate::clock::Clock;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{ GateKey};
+use crate::types::GateKey;
 use axum::async_trait;
 use openapi::models;
 

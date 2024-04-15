@@ -95,7 +95,6 @@ mod integration_tests_lambda {
 
     use crate::clock::MockClock;
     use crate::types::app_state::AppState;
-    use crate::types::{GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
 
     #[tokio::test]
@@ -450,7 +449,7 @@ mod acceptance_tests {
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
             response.json::<Vec<models::Group>>(),
-            vec![models::Group{
+            vec![models::Group {
                 name: "somegroup".to_string(),
                 services: vec![models::Service {
                     name: "someservice".to_string(),
@@ -762,7 +761,8 @@ mod acceptance_tests {
         // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
-        let openapi_active_hours_per_week: models::ActiveHoursPerWeek = types::ActiveHoursPerWeek::default().into();
+        let openapi_active_hours_per_week: models::ActiveHoursPerWeek =
+            types::ActiveHoursPerWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
@@ -852,7 +852,10 @@ mod acceptance_tests {
                     environments: vec![
                         models::Environment {
                             name: "live".to_string(),
-                            gate: Box::new(expected_gate_representation(now.into(), "live".to_string())),
+                            gate: Box::new(expected_gate_representation(
+                                now.into(),
+                                "live".to_string()
+                            )),
                         },
                         models::Environment {
                             name: "develop".to_string(),
