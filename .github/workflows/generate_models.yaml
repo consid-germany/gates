@@ -17,4 +17,4 @@ jobs:
           # For example: npm install
 
       - name: Generate models
-        run: ./.github/scripts/generate_open_api_model.sh  # Run your script
+        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
