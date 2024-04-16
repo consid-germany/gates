@@ -5,13 +5,27 @@ on:
       api-base-url:
         type: string
         default: http://localhost:9000/api
-  workflow_run:
-    workflows: [ "generate_models" ]
-    types:
-      - completed
 
 
 jobs:
+  generate-openapi-models:
+    runs-on: ubuntu-latest  # You can choose other OS like macos-latest or windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # This action checks out your repository's code
+
+      - name: Install dependencies
+        run: |
+          # Add commands to install dependencies if needed
+          # For example: npm install
+
+      - name: Grant execute permissions to script
+        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
+
+      - name: Generate models
+        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
+
   lint-and-check:
     runs-on: ubuntu-latest
     steps:
