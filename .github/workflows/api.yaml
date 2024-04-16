@@ -29,7 +29,6 @@ jobs:
         run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
 
       - name: Generate models
-        working-directory: api
         run: ./.github/scripts/generate_openapi_models.sh  # Run your script
 
       - name: Check formatting
