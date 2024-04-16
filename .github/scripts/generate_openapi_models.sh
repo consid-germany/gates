@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Move to the root directory
+# Uncomment the line below to run the script locally
 #cd ../..
 
 # Check if Java is installed

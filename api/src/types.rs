@@ -192,6 +192,7 @@ impl From<Gate> for models::GateStateRep {
     }
 }
 
+#[allow(clippy::use_self)]
 impl From<GateState> for models::GateState {
     fn from(source: GateState) -> Self {
         match source {
@@ -200,6 +201,7 @@ impl From<GateState> for models::GateState {
         }
     }
 }
+#[allow(clippy::cast_lossless)]
 impl From<Gate> for models::Gate {
     fn from(value: Gate) -> Self {
         Self {

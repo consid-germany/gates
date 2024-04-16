@@ -73,6 +73,7 @@ impl UseCase for UseCaseImpl {
     }
 }
 
+#[allow(clippy::cast_lossless)]
 #[cfg(test)]
 mod unit_tests {
     use std::collections::HashSet;

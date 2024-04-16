@@ -886,6 +886,7 @@ mod acceptance_tests {
         }
     }
 
+    #[allow(clippy::cast_lossless)]
     fn expected_gate_representation_with_display_order(
         now: DateTime<FixedOffset>,
         environment: String,
