@@ -8,27 +8,8 @@ on:
 
 
 jobs:
-  generate-openapi-models:
-    runs-on: ubuntu-latest  # You can choose other OS like macos-latest or windows-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4  # This action checks out your repository's code
-
-      - name: Install dependencies
-        run: |
-          # Add commands to install dependencies if needed
-          # For example: npm install
-
-      - name: Grant execute permissions to script
-        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
-
-      - name: Generate models
-        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
-
   lint-and-check:
     runs-on: ubuntu-latest
-    needs: generate-openapi-models
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +24,13 @@ jobs:
         with:
           repo: cargo-lambda/cargo-lambda
           cache: enable
+
+      - name: Grant execute permissions to script
+        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
+
+      - name: Generate models
+        working-directory: api
+        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
 
       - name: Check formatting
         working-directory: api
