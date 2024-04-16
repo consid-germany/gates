@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Move to the root directory
-cd ../..
+#cd ../..
 
 # Check if Java is installed
 if ! command -v java &> /dev/null; then
