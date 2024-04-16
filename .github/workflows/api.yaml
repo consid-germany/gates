@@ -57,6 +57,12 @@ jobs:
           repo: cargo-lambda/cargo-lambda
           cache: enable
 
+      - name: Grant execute permissions to script
+        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
+
+      - name: Generate models
+        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
+
       - name: Run Tests
         working-directory: api
         run: cargo test --all-features
@@ -88,6 +94,12 @@ jobs:
 
       - name: Start dynamodb-local
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+
+      - name: Grant execute permissions to script
+        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
+
+      - name: Generate models
+        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
 
       - name: Build api
         run: cargo build
