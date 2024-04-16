@@ -9,12 +9,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2  # This action checks out your repository's code
+        uses: actions/checkout@v4  # This action checks out your repository's code
 
       - name: Install dependencies
         run: |
           # Add commands to install dependencies if needed
           # For example: npm install
+
+      - name: Grant execute permissions to script
+        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
 
       - name: Generate models
         run: ./.github/scripts/generate_openapi_models.sh  # Run your script
