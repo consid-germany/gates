@@ -73,7 +73,7 @@ jobs:
         working-directory: ui
 
   integration-test:
-    needs: lint-and-check
+    needs: [lint-and-check, generate-openapi-models]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

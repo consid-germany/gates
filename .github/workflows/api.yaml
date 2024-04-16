@@ -28,6 +28,7 @@ jobs:
 
   lint-and-check:
     runs-on: ubuntu-latest
+    needs: generate-openapi-models
     steps:
       - uses: actions/checkout@v4
 
