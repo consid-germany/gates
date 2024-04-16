@@ -25,15 +25,15 @@ jobs:
           repo: cargo-lambda/cargo-lambda
           cache: enable
 
+      - name: Check formatting
+        working-directory: api
+        run: cargo fmt --all -- --check
+
       - name: Grant execute permissions to script
         run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
 
       - name: Generate models
         run: ./.github/scripts/generate_openapi_models.sh  # Run your script
-
-      - name: Check formatting
-        working-directory: api
-        run: cargo fmt --all -- --check
 
       - name: Run Clippy
         working-directory: api
