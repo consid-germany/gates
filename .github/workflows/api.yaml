@@ -5,6 +5,11 @@ on:
       api-base-url:
         type: string
         default: http://localhost:9000/api
+  workflow_run:
+    workflows: [ "generate_models" ]
+    types:
+      - completed
+
 
 jobs:
   lint-and-check:

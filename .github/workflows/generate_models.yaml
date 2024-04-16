@@ -1,4 +1,4 @@
-name: Generate Models
+name: generate_models
 
 on:
   workflow_call:
