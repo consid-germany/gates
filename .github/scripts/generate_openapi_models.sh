@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Uncomment the line below to run the script locally
-# cd ../..
+ # cd ../..
 
 # Check if Java is installed
 #if ! command -v java &> /dev/null; then
@@ -25,7 +25,7 @@
 GENERATOR="rust"
 
 # Ensure output directory is specified
-OUTPUT_DIR="openapi"
+OUTPUT_DIR="/api/openapi"
 
 # Generate models
 #openapi-generator-cli generate -i openapi.yaml -g $GENERATOR -o $OUTPUT_DIR
@@ -37,5 +37,5 @@ docker run --rm \
   -o /local/$OUTPUT_DIR
 
 # Move the openapi folder into the api folder
-mv openapi api/
+#mv openapi api/
 
