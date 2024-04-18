@@ -12,7 +12,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: cdk
-          node-version: lts
+          node-version: lts/*
 
       - run: npm ci
         working-directory: cdk
@@ -33,7 +33,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: cdk
-          node-version: lts
+          node-version: lts/*
 
       - run: npm ci
         working-directory: cdk

@@ -12,7 +12,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: action
-          node-version: lts
+          node-version: lts/*
 
       - run: npm ci
         working-directory: action
@@ -33,7 +33,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: action
-          node-version: lts
+          node-version: lts/*
 
       - run: npm ci
         working-directory: action
