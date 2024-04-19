@@ -9,9 +9,6 @@ jobs:
   action:
     uses: ./.github/workflows/action.yaml
 
-  generate_openapi_models:
-    uses: ./.github/workflows/generate_models.yaml
-
   api:
     uses: ./.github/workflows/api.yaml
 
