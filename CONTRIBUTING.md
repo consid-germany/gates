@@ -157,6 +157,21 @@ Install the dependencies using the following command:
 npm install
 ```
 
+## Generating Models
+
+To generate models for your project, follow these steps:
+
+1. **Clone the Repository**: Clone the repository to your local machine if you haven't already done so:
+```bash
+    git clone https://github.com/yourusername/yourproject.git
+    cd yourproject 
+```
+
+2. Run the bash file inside scripts folder to generate the models
+```bash
+   bash generate_openapi_models.sh
+```
+
 ##### Running Tests
 
 Execute the following command to run the unit tests:

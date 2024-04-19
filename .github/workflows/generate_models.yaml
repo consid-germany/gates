@@ -17,7 +17,7 @@ jobs:
           # For example: npm install
 
       - name: Grant execute permissions to script
-        run: chmod +x ./.github/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
+        run: chmod +x ../api/scripts/generate_openapi_models.sh  # Grant executable permissions to the script
 
       - name: Generate models
-        run: ./.github/scripts/generate_openapi_models.sh  # Run your script
+        run: ../api/scripts/generate_openapi_models.sh  # Run your script
