@@ -21,6 +21,23 @@ You can check out a demo of the gates ui here: https://gates.consid.tech.
 *Note that this is a demo deployment of the gates application which replaces comment messages with sanitized default messages and does not allow to
 create or delete gates.*
 
+## Quick Start - Generating Models
+
+To generate models for your project, follow these steps:
+
+1. **Clone the Repository**: Clone the repository to your local machine if you haven't already done so:
+```bash
+    git clone https://github.com/yourusername/yourproject.git
+    cd yourproject 
+```
+
+2. Run the bash file inside scripts folder to generate the models
+```bash
+   bash generate_openapi_models.sh
+```
+   
+
+
 ## Quick Start - GitHub Action
 
 To use gates within your GitHub deployment pipeline you can simply use the ***consid-germany/gates*** action as shown in the block below.
