@@ -55,13 +55,11 @@ jobs:
 
       - name: Run Tests
         working-directory: api
-        run: |
-          cargo llvm-cov test --all-features --no-report
+        run: cargo llvm-cov test --all-features --no-report
 
       - name: Generate Coverage Report
         working-directory: api
-        run: |
-          cargo llvm-cov report --html
+        run: cargo llvm-cov report --html
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
