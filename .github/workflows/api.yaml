@@ -50,9 +50,35 @@ jobs:
           repo: cargo-lambda/cargo-lambda
           cache: enable
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Run Tests
         working-directory: api
-        run: cargo test --all-features
+        run: cargo llvm-cov test --all-features --no-report
+
+      - name: Generate Coverage Report
+        working-directory: api
+        run: cargo llvm-cov report --html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-report
+          path: api/target/llvm-cov/html/
+
+      - name: Verify Coverage
+        working-directory: api
+        run: |
+          cargo llvm-cov report --json --output-path coverage.json
+          coverage=`cat coverage.json | jq '.data[0].totals.lines.percent'`
+          result=`echo "$coverage>95" | bc`
+          if [[ $result == 1 ]]; then
+            echo -e "\e[32mPASSED\e[0m"
+          else
+            echo -e "\e[31mFAILED\e[0m"
+            exit 1
+          fi 
 
   check-openapi-conformance:
     needs: lint-and-check
