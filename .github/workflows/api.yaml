@@ -72,11 +72,12 @@ jobs:
         run: |
           cargo llvm-cov report --json --output-path coverage.json
           coverage=`cat coverage.json | jq '.data[0].totals.lines.percent'`
+          echo "Measured coverage: $coverage%"
           result=`echo "$coverage>95" | bc`
           if [[ $result == 1 ]]; then
             echo -e "\e[32mPASSED\e[0m"
           else
-            echo -e "\e[31mFAILED\e[0m"
+            echo -e "\e[31mFAILED\e[0m (actual coverage below 95%)"
             exit 1
           fi 
 
