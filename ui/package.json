@@ -47,7 +47,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.37.0",
 		"flowbite": "^2.3.0",
-		"flowbite-svelte": "^0.45.0",
+		"flowbite-svelte": "^0.46.0",
 		"jsdom": "^24.0.0",
 		"openapi-fetch": "^0.9.3",
 		"openapi-typescript": "^6.7.5",
