@@ -17,7 +17,7 @@
 
 	export let gate: Gate;
 
-	let commentMessage: string = '';
+	let commentMessage = '';
 	let error: Error;
 	let toggleGateStateLoading = false;
 	let addCommentLoading = false;
