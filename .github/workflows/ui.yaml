@@ -7,6 +7,7 @@ on:
         default: http://localhost:9000/api
 
 jobs:
+
   lint-and-check:
     runs-on: ubuntu-latest
     steps:
@@ -16,6 +17,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: ui
+          node-version: lts/*
 
       - uses: SpicyPizza/create-envfile@v2
         with:
@@ -41,6 +43,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: ui
+          node-version: lts/*
 
       - uses: SpicyPizza/create-envfile@v2
         with:
@@ -75,6 +78,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: ui
+          node-version: lts/*
 
       - uses: SpicyPizza/create-envfile@v2
         with:
@@ -86,6 +90,9 @@ jobs:
 
       - name: Start dynamodb-local
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+
+      - name: Generate models
+        run: bash api/scripts/generate_openapi_models.sh
 
       - name: Build api
         run: cargo build

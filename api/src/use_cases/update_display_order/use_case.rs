@@ -1,7 +1,8 @@
 use crate::clock::Clock;
 use crate::storage::{Storage, UpdateError};
-use crate::types::{representation, GateKey};
+use crate::types::GateKey;
 use axum::async_trait;
+use openapi::models;
 
 #[derive(Debug)]
 pub struct Input {
@@ -33,7 +34,7 @@ pub trait UseCase {
         input: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error>;
+    ) -> Result<models::Gate, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -55,7 +56,7 @@ impl UseCase for UseCaseImpl {
         }: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error> {
+    ) -> Result<models::Gate, Error> {
         Ok(storage
             .update_display_order_and_last_updated(
                 GateKey {
@@ -76,6 +77,7 @@ mod unit_tests {
     use std::collections::HashSet;
 
     use chrono::DateTime;
+    use openapi::models;
     use similar_asserts::assert_eq;
 
     use crate::clock::MockClock;
@@ -138,14 +140,14 @@ mod unit_tests {
         assert!(gate_with_state.is_ok());
         assert_eq!(
             gate_with_state.expect("here should be a gate for comparison"),
-            representation::Gate {
+            models::Gate {
                 group: gate.key.group,
                 service: gate.key.service,
                 environment: gate.key.environment,
-                state: GateState::default(),
+                state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now.into(),
-                display_order: Some(1),
+                last_updated: now.to_utc().to_string(),
+                display_order: Some(1f64),
             }
         );
     }

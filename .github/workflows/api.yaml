@@ -6,6 +6,7 @@ on:
         type: string
         default: http://localhost:9000/api
 
+
 jobs:
   lint-and-check:
     runs-on: ubuntu-latest
@@ -28,6 +29,9 @@ jobs:
         working-directory: api
         run: cargo fmt --all -- --check
 
+      - name: Generate models
+        run: bash api/scripts/generate_openapi_models.sh
+
       - name: Run Clippy
         working-directory: api
         run: cargo clippy --all-targets --all-features -- -W clippy::all -W clippy::pedantic -W clippy::nursery -D warnings
@@ -49,6 +53,9 @@ jobs:
         with:
           repo: cargo-lambda/cargo-lambda
           cache: enable
+
+      - name: Generate models
+        run: bash api/scripts/generate_openapi_models.sh
 
       - name: Run Tests
         working-directory: api
@@ -81,6 +88,9 @@ jobs:
 
       - name: Start dynamodb-local
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
+
+      - name: Generate models
+        run: bash api/scripts/generate_openapi_models.sh
 
       - name: Build api
         run: cargo build

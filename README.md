@@ -21,6 +21,7 @@ You can check out a demo of the gates ui here: https://gates.consid.tech.
 *Note that this is a demo deployment of the gates application which replaces comment messages with sanitized default messages and does not allow to
 create or delete gates.*
 
+
 ## Quick Start - GitHub Action
 
 To use gates within your GitHub deployment pipeline you can simply use the ***consid-germany/gates*** action as shown in the block below.

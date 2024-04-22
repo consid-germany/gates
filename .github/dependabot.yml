@@ -1,0 +1,50 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    commit-message:
+      prefix: "chore(action)"
+    directory: /action
+    schedule:
+      interval: daily
+    groups:
+      non-major:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: npm
+    commit-message:
+      prefix: "chore(cdk)"
+    directory: /cdk
+    schedule:
+      interval: daily
+    groups:
+      non-major:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: npm
+    commit-message:
+      prefix: "chore(ui)"
+    directory: /ui
+    schedule:
+      interval: daily
+    groups:
+      non-major:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: cargo
+    commit-message:
+      prefix: "chore(api)"
+    directory: /api
+    schedule:
+      interval: daily
+    groups:
+      non-major:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

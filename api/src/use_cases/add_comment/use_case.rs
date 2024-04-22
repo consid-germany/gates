@@ -1,8 +1,9 @@
 use crate::clock::Clock;
 use crate::id_provider::IdProvider;
 use crate::storage::{Storage, UpdateError};
-use crate::types::{representation, Comment, GateKey};
+use crate::types::{Comment, GateKey};
 use axum::async_trait;
+use openapi::models;
 
 #[derive(Debug)]
 pub struct Input {
@@ -36,7 +37,7 @@ pub trait UseCase {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         id_provider: &(dyn IdProvider + Send + Sync),
-    ) -> Result<representation::Gate, Error>;
+    ) -> Result<models::Gate, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -59,7 +60,7 @@ impl UseCase for UseCaseImpl {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         id_provider: &(dyn IdProvider + Send + Sync),
-    ) -> Result<representation::Gate, Error> {
+    ) -> Result<models::Gate, Error> {
         let now = clock.now();
         match message.as_str().trim() {
             "" => Err(Error::InvalidInputMessage(
@@ -146,33 +147,35 @@ mod unit_tests {
         assert_eq!(gate_with_comment.is_ok(), true);
         assert_eq!(
             gate_with_comment.expect("no gate found"),
-            representation::Gate {
+            models::Gate {
                 group: gate.key.group,
                 service: gate.key.service,
                 environment: gate.key.environment,
-                state: GateState::Open,
+                state: models::GateState::Open,
                 comments: vec![
-                    representation::Comment {
+                    models::Comment {
                         id: "Comment1".to_owned(),
                         message: "Some comment message".to_owned(),
                         created: DateTime::parse_from_rfc3339("2021-04-12T22:10:57+02:00")
                             .expect("failed creating date")
-                            .into(),
+                            .to_utc()
+                            .to_string(),
                     },
-                    representation::Comment {
+                    models::Comment {
                         id: "Comment2".to_owned(),
                         message: "Some other comment message".to_owned(),
                         created: DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
                             .expect("failed creating date")
-                            .into(),
+                            .to_utc()
+                            .to_string(),
                     },
-                    representation::Comment {
+                    models::Comment {
                         id: "id".to_owned(),
                         message: "some new comment".to_owned(),
-                        created: now.into(),
+                        created: now.to_utc().to_string(),
                     },
                 ],
-                last_updated: now.into(),
+                last_updated: now.to_utc().to_string(),
                 display_order: Option::default(),
             }
         );

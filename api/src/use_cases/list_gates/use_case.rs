@@ -1,11 +1,12 @@
 use crate::storage;
 use axum::async_trait;
 use itertools::Itertools;
+use openapi::models;
 
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage::Storage;
-use crate::types::{representation, Gate};
+use crate::types::Gate;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
@@ -29,7 +30,7 @@ pub trait UseCase {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Vec<representation::Group>, Error>;
+    ) -> Result<Vec<models::Group>, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -46,7 +47,7 @@ impl UseCase for UseCaseImpl {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Vec<representation::Group>, Error> {
+    ) -> Result<Vec<models::Group>, Error> {
         Ok(ordered_by_group(
             storage
                 .find_all()
@@ -58,8 +59,8 @@ impl UseCase for UseCaseImpl {
     }
 }
 
-fn ordered_by_group(gates: Vec<Gate>) -> Vec<representation::Group> {
-    let mut groups: Vec<representation::Group> = Vec::new();
+fn ordered_by_group(gates: Vec<Gate>) -> Vec<models::Group> {
+    let mut groups: Vec<models::Group> = Vec::new();
     let group_to_items = gates
         .into_iter()
         .sorted_by_key(|item| item.key.group.clone())
@@ -71,22 +72,27 @@ fn ordered_by_group(gates: Vec<Gate>) -> Vec<representation::Group> {
             .sorted_by_key(|item| item.key.service.clone())
             .group_by(|item| item.key.service.clone());
 
-        let mut services: Vec<representation::Service> = Vec::new();
+        let mut services: Vec<models::Service> = Vec::new();
         for (service, items) in &service_to_items {
-            let mut environments: Vec<representation::Environment> = Vec::new();
+            let mut environments: Vec<models::Environment> = Vec::new();
             for item in items {
-                environments.push(representation::Environment {
+                environments.push(models::Environment {
                     name: item.key.environment.clone(),
                     gate: item.into(),
                 });
             }
-            environments.sort_by(|a, b| a.gate.display_order.cmp(&b.gate.display_order));
-            services.push(representation::Service {
+            environments.sort_by(|a, b| {
+                a.gate
+                    .display_order
+                    .partial_cmp(&b.gate.display_order)
+                    .unwrap()
+            });
+            services.push(models::Service {
                 name: service.clone(),
                 environments,
             });
         }
-        groups.push(representation::Group {
+        groups.push(models::Group {
             name: group.clone(),
             services,
         });
@@ -184,13 +190,13 @@ mod unit_tests {
         assert_eq!(groups.is_ok(), true);
         assert_eq!(
             groups.expect("no groups found"),
-            vec![representation::Group {
+            vec![models::Group {
                 name: "some group".to_owned(),
                 services: vec![
-                    representation::Service {
+                    models::Service {
                         name: "1 some service".to_owned(),
                         environments: vec![
-                            representation::Environment {
+                            models::Environment {
                                 name: "some environment".to_owned(),
                                 gate: Gate {
                                     key: gate1.key,
@@ -201,15 +207,15 @@ mod unit_tests {
                                 }
                                 .into()
                             },
-                            representation::Environment {
+                            models::Environment {
                                 name: "some other environment".to_owned(),
                                 gate: gate2.into(),
                             },
                         ],
                     },
-                    representation::Service {
+                    models::Service {
                         name: "2 some other service".to_owned(),
-                        environments: vec![representation::Environment {
+                        environments: vec![models::Environment {
                             name: "some environment".to_owned(),
                             gate: gate3.into(),
                         },],
@@ -277,21 +283,21 @@ mod unit_tests {
         assert_eq!(
             groups.expect("no groups found"),
             vec![
-                representation::Group {
+                models::Group {
                     name: "some group".to_owned(),
-                    services: vec![representation::Service {
+                    services: vec![models::Service {
                         name: "some service".to_owned(),
-                        environments: vec![representation::Environment {
+                        environments: vec![models::Environment {
                             name: "some environment".to_owned(),
                             gate: gate1.into(),
                         },],
                     },],
                 },
-                representation::Group {
+                models::Group {
                     name: "some other group".to_owned(),
-                    services: vec![representation::Service {
+                    services: vec![models::Service {
                         name: "some other service".to_owned(),
-                        environments: vec![representation::Environment {
+                        environments: vec![models::Environment {
                             name: "some other environment".to_owned(),
                             gate: gate2.into(),
                         },],
@@ -340,20 +346,20 @@ mod unit_tests {
         let gate = some_gate("some group", "some service", "some environment");
 
         assert_eq!(groups.is_ok(), true);
-        let gate_representation = representation::Gate::from(gate);
+        let gate_representation = models::Gate::from(gate);
         assert_eq!(
             groups.expect("no groups found"),
-            vec![representation::Group {
+            vec![models::Group {
                 name: "some group".to_owned(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "some service".to_owned(),
-                    environments: vec![representation::Environment {
+                    environments: vec![models::Environment {
                         name: "some environment".to_owned(),
-                        gate: representation::Gate {
+                        gate: models::Gate {
                             group: gate_representation.group,
                             service: gate_representation.service,
                             environment: gate_representation.environment,
-                            state: GateState::Closed,
+                            state: models::GateState::Closed,
                             comments: gate_representation.comments,
                             last_updated: gate_representation.last_updated,
                             display_order: gate_representation.display_order
