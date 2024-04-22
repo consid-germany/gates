@@ -1,11 +1,12 @@
 use std::collections::HashSet;
 
 use axum::async_trait;
+use openapi::models;
 
 use crate::clock::Clock;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{representation, Gate, GateKey, GateState};
+use crate::types::{Gate, GateKey, GateState};
 
 #[derive(Debug)]
 pub struct Input {
@@ -37,7 +38,7 @@ pub trait UseCase {
         input: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error>;
+    ) -> Result<models::Gate, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -58,7 +59,7 @@ impl UseCase for UseCaseImpl {
         }: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
-    ) -> Result<representation::Gate, Error> {
+    ) -> Result<models::Gate, Error> {
         if group.is_empty() || service.is_empty() || environment.is_empty() {
             return Err(Error::InvalidInput(
                 "group, service and environment must not be empty".to_owned(),

@@ -157,6 +157,15 @@ Install the dependencies using the following command:
 npm install
 ```
 
+##### Generating Models
+
+Before running Cargo build you need to generate models for your project:
+
+ Run the bash file inside scripts folder to generate the models
+```bash
+bash scripts/generate_openapi_models.sh
+```
+
 ##### Running Tests
 
 Execute the following command to run the unit tests:

@@ -1,10 +1,11 @@
 use axum::async_trait;
+use openapi::models;
 
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage;
 use crate::storage::Storage;
-use crate::types::{representation, GateKey};
+use crate::types::GateKey;
 
 #[derive(Debug)]
 pub struct Input {
@@ -36,7 +37,7 @@ pub trait UseCase {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Option<representation::Gate>, Error>;
+    ) -> Result<Option<models::Gate>, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -58,7 +59,7 @@ impl UseCase for UseCaseImpl {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<Option<representation::Gate>, Error> {
+    ) -> Result<Option<models::Gate>, Error> {
         let gate = storage
             .find_one(GateKey {
                 group,
@@ -78,12 +79,13 @@ mod unit_tests {
 
     use chrono::{DateTime, Utc};
     use mockall::predicate::eq;
+    use openapi::models;
 
     use crate::clock::MockClock;
     use crate::date_time_switch::MockDateTimeSwitch;
     use crate::storage;
     use crate::storage::MockStorage;
-    use crate::types::{representation, Gate, GateKey, GateState};
+    use crate::types::{Gate, GateKey, GateState};
     use crate::use_cases::get_gate::use_case::{Error, Input, UseCase, UseCaseImpl};
     use similar_asserts::assert_eq;
 
@@ -164,14 +166,14 @@ mod unit_tests {
             )
             .await;
         assert!(left.is_ok());
-        let expected_gate = Some(representation::Gate {
+        let expected_gate = Some(models::Gate {
             group: group.to_string(),
             service: service.to_string(),
             environment: environment.to_string(),
-            state: GateState::Closed,
+            state: models::GateState::Closed,
             comments: vec![],
-            last_updated: DateTime::default(),
-            display_order: Some(5),
+            last_updated: DateTime::<Utc>::default().to_string(),
+            display_order: Some(f64::from(5)),
         });
         assert_eq!(left.expect("could not unwrap gate"), expected_gate);
     }

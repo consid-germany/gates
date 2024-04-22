@@ -1,7 +1,8 @@
 use axum::async_trait;
+use openapi::models;
+use openapi::models::Config;
 
 use crate::clock::Clock;
-use crate::types::representation::Config;
 use crate::types::ActiveHoursPerWeek;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -30,19 +31,22 @@ impl UseCase for UseCaseImpl {
         clock: &(dyn Clock + Send + Sync),
         active_hours_per_week: ActiveHoursPerWeek,
     ) -> Result<Config, Error> {
-        Ok(Config {
-            system_time: clock.now(),
-            active_hours_per_week: active_hours_per_week.into(),
-        })
+        let openapi_active_hours_per_week: models::ActiveHoursPerWeek =
+            active_hours_per_week.into();
+        Ok(Config::new(
+            clock.now().to_string(),
+            openapi_active_hours_per_week,
+        ))
     }
 }
 
 #[cfg(test)]
 mod unit_tests {
     use crate::clock::MockClock;
-    use crate::types::{representation, ActiveHours, ActiveHoursPerWeek};
+    use crate::types::{ActiveHours, ActiveHoursPerWeek};
     use crate::use_cases::get_config::use_case::{UseCase, UseCaseImpl};
     use chrono::{DateTime, NaiveTime, Utc};
+    use openapi::models;
     use rstest::rstest;
     use similar_asserts::assert_eq;
 
@@ -74,7 +78,7 @@ mod unit_tests {
     #[tokio::test]
     async fn should_get_config(
         active_hours_per_week: ActiveHoursPerWeek,
-        expected_active_hours: representation::ActiveHoursPerWeek,
+        expected_active_hours: models::ActiveHoursPerWeek,
     ) {
         // given
         let mut mock_clock = MockClock::new();
@@ -93,7 +97,7 @@ mod unit_tests {
         // then
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
-        assert_eq!(config_result.system_time, now);
+        assert_eq!(config_result.system_time, now.to_string());
         assert_eq!(config_result.active_hours_per_week, expected_active_hours);
     }
 }

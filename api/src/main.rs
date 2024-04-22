@@ -89,12 +89,12 @@ mod integration_tests_lambda {
     use chrono::DateTime;
     use http_body_util::BodyExt;
     use lambda_http::Service;
+    use openapi::models;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::clock::MockClock;
     use crate::types::app_state::AppState;
-    use crate::types::{representation, GateState};
     use crate::{create_router, date_time_switch, id_provider, storage};
 
     #[tokio::test]
@@ -139,24 +139,24 @@ mod integration_tests_lambda {
             .await
             .expect("failed to collect body")
             .to_bytes();
-        let groups = serde_json::from_slice::<Vec<representation::Group>>(&body)
+        let groups = serde_json::from_slice::<Vec<models::Group>>(&body)
             .expect("failed to parse body as json to groups");
 
         assert_eq!(
             groups,
-            vec![representation::Group {
+            vec![models::Group {
                 name: "some-group".to_owned(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "some-service".to_string(),
-                    environments: vec![representation::Environment {
+                    environments: vec![models::Environment {
                         name: "live".to_owned(),
-                        gate: representation::Gate {
+                        gate: models::Gate {
                             group: "some-group".to_owned(),
                             service: "some-service".to_owned(),
                             environment: "live".to_owned(),
-                            state: GateState::default(),
+                            state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now.into(),
+                            last_updated: now.to_utc().to_string(),
                             display_order: None,
                         },
                     }],
@@ -168,19 +168,19 @@ mod integration_tests_lambda {
 
 #[cfg(test)]
 mod acceptance_tests {
+    use openapi::models::Config;
     use std::sync::Arc;
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
     use chrono::{DateTime, FixedOffset, Utc};
-    use representation::Config;
+    use openapi::models;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::clock::MockClock;
     use crate::id_provider::MockIdProvider;
     use crate::types::app_state::AppState;
-    use crate::types::representation;
     use crate::types::GateState;
     use crate::{create_router, date_time_switch, id_provider, storage, types, use_cases};
 
@@ -246,33 +246,33 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<Vec<representation::Group>>(),
-            vec![representation::Group {
+            response.json::<Vec<models::Group>>(),
+            vec![models::Group {
                 name: "somegroup".to_string(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "someservice".to_string(),
                     environments: vec![
-                        representation::Environment {
+                        models::Environment {
                             name: "develop".to_string(),
-                            gate: representation::Gate {
+                            gate: models::Gate {
                                 group: "somegroup".to_string(),
                                 service: "someservice".to_string(),
                                 environment: "develop".to_string(),
-                                state: GateState::default(),
+                                state: models::GateState::Closed,
                                 comments: vec![],
-                                last_updated: now,
+                                last_updated: now.to_string(),
                                 display_order: Option::default(),
                             },
                         },
-                        representation::Environment {
+                        models::Environment {
                             name: "live".to_string(),
-                            gate: representation::Gate {
+                            gate: models::Gate {
                                 group: "somegroup".to_string(),
                                 service: "someservice".to_string(),
                                 environment: "live".to_string(),
-                                state: GateState::default(),
+                                state: models::GateState::Closed,
                                 comments: vec![],
-                                last_updated: now,
+                                last_updated: now.to_string(),
                                 display_order: Option::default(),
                             },
                         },
@@ -340,14 +340,14 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Gate>(),
-            representation::Gate {
+            response.json::<models::Gate>(),
+            models::Gate {
                 group: "somegroup".to_string(),
                 service: "someservice".to_string(),
                 environment: "develop".to_string(),
-                state: GateState::Open,
+                state: models::GateState::Open,
                 comments: vec![],
-                last_updated: now,
+                last_updated: now.to_string(),
                 display_order: Option::default(),
             }
         );
@@ -361,14 +361,14 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Gate>(),
-            representation::Gate {
+            response.json::<models::Gate>(),
+            models::Gate {
                 group: "somegroup".to_string(),
                 service: "someservice".to_string(),
                 environment: "develop".to_string(),
-                state: GateState::Closed,
+                state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now,
+                last_updated: now.to_string(),
                 display_order: Option::default(),
             }
         );
@@ -377,14 +377,14 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Gate>(),
-            representation::Gate {
+            response.json::<models::Gate>(),
+            models::Gate {
                 group: "somegroup".to_string(),
                 service: "someservice".to_string(),
                 environment: "develop".to_string(),
-                state: GateState::default(),
+                state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now,
+                last_updated: now.to_string(),
                 display_order: Option::default(),
             }
         );
@@ -448,20 +448,20 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<Vec<representation::Group>>(),
-            vec![representation::Group {
+            response.json::<Vec<models::Group>>(),
+            vec![models::Group {
                 name: "somegroup".to_string(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "someservice".to_string(),
-                    environments: vec![representation::Environment {
+                    environments: vec![models::Environment {
                         name: "develop".to_string(),
-                        gate: representation::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_string(),
                             service: "someservice".to_string(),
                             environment: "develop".to_string(),
-                            state: GateState::default(),
+                            state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now,
+                            last_updated: now.to_string(),
                             display_order: Option::default(),
                         },
                     },],
@@ -496,7 +496,7 @@ mod acceptance_tests {
 
         let response = server.get("/api/gates").await;
         assert_eq!(response.status_code(), StatusCode::OK);
-        assert_eq!(response.json::<Vec<representation::Group>>(), vec![]);
+        assert_eq!(response.json::<Vec<models::Group>>(), vec![]);
 
         // when
         let response = server
@@ -524,24 +524,24 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<Vec<representation::Group>>(),
-            vec![representation::Group {
+            response.json::<Vec<models::Group>>(),
+            vec![models::Group {
                 name: "somegroup".to_owned(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "someservice".to_owned(),
-                    environments: vec![representation::Environment {
+                    environments: vec![models::Environment {
                         name: "develop".to_owned(),
-                        gate: representation::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_owned(),
                             service: "someservice".to_owned(),
                             environment: "develop".to_owned(),
-                            state: GateState::default(),
-                            comments: vec![representation::Comment {
+                            state: models::GateState::Closed,
+                            comments: vec![models::Comment {
                                 id: "some_id".to_owned(),
                                 message: "Some comment message".to_owned(),
-                                created: now,
+                                created: now.to_string(),
                             }],
-                            last_updated: now,
+                            last_updated: now.to_string(),
                             display_order: Option::default(),
                         },
                     },],
@@ -560,20 +560,20 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<Vec<representation::Group>>(),
-            vec![representation::Group {
+            response.json::<Vec<models::Group>>(),
+            vec![models::Group {
                 name: "somegroup".to_string(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "someservice".to_string(),
-                    environments: vec![representation::Environment {
+                    environments: vec![models::Environment {
                         name: "develop".to_string(),
-                        gate: representation::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_string(),
                             service: "someservice".to_string(),
                             environment: "develop".to_string(),
-                            state: GateState::default(),
+                            state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now,
+                            last_updated: now.to_string(),
                             display_order: Option::default(),
                         },
                     },],
@@ -647,9 +647,9 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::GateStateRep>(),
-            representation::GateStateRep {
-                state: GateState::Open,
+            response.json::<models::GateStateRep>(),
+            models::GateStateRep {
+                state: models::GateState::Open,
             },
         );
     }
@@ -722,14 +722,14 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Gate>(),
-            representation::Gate {
+            response.json::<models::Gate>(),
+            models::Gate {
                 group: "somegroup".to_string(),
                 service: "someservice".to_string(),
                 environment: "live".to_string(),
-                state: GateState::Closed,
+                state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now,
+                last_updated: now.to_string(),
                 display_order: Option::default(),
             },
         );
@@ -761,14 +761,13 @@ mod acceptance_tests {
         // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
+        let openapi_active_hours_per_week: models::ActiveHoursPerWeek =
+            types::ActiveHoursPerWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
             response.json::<Config>(),
-            Config {
-                system_time: now,
-                active_hours_per_week: types::ActiveHoursPerWeek::default().into()
-            }
+            Config::new(now.to_string(), openapi_active_hours_per_week)
         );
     }
     #[tokio::test]
@@ -827,15 +826,15 @@ mod acceptance_tests {
 
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<representation::Gate>(),
-            representation::Gate {
+            response.json::<models::Gate>(),
+            models::Gate {
                 group: "somegroup".to_string(),
                 service: "someservice".to_string(),
                 environment: "develop".to_string(),
-                state: GateState::default(),
+                state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now,
-                display_order: Some(1),
+                last_updated: now.to_string(),
+                display_order: Some(1f64),
             }
         );
 
@@ -845,17 +844,17 @@ mod acceptance_tests {
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
-            response.json::<Vec<representation::Group>>(),
-            vec![representation::Group {
+            response.json::<Vec<models::Group>>(),
+            vec![models::Group {
                 name: "somegroup".to_string(),
-                services: vec![representation::Service {
+                services: vec![models::Service {
                     name: "someservice".to_string(),
                     environments: vec![
-                        representation::Environment {
+                        models::Environment {
                             name: "live".to_string(),
                             gate: expected_gate_representation(now.into(), "live".to_string()),
                         },
-                        representation::Environment {
+                        models::Environment {
                             name: "develop".to_string(),
                             gate: expected_gate_representation_with_display_order(
                                 now.into(),
@@ -872,31 +871,30 @@ mod acceptance_tests {
     fn expected_gate_representation(
         now: DateTime<FixedOffset>,
         environment: String,
-    ) -> representation::Gate {
-        representation::Gate {
+    ) -> models::Gate {
+        models::Gate {
             group: "somegroup".to_string(),
             service: "someservice".to_string(),
             environment,
-            state: GateState::default(),
+            state: models::GateState::Closed,
             comments: vec![],
-            last_updated: now.into(),
+            last_updated: now.to_utc().to_string(),
             display_order: Option::default(),
         }
     }
-
     fn expected_gate_representation_with_display_order(
         now: DateTime<FixedOffset>,
         environment: String,
         display_order: u32,
-    ) -> representation::Gate {
-        representation::Gate {
+    ) -> models::Gate {
+        models::Gate {
             group: "somegroup".to_string(),
             service: "someservice".to_string(),
             environment,
-            state: GateState::default(),
+            state: models::GateState::Closed,
             comments: vec![],
-            last_updated: now.into(),
-            display_order: Some(display_order),
+            last_updated: now.to_utc().to_string(),
+            display_order: Some(f64::from(display_order)),
         }
     }
 }

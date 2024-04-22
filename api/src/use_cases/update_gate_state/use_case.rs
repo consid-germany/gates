@@ -1,8 +1,9 @@
 use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage::{Storage, UpdateError};
-use crate::types::{representation, GateKey, GateState};
+use crate::types::{GateKey, GateState};
 use axum::async_trait;
+use openapi::models;
 
 #[derive(Debug)]
 pub struct Input {
@@ -36,7 +37,7 @@ pub trait UseCase {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<representation::Gate, Error>;
+    ) -> Result<models::Gate, Error>;
 }
 
 pub fn create() -> impl UseCase {
@@ -59,7 +60,7 @@ impl UseCase for UseCaseImpl {
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
         date_time_switch: &(dyn DateTimeSwitch + Send + Sync),
-    ) -> Result<representation::Gate, Error> {
+    ) -> Result<models::Gate, Error> {
         if date_time_switch.is_closed(clock.now()) {
             return Err(Error::GateClosed(
                 "Already after business hours - rejecting attempt to change state".to_owned(),
@@ -141,13 +142,13 @@ mod unit_tests {
         assert!(gate_with_state.is_ok());
         assert_eq!(
             gate_with_state.expect("here should be a gate for comparison"),
-            representation::Gate {
+            models::Gate {
                 group: gate.key.group,
                 service: gate.key.service,
                 environment: gate.key.environment,
-                state: Open,
+                state: models::GateState::default(),
                 comments: vec![],
-                last_updated: now.into(),
+                last_updated: now.to_utc().to_string(),
                 display_order: Option::default(),
             }
         );

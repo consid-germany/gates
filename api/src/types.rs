@@ -1,12 +1,13 @@
 use chrono::{DateTime, NaiveTime, Utc, Weekday};
+use itertools::Itertools;
+use openapi::models;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 pub mod app_state;
-pub mod representation;
 pub mod use_cases;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActiveHours {
     pub start: NaiveTime,
     pub end: NaiveTime,
@@ -19,7 +20,7 @@ impl ActiveHours {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActiveHoursPerWeek {
     pub monday: Option<ActiveHours>,
     pub tuesday: Option<ActiveHours>,
@@ -121,6 +122,29 @@ pub enum GateState {
     Closed,
 }
 
+impl From<ActiveHoursPerWeek> for models::ActiveHoursPerWeek {
+    fn from(value: ActiveHoursPerWeek) -> Self {
+        Self {
+            monday: value.monday.map(Into::into),
+            tuesday: value.tuesday.map(Into::into),
+            wednesday: value.wednesday.map(Into::into),
+            thursday: value.thursday.map(Into::into),
+            friday: value.friday.map(Into::into),
+            saturday: value.saturday.map(Into::into),
+            sunday: value.sunday.map(Into::into),
+        }
+    }
+}
+
+impl From<ActiveHours> for models::ActiveHours {
+    fn from(value: ActiveHours) -> Self {
+        Self {
+            start: value.start.to_string(),
+            end: value.end.to_string(),
+        }
+    }
+}
+
 impl TryFrom<String> for GateState {
     type Error = String;
 
@@ -153,11 +177,58 @@ impl TryFrom<GateState> for String {
     }
 }
 
+impl From<Gate> for models::GateStateRep {
+    fn from(value: Gate) -> Self {
+        Self {
+            state: value.state.into(),
+        }
+    }
+}
+impl From<GateState> for models::GateState {
+    fn from(source: GateState) -> Self {
+        match source {
+            GateState::Closed => Self::Closed,
+            GateState::Open => Self::Open,
+        }
+    }
+}
+impl From<Gate> for models::Gate {
+    fn from(value: Gate) -> Self {
+        Self {
+            group: value.key.group,
+            service: value.key.service,
+            environment: value.key.environment,
+            state: value.state.into(),
+            comments: value
+                .comments
+                .into_iter()
+                .map_into::<models::Comment>()
+                .sorted_by_key(|comment| comment.created.to_string())
+                .collect(),
+            last_updated: value.last_updated.to_string(),
+            display_order: value.display_order.map(f64::from),
+        }
+    }
+}
+
+impl From<Comment> for models::Comment {
+    fn from(value: Comment) -> Self {
+        Self {
+            id: value.id,
+            message: value.message,
+            created: value.created.to_string(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod unit_test {
+    use std::collections::HashSet;
     use std::str::FromStr;
 
+    use crate::types;
     use chrono::{DateTime, NaiveTime, Utc};
+    use openapi::models;
 
     use crate::types::ActiveHours;
 
@@ -242,5 +313,96 @@ mod unit_test {
 
         // then
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn should_convert_domain_gate_to_open_api_gate() {
+        let gate = some_gate("some-group", "some-service", "some-environment");
+        let actual: models::Gate = gate.into();
+        let expected = models::Gate {
+            group: "some-group".to_owned(),
+            service: "some-service".to_owned(),
+            environment: "some-environment".to_owned(),
+            state: models::GateState::Open,
+            comments: vec![
+                models::Comment {
+                    id: "Comment1".into(),
+                    message: "Some comment message".into(),
+                    created: DateTime::parse_from_rfc3339("2021-04-12T20:10:57Z")
+                        .expect("can not convert date")
+                        .to_utc()
+                        .to_string(),
+                },
+                models::Comment {
+                    id: "Comment2".into(),
+                    message: "Some other comment message".into(),
+                    created: DateTime::parse_from_rfc3339("2022-04-12T20:10:57Z")
+                        .expect("can not convert date")
+                        .to_utc()
+                        .to_string(),
+                },
+            ],
+            last_updated: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("can not convert date")
+                .to_utc()
+                .to_string(),
+            display_order: Option::default(),
+        };
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn should_convert_comment() {
+        let actual: models::Comment = types::Comment {
+            id: "1234".to_string(),
+            message: "Gate closed because of ticket #63468".to_owned(),
+            created: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("can not convert date")
+                .into(),
+        }
+        .into();
+
+        let expected = models::Comment {
+            id: "1234".to_string(),
+            message: "Gate closed because of ticket #63468".to_owned(),
+            created: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("can not convert date")
+                .to_utc()
+                .to_string(),
+        };
+        assert_eq!(actual, expected);
+    }
+
+    fn some_gate(group: &str, service: &str, environment: &str) -> types::Gate {
+        types::Gate {
+            key: types::GateKey {
+                group: group.to_owned(),
+                service: service.to_owned(),
+                environment: environment.to_owned(),
+            },
+            state: types::GateState::Open,
+            comments: HashSet::from([
+                types::Comment {
+                    id: "Comment1".to_owned(),
+                    message: "Some comment message".to_owned(),
+                    created: DateTime::parse_from_rfc3339("2021-04-12T22:10:57+02:00")
+                        .expect("failed creating date")
+                        .into(),
+                },
+                types::Comment {
+                    id: "Comment2".to_owned(),
+                    message: "Some other comment message".to_owned(),
+                    created: DateTime::from(
+                        DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
+                            .expect("failed creating date"),
+                    ),
+                },
+            ]),
+            last_updated: DateTime::from(
+                DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                    .expect("failed creating date"),
+            ),
+            display_order: Option::default(),
+        }
     }
 }
