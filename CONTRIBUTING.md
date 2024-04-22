@@ -163,7 +163,7 @@ Before running Cargo build you need to generate models for your project:
 
  Run the bash file inside scripts folder to generate the models
 ```bash
-bash generate_openapi_models.sh
+bash scripts/generate_openapi_models.sh
 ```
 
 ##### Running Tests

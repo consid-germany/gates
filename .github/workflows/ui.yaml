@@ -89,7 +89,7 @@ jobs:
         run: docker run --rm -d -p 8000:8000 amazon/dynamodb-local
 
       - name: Generate models
-        run: bash api/scripts/generate_openapi_models.sh  # Run your script
+        run: bash api/scripts/generate_openapi_models.sh
 
       - name: Build api
         run: cargo build
