@@ -136,13 +136,6 @@ impl From<ActiveHoursPerWeek> for models::ActiveHoursPerWeek {
     }
 }
 
-#[allow(clippy::use_self)]
-impl From<ActiveHours> for Box<models::ActiveHours> {
-    fn from(active_hours: ActiveHours) -> Self {
-        Box::new(models::ActiveHours::from(active_hours))
-    }
-}
-
 impl From<ActiveHours> for models::ActiveHours {
     fn from(value: ActiveHours) -> Self {
         Self {
@@ -191,17 +184,14 @@ impl From<Gate> for models::GateStateRep {
         }
     }
 }
-
-#[allow(clippy::use_self)]
 impl From<GateState> for models::GateState {
     fn from(source: GateState) -> Self {
         match source {
-            GateState::Closed => models::GateState::Closed,
-            GateState::Open => models::GateState::Open,
+            GateState::Closed => Self::Closed,
+            GateState::Open => Self::Open,
         }
     }
 }
-#[allow(clippy::cast_lossless)]
 impl From<Gate> for models::Gate {
     fn from(value: Gate) -> Self {
         Self {
@@ -216,7 +206,7 @@ impl From<Gate> for models::Gate {
                 .sorted_by_key(|comment| comment.created.to_string())
                 .collect(),
             last_updated: value.last_updated.to_string(),
-            display_order: value.display_order.map(|v| v as f64),
+            display_order: value.display_order.map(f64::from),
         }
     }
 }

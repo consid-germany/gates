@@ -150,7 +150,7 @@ mod integration_tests_lambda {
                     name: "some-service".to_string(),
                     environments: vec![models::Environment {
                         name: "live".to_owned(),
-                        gate: Box::new(models::Gate {
+                        gate: models::Gate {
                             group: "some-group".to_owned(),
                             service: "some-service".to_owned(),
                             environment: "live".to_owned(),
@@ -158,7 +158,7 @@ mod integration_tests_lambda {
                             comments: vec![],
                             last_updated: now.to_utc().to_string(),
                             display_order: None,
-                        }),
+                        },
                     }],
                 }],
             }]
@@ -254,7 +254,7 @@ mod acceptance_tests {
                     environments: vec![
                         models::Environment {
                             name: "develop".to_string(),
-                            gate: Box::new(models::Gate {
+                            gate: models::Gate {
                                 group: "somegroup".to_string(),
                                 service: "someservice".to_string(),
                                 environment: "develop".to_string(),
@@ -262,11 +262,11 @@ mod acceptance_tests {
                                 comments: vec![],
                                 last_updated: now.to_string(),
                                 display_order: Option::default(),
-                            }),
+                            },
                         },
                         models::Environment {
                             name: "live".to_string(),
-                            gate: Box::new(models::Gate {
+                            gate: models::Gate {
                                 group: "somegroup".to_string(),
                                 service: "someservice".to_string(),
                                 environment: "live".to_string(),
@@ -274,7 +274,7 @@ mod acceptance_tests {
                                 comments: vec![],
                                 last_updated: now.to_string(),
                                 display_order: Option::default(),
-                            }),
+                            },
                         },
                     ],
                 }],
@@ -455,7 +455,7 @@ mod acceptance_tests {
                     name: "someservice".to_string(),
                     environments: vec![models::Environment {
                         name: "develop".to_string(),
-                        gate: Box::new(models::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_string(),
                             service: "someservice".to_string(),
                             environment: "develop".to_string(),
@@ -463,7 +463,7 @@ mod acceptance_tests {
                             comments: vec![],
                             last_updated: now.to_string(),
                             display_order: Option::default(),
-                        }),
+                        },
                     },],
                 }],
             }]
@@ -531,7 +531,7 @@ mod acceptance_tests {
                     name: "someservice".to_owned(),
                     environments: vec![models::Environment {
                         name: "develop".to_owned(),
-                        gate: Box::new(models::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_owned(),
                             service: "someservice".to_owned(),
                             environment: "develop".to_owned(),
@@ -543,7 +543,7 @@ mod acceptance_tests {
                             }],
                             last_updated: now.to_string(),
                             display_order: Option::default(),
-                        }),
+                        },
                     },],
                 }],
             }]
@@ -567,7 +567,7 @@ mod acceptance_tests {
                     name: "someservice".to_string(),
                     environments: vec![models::Environment {
                         name: "develop".to_string(),
-                        gate: Box::new(models::Gate {
+                        gate: models::Gate {
                             group: "somegroup".to_string(),
                             service: "someservice".to_string(),
                             environment: "develop".to_string(),
@@ -575,7 +575,7 @@ mod acceptance_tests {
                             comments: vec![],
                             last_updated: now.to_string(),
                             display_order: Option::default(),
-                        }),
+                        },
                     },],
                 }],
             }]
@@ -852,18 +852,15 @@ mod acceptance_tests {
                     environments: vec![
                         models::Environment {
                             name: "live".to_string(),
-                            gate: Box::new(expected_gate_representation(
-                                now.into(),
-                                "live".to_string()
-                            )),
+                            gate: expected_gate_representation(now.into(), "live".to_string()),
                         },
                         models::Environment {
                             name: "develop".to_string(),
-                            gate: Box::new(expected_gate_representation_with_display_order(
+                            gate: expected_gate_representation_with_display_order(
                                 now.into(),
                                 "develop".to_string(),
                                 1,
-                            )),
+                            ),
                         },
                     ],
                 }],
@@ -885,8 +882,6 @@ mod acceptance_tests {
             display_order: Option::default(),
         }
     }
-
-    #[allow(clippy::cast_lossless)]
     fn expected_gate_representation_with_display_order(
         now: DateTime<FixedOffset>,
         environment: String,
@@ -899,7 +894,7 @@ mod acceptance_tests {
             state: models::GateState::Closed,
             comments: vec![],
             last_updated: now.to_utc().to_string(),
-            display_order: Some(display_order as f64),
+            display_order: Some(f64::from(display_order)),
         }
     }
 }

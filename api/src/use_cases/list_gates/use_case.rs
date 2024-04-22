@@ -78,7 +78,7 @@ fn ordered_by_group(gates: Vec<Gate>) -> Vec<models::Group> {
             for item in items {
                 environments.push(models::Environment {
                     name: item.key.environment.clone(),
-                    gate: Box::new(item.into()),
+                    gate: item.into(),
                 });
             }
             environments.sort_by(|a, b| {
@@ -198,20 +198,18 @@ mod unit_tests {
                         environments: vec![
                             models::Environment {
                                 name: "some environment".to_owned(),
-                                gate: Box::new(
-                                    Gate {
-                                        key: gate1.key,
-                                        state: GateState::Closed,
-                                        comments: gate1.comments,
-                                        last_updated: gate1.last_updated,
-                                        display_order: gate1.display_order,
-                                    }
-                                    .into()
-                                )
+                                gate: Gate {
+                                    key: gate1.key,
+                                    state: GateState::Closed,
+                                    comments: gate1.comments,
+                                    last_updated: gate1.last_updated,
+                                    display_order: gate1.display_order,
+                                }
+                                .into()
                             },
                             models::Environment {
                                 name: "some other environment".to_owned(),
-                                gate: Box::new(gate2.into()),
+                                gate: gate2.into(),
                             },
                         ],
                     },
@@ -219,7 +217,7 @@ mod unit_tests {
                         name: "2 some other service".to_owned(),
                         environments: vec![models::Environment {
                             name: "some environment".to_owned(),
-                            gate: Box::new(gate3.into()),
+                            gate: gate3.into(),
                         },],
                     },
                 ],
@@ -291,7 +289,7 @@ mod unit_tests {
                         name: "some service".to_owned(),
                         environments: vec![models::Environment {
                             name: "some environment".to_owned(),
-                            gate: Box::new(gate1.into()),
+                            gate: gate1.into(),
                         },],
                     },],
                 },
@@ -301,7 +299,7 @@ mod unit_tests {
                         name: "some other service".to_owned(),
                         environments: vec![models::Environment {
                             name: "some other environment".to_owned(),
-                            gate: Box::new(gate2.into()),
+                            gate: gate2.into(),
                         },],
                     },],
                 },
@@ -357,7 +355,7 @@ mod unit_tests {
                     name: "some service".to_owned(),
                     environments: vec![models::Environment {
                         name: "some environment".to_owned(),
-                        gate: Box::new(models::Gate {
+                        gate: models::Gate {
                             group: gate_representation.group,
                             service: gate_representation.service,
                             environment: gate_representation.environment,
@@ -365,7 +363,7 @@ mod unit_tests {
                             comments: gate_representation.comments,
                             last_updated: gate_representation.last_updated,
                             display_order: gate_representation.display_order
-                        })
+                        }
                     },],
                 },],
             },],

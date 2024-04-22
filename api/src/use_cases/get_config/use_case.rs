@@ -98,9 +98,6 @@ mod unit_tests {
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
         assert_eq!(config_result.system_time, now.to_string());
-        assert_eq!(
-            config_result.active_hours_per_week,
-            Box::new(expected_active_hours)
-        );
+        assert_eq!(config_result.active_hours_per_week, expected_active_hours);
     }
 }

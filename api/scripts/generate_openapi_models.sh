@@ -25,6 +25,7 @@ OUTPUT_DIR="/api/openapi"
 docker run --rm \
   -v ${PWD}:/local openapitools/openapi-generator-cli generate \
   -i /local/openapi.yaml \
+  --additional-properties=avoidBoxedModels=true \
   -g $GENERATOR \
   -o /local/$OUTPUT_DIR
 

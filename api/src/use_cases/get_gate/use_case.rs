@@ -73,7 +73,6 @@ impl UseCase for UseCaseImpl {
     }
 }
 
-#[allow(clippy::cast_lossless)]
 #[cfg(test)]
 mod unit_tests {
     use std::collections::HashSet;
@@ -174,7 +173,7 @@ mod unit_tests {
             state: models::GateState::Closed,
             comments: vec![],
             last_updated: DateTime::<Utc>::default().to_string(),
-            display_order: Some(5).map(|x| x as f64),
+            display_order: Some(f64::from(5)),
         });
         assert_eq!(left.expect("could not unwrap gate"), expected_gate);
     }
