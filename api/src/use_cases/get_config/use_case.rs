@@ -31,12 +31,8 @@ impl UseCase for UseCaseImpl {
         clock: &(dyn Clock + Send + Sync),
         business_week: BusinessWeek,
     ) -> Result<Config, Error> {
-        let openapi_business_week: models::BusinessWeek =
-            business_week.into();
-        Ok(Config::new(
-            clock.now().to_string(),
-            openapi_business_week,
-        ))
+        let openapi_business_week: models::BusinessWeek = business_week.into();
+        Ok(Config::new(clock.now().to_string(), openapi_business_week))
     }
 }
 
@@ -90,9 +86,7 @@ mod unit_tests {
         mock_clock.expect_now().return_const(now);
 
         // when
-        let actual = UseCaseImpl {}
-            .execute(&mock_clock, business_week)
-            .await;
+        let actual = UseCaseImpl {}.execute(&mock_clock, business_week).await;
 
         // then
         assert!(actual.is_ok());

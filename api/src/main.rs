@@ -761,8 +761,7 @@ mod acceptance_tests {
         // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
-        let openapi_business_week: models::BusinessWeek =
-            types::BusinessWeek::default().into();
+        let openapi_business_week: models::BusinessWeek = types::BusinessWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
