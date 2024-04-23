@@ -11,7 +11,7 @@ use types::GateState;
 use crate::storage::demo::ReadOnlyStorage;
 use crate::storage::dynamodb::DynamoDbStorage;
 use crate::types;
-use crate::types::{Comment, Gate, GateKey};
+use crate::types::{Comment, Config, Gate, GateKey};
 
 mod demo;
 pub mod dynamodb;
@@ -91,6 +91,7 @@ pub trait Storage {
     async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, FindError>;
     async fn find_all(&self) -> Result<Vec<Gate>, FindError>;
     async fn delete(&self, key: GateKey) -> Result<(), DeleteError>;
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError>;
 
     async fn update_state_and_last_updated(
         &self,
