@@ -15,7 +15,7 @@ use axum::async_trait;
 use chrono::{DateTime, Utc};
 
 use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
-use crate::types::{Comment, Gate, GateKey, GateState};
+use crate::types::{BusinessTimes, BusinessWeek, Comment, Config, Gate, GateKey, GateState, GLOBAL_CONFIG_ID};
 
 const GROUP: &str = "group";
 const SERVICE_ENVIRONMENT: &str = "service_environment";
@@ -136,6 +136,24 @@ impl Storage for DynamoDbStorage {
             .await?;
 
         Ok(())
+    }
+
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
+        self.client
+            .get_item()
+            .table_name("ConfigurationTable")
+            .key(GLOBAL_CONFIG_ID, AttributeValue::S(id.parse().unwrap()))
+            .send()
+            .await?
+            .item()
+            .map(|item| {
+                item.try_into().map_err(|error| {
+                    FindError::ItemCouldNotBeDecoded(format!(
+                        "could not decode configuration (mapping error: {error})"
+                    ))
+                })
+            })
+            .transpose()
     }
 
     async fn update_state_and_last_updated(
@@ -364,6 +382,33 @@ async fn create_local_table(client: &Client) {
         )
         .send()
         .await;
+
+    _ = client
+        .create_table()
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name(GLOBAL_CONFIG_ID.to_owned())
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .expect("failed to build AttributeDefinition"),
+        )
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(1)
+                .write_capacity_units(1)
+                .build()
+                .expect("failed to build ProvisionedThroughput"),
+        )
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name(GLOBAL_CONFIG_ID.to_owned())
+                .key_type(KeyType::Hash)
+                .build()
+                .expect("failed to build KeySchemaElement"),
+        )
+        .table_name("ConfigurationTable".to_owned())
+        .send()
+        .await;
 }
 
 fn get_service_environment(service: &str, environment: &str) -> String {
@@ -526,6 +571,51 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Gate {
     }
 }
 
+impl TryFrom<&HashMap<String, AttributeValue>> for Config {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        Ok(Self {
+            business_week: BusinessWeek {
+                monday: None,
+                tuesday: None,
+                wednesday: None,
+                thursday: None,
+                friday: None,
+                saturday: None,
+                sunday: None,
+            },
+        })
+    }
+}
+
+impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        Ok(Self {
+            monday: None,
+            tuesday: None,
+            wednesday: None,
+            thursday: None,
+            friday: None,
+            saturday: None,
+            sunday: None,
+        })
+    }
+}
+
+impl TryFrom<&HashMap<String, AttributeValue>> for BusinessTimes {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        Ok(Self {
+            start: Default::default(),
+            end: Default::default(),
+        })
+    }
+}
+
 impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
     type Error = String;
 
@@ -609,7 +699,7 @@ mod integration_tests {
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
-    use crate::types::Gate;
+    use crate::types::{Gate, GLOBAL_CONFIG_ID};
 
     use super::*;
 
@@ -640,6 +730,47 @@ mod integration_tests {
             .expect("gate not found");
         assert_eq!(stored_gate, gate);
     }
+
+    #[tokio::test]
+    async fn should_not_get_config_if_no_config_exists() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        // when
+        let result = dynamodb_storage.get_config("configId").await;
+
+        // then
+        let configuration = result.expect("storage failed to find configuration");
+        assert_eq!(configuration.is_some(), false);
+    }
+
+    /*    #[tokio::test]
+    async fn should_get_config() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        // when
+        let result = dynamodb_storage.get_config(GLOBAL_CONFIG_ID).await;
+
+        // then
+        let configuration = result.expect("storage failed to find configuration");
+        assert_eq!(
+            configuration,
+            Some(Config::default())
+        );
+    }*/
 
     #[tokio::test]
     async fn should_not_insert_if_item_already_exists() {

@@ -758,16 +758,11 @@ mod acceptance_tests {
         let server = TestServer::new(router).expect("failed to create test server");
 
         // when
-        // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
-        let openapi_business_week: models::BusinessWeek = types::BusinessWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
-        assert_eq!(
-            response.json::<Config>(),
-            Config::new(now.to_string(), openapi_business_week)
-        );
+        assert_eq!(response.json::<Config>(), Config::default());
     }
     #[tokio::test]
     async fn should_set_display_order() {

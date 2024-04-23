@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 
 use crate::storage;
 use crate::storage::{quote, DeleteError, FindError, InsertError, UpdateError};
-use crate::types::{Comment, Gate, GateKey, GateState};
+use crate::types::{BusinessWeek, Comment, Config, Gate, GateKey, GateState};
 
 type DynStorage = dyn storage::Storage + Send + Sync;
 
@@ -27,6 +27,12 @@ impl storage::Storage for ReadOnlyStorage {
 
     async fn delete(&self, _: GateKey) -> Result<(), DeleteError> {
         Err(DeleteError::Other("not allowed in demo mode".to_owned()))
+    }
+
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
+        Ok(Some(Config {
+            business_week: BusinessWeek::default(),
+        }))
     }
 
     async fn update_state_and_last_updated(
@@ -62,10 +68,7 @@ impl storage::Storage for ReadOnlyStorage {
                 key,
                 Comment {
                     id: comment.id,
-                    message: self
-                        .quotes_provider
-                        .random_quote()
-                        .map_err(UpdateError::Other)?,
+                    message: "sanitized default comment".to_owned(),
                     created: last_updated,
                 },
                 last_updated,
@@ -87,10 +90,7 @@ impl storage::Storage for ReadOnlyStorage {
 
 impl ReadOnlyStorage {
     pub fn new(proxy: Box<DynStorage>) -> Self {
-        Self {
-            proxy,
-            quotes_provider: quote::RandomQuotesProvider::new_boxed(),
-        }
+        Self { proxy }
     }
 }
 
@@ -102,18 +102,16 @@ mod unit_test {
     use mockall::predicate::eq;
 
     use crate::storage::demo::ReadOnlyStorage;
-    use crate::storage::quote::MockQuotesProvider;
-    use crate::storage::{MockStorage, Storage, UpdateError};
+    use crate::storage::{MockStorage, Storage};
     use crate::types::{Comment, Gate, GateKey, GateState};
 
     #[tokio::test]
     async fn should_not_insert() {
         // when
         let mock_storage = MockStorage::new();
-        let mock_quotes_provider = MockQuotesProvider::new();
+
         let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
-            quotes_provider: Box::new(mock_quotes_provider),
         }
         .insert(&Gate {
             key: GateKey {
@@ -134,10 +132,9 @@ mod unit_test {
     async fn should_not_delete() {
         // when
         let mock_storage = MockStorage::new();
-        let mock_quotes_provider = MockQuotesProvider::new();
+
         let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
-            quotes_provider: Box::new(mock_quotes_provider),
         }
         .delete(GateKey {
             group: String::new(),
@@ -150,17 +147,10 @@ mod unit_test {
 
     #[tokio::test]
     async fn should_sanitize_last_updated_comment() {
-        // given
-        const SOME_RANDOM_QUOTE: &str = "some random quote";
-
         // when
         let mut mock_storage = MockStorage::new();
-        let mut mock_quotes_provider = MockQuotesProvider::new();
         let now = Utc::now();
 
-        mock_quotes_provider
-            .expect_random_quote()
-            .return_once(|| Ok(SOME_RANDOM_QUOTE.to_owned()));
         mock_storage
             .expect_update_comment_and_last_updated()
             .with(
@@ -171,7 +161,7 @@ mod unit_test {
                 }),
                 eq(Comment {
                     id: "some_id".to_owned(),
-                    message: SOME_RANDOM_QUOTE.to_owned(),
+                    message: "sanitized default comment".to_owned(),
                     created: now,
                 }),
                 eq(now),
@@ -182,7 +172,7 @@ mod unit_test {
                     state: GateState::default(),
                     comments: HashSet::from([Comment {
                         id: "some_id".to_owned(),
-                        message: SOME_RANDOM_QUOTE.to_owned(),
+                        message: "sanitized default comment".to_owned(),
                         created: last_updated,
                     }]),
                     last_updated: now,
@@ -191,7 +181,6 @@ mod unit_test {
             });
         let actual = ReadOnlyStorage {
             proxy: Box::new(mock_storage),
-            quotes_provider: Box::new(mock_quotes_provider),
         }
         .update_comment_and_last_updated(
             GateKey {
@@ -220,49 +209,12 @@ mod unit_test {
                 state: GateState::default(),
                 comments: HashSet::from([Comment {
                     id: "some_id".to_owned(),
-                    message: SOME_RANDOM_QUOTE.to_owned(),
+                    message: "sanitized default comment".to_owned(),
                     created: now,
                 }]),
                 last_updated: now,
                 display_order: None,
             }
-        );
-    }
-
-    #[tokio::test]
-    async fn should_return_error_if_random_quote_could_not_be_generated() {
-        // when
-        let mock_storage = MockStorage::new();
-        let mut mock_quotes_provider = MockQuotesProvider::new();
-        let now = Utc::now();
-
-        mock_quotes_provider
-            .expect_random_quote()
-            .return_once(|| Err("some error".to_owned()));
-
-        let actual = ReadOnlyStorage {
-            proxy: Box::new(mock_storage),
-            quotes_provider: Box::new(mock_quotes_provider),
-        }
-        .update_comment_and_last_updated(
-            GateKey {
-                group: String::new(),
-                service: String::new(),
-                environment: String::new(),
-            },
-            Comment {
-                id: "some_id".to_owned(),
-                message: "some dirty comment message".to_owned(),
-                created: now,
-            },
-            now,
-        )
-        .await;
-
-        assert!(actual.is_err());
-        assert_eq!(
-            actual.err().unwrap(),
-            UpdateError::Other("some error".to_owned())
         );
     }
 
