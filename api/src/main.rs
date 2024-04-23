@@ -184,13 +184,13 @@ mod acceptance_tests {
     use crate::types::GateState;
     use crate::{create_router, date_time_switch, id_provider, storage, types, use_cases};
 
-    fn inside_active_hours() -> DateTime<Utc> {
+    fn inside_business_times() -> DateTime<Utc> {
         DateTime::parse_from_rfc3339("2023-06-05T13:00:00+00:00") // monday afternoon
             .expect("failed to parse date")
             .into()
     }
 
-    fn outside_active_hours() -> DateTime<Utc> {
+    fn outside_business_times() -> DateTime<Utc> {
         DateTime::parse_from_rfc3339("2023-06-04T13:00:00+00:00") // sunday afternoon
             .expect("failed to parse date")
             .into()
@@ -199,7 +199,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_create_and_list_gates() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -285,7 +285,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_open_and_close_gates() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -393,7 +393,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_delete_gates() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -473,7 +473,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_add_and_remove_comments() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -585,7 +585,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_get_gate_state() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -657,7 +657,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_auto_close_gates() {
         // given
-        let now = outside_active_hours();
+        let now = outside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -738,7 +738,7 @@ mod acceptance_tests {
     #[tokio::test]
     async fn should_get_config() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
@@ -761,19 +761,19 @@ mod acceptance_tests {
         // try to set get the config with the system_time
         let response = server.get("/api/config").await;
 
-        let openapi_active_hours_per_week: models::ActiveHoursPerWeek =
-            types::ActiveHoursPerWeek::default().into();
+        let openapi_business_week: models::BusinessWeek =
+            types::BusinessWeek::default().into();
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
             response.json::<Config>(),
-            Config::new(now.to_string(), openapi_active_hours_per_week)
+            Config::new(now.to_string(), openapi_business_week)
         );
     }
     #[tokio::test]
     async fn should_set_display_order() {
         // given
-        let now = inside_active_hours();
+        let now = inside_business_times();
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 

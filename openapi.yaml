@@ -537,7 +537,7 @@ components:
           example: html frontpage delivery
         environments:
           type: array
-          description: Environments serve as a way to group your technical and procedural needs. Most teams have a production environment, a stageing env and a develop env.
+          description: Environments serve as a way to group your technical and procedural needs. Most teams have a production environment, a staging env and a develop env.
           items:
             $ref: "#/components/schemas/Environment"
       required:
@@ -546,7 +546,7 @@ components:
 
     Environment:
       type: object
-      description: Environments serve as a way to group your technical and procedural needs. An environemnt has a single parent called service and consists of many gates. Most teams have a production environment, a stageing env and a develop env. A good practive could be to close the production gate ,from Friday to Monday to reduce work on weekends if a mishap happens.
+      description: Environments serve as a way to group your technical and procedural needs. An environment has a single parent called service and consists of many gates. Most teams have a production environment, a staging env and a develop env. A good practice could be to close the production gate ,from Friday to Monday to reduce work on weekends if a mishap happens.
       properties:
         name:
           type: string
@@ -561,7 +561,7 @@ components:
 
     Gate:
       type: object
-      description: The gate is lowest but most important part of the hierachy. This defines the actual object, that will be altered by all actions. You can open and close it.
+      description: The gate is lowest but most important part of the hierarchy. This defines the actual object, that will be altered by all actions. You can open and close it.
       properties:
         group:
           type: string
@@ -653,13 +653,13 @@ components:
           description: The global current system time.
           format: date-time
           example: 2023-05-26T21:36:18.345195Z
-        active_hours_per_week:
-          $ref: "#/components/schemas/ActiveHoursPerWeek"
+        business_week:
+          $ref: "#/components/schemas/BusinessWeek"
       required:
         - system_time
-        - active_hours_per_week
+        - business_week
 
-    ActiveHours:
+    BusinessTimes:
       type: object
       properties:
         start:
@@ -672,24 +672,24 @@ components:
         - start
         - end
 
-    ActiveHoursPerWeek:
+    BusinessWeek:
       type: object
       description: The start and end time of each day.
       properties:
         monday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         tuesday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         wednesday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         thursday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         friday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         saturday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
         sunday:
-          $ref: '#/components/schemas/ActiveHours'
+          $ref: '#/components/schemas/BusinessTimes'
 
 
 

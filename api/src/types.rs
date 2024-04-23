@@ -8,31 +8,31 @@ pub mod app_state;
 pub mod use_cases;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ActiveHours {
+pub struct BusinessTimes {
     pub start: NaiveTime,
     pub end: NaiveTime,
 }
 
-impl ActiveHours {
-    pub fn is_outside_of_active_hours(&self, date_to_check: DateTime<Utc>) -> bool {
+impl BusinessTimes {
+    pub fn is_outside_of_business_times(&self, date_to_check: DateTime<Utc>) -> bool {
         let time_to_check = date_to_check.time();
         time_to_check < self.start || time_to_check > self.end
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ActiveHoursPerWeek {
-    pub monday: Option<ActiveHours>,
-    pub tuesday: Option<ActiveHours>,
-    pub wednesday: Option<ActiveHours>,
-    pub thursday: Option<ActiveHours>,
-    pub friday: Option<ActiveHours>,
-    pub saturday: Option<ActiveHours>,
-    pub sunday: Option<ActiveHours>,
+pub struct BusinessWeek {
+    pub monday: Option<BusinessTimes>,
+    pub tuesday: Option<BusinessTimes>,
+    pub wednesday: Option<BusinessTimes>,
+    pub thursday: Option<BusinessTimes>,
+    pub friday: Option<BusinessTimes>,
+    pub saturday: Option<BusinessTimes>,
+    pub sunday: Option<BusinessTimes>,
 }
 
-impl ActiveHoursPerWeek {
-    pub const fn active_hours_by_weekday(&self, weekday: Weekday) -> &Option<ActiveHours> {
+impl BusinessWeek {
+    pub const fn business_times_by_weekday(&self, weekday: Weekday) -> &Option<BusinessTimes> {
         match weekday {
             Weekday::Mon => &self.monday,
             Weekday::Tue => &self.tuesday,
@@ -46,23 +46,23 @@ impl ActiveHoursPerWeek {
 
     pub fn default() -> Self {
         Self {
-            monday: Some(ActiveHours {
+            monday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(7, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(18, 30, 0).unwrap(),
             }),
-            tuesday: Some(ActiveHours {
+            tuesday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
             }),
-            wednesday: Some(ActiveHours {
+            wednesday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(17, 0, 0).unwrap(),
             }),
-            thursday: Some(ActiveHours {
+            thursday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
             }),
-            friday: Some(ActiveHours {
+            friday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(10, 0, 0).unwrap(),
                 end: NaiveTime::from_hms_opt(16, 0, 0).unwrap(),
             }),
@@ -87,7 +87,7 @@ pub enum DayOfWeek {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
     pub system_time: DateTime<Utc>,
-    pub active_hours_per_week: ActiveHoursPerWeek,
+    pub business_week: BusinessWeek,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -122,8 +122,8 @@ pub enum GateState {
     Closed,
 }
 
-impl From<ActiveHoursPerWeek> for models::ActiveHoursPerWeek {
-    fn from(value: ActiveHoursPerWeek) -> Self {
+impl From<BusinessWeek> for models::BusinessWeek {
+    fn from(value: BusinessWeek) -> Self {
         Self {
             monday: value.monday.map(Into::into),
             tuesday: value.tuesday.map(Into::into),
@@ -136,8 +136,8 @@ impl From<ActiveHoursPerWeek> for models::ActiveHoursPerWeek {
     }
 }
 
-impl From<ActiveHours> for models::ActiveHours {
-    fn from(value: ActiveHours) -> Self {
+impl From<BusinessTimes> for models::BusinessTimes {
+    fn from(value: BusinessTimes) -> Self {
         Self {
             start: value.start.to_string(),
             end: value.end.to_string(),
@@ -230,10 +230,10 @@ mod unit_test {
     use chrono::{DateTime, NaiveTime, Utc};
     use openapi::models;
 
-    use crate::types::ActiveHours;
+    use crate::types::BusinessTimes;
 
-    fn given_active_hours() -> ActiveHours {
-        ActiveHours {
+    fn given_business_times() -> BusinessTimes {
+        BusinessTimes {
             start: NaiveTime::from_str("07:00:00").unwrap(),
             end: NaiveTime::from_str("18:30:00").unwrap(),
         }
@@ -246,70 +246,70 @@ mod unit_test {
     }
 
     #[test]
-    fn should_be_outside_of_active_hours_for_time_before_start() {
+    fn should_be_outside_of_business_times_for_time_before_start() {
         // given
         let given_date_time = setup_date_time("06:00:00");
-        let active_hours = given_active_hours();
+        let business_times = given_business_times();
         let expected = true;
 
         // when
-        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+        let actual = business_times.is_outside_of_business_times(given_date_time);
 
         // then
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn should_not_be_outside_of_active_hours_for_time_equal_to_start() {
+    fn should_not_be_outside_of_business_times_for_time_equal_to_start() {
         // given
         let given_date_time = setup_date_time("07:00:00");
-        let active_hours = given_active_hours();
+        let business_times = given_business_times();
         let expected = false;
 
         // when
-        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+        let actual = business_times.is_outside_of_business_times(given_date_time);
 
         // then
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn should_not_be_outside_of_active_hours_for_time_between_start_and_end() {
+    fn should_not_be_outside_of_business_times_for_time_between_start_and_end() {
         // given
         let given_date_time = setup_date_time("13:00:00");
-        let active_hours = given_active_hours();
+        let business_times = given_business_times();
         let expected = false;
 
         // when
-        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+        let actual = business_times.is_outside_of_business_times(given_date_time);
 
         // then
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn should_not_be_outside_of_active_hours_for_time_equal_to_end() {
+    fn should_not_be_outside_of_business_times_for_time_equal_to_end() {
         // given
         let given_date_time = setup_date_time("18:30:00");
-        let active_hours = given_active_hours();
+        let business_times = given_business_times();
         let expected = false;
 
         // when
-        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+        let actual = business_times.is_outside_of_business_times(given_date_time);
 
         // then
         assert_eq!(expected, actual);
     }
 
     #[test]
-    fn should_be_outside_of_active_hours_for_time_after_end() {
+    fn should_be_outside_of_business_times_for_time_after_end() {
         // given
         let given_date_time = setup_date_time("19:00:00");
-        let active_hours = given_active_hours();
+        let business_times = given_business_times();
         let expected = true;
 
         // when
-        let actual = active_hours.is_outside_of_active_hours(given_date_time);
+        let actual = business_times.is_outside_of_business_times(given_date_time);
 
         // then
         assert_eq!(expected, actual);
