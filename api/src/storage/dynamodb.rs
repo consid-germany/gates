@@ -626,35 +626,35 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Self {
-                monday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                tuesday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                wednesday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                thursday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                friday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                saturday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-                sunday: Some(BusinessTimes {
-                    start: decode_naive_time("start", value)?,
-                    end: decode_naive_time("end", value)?,
-                }),
-            })
+            monday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            tuesday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            wednesday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            thursday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            friday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            saturday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+            sunday: Some(BusinessTimes {
+                start: decode_naive_time("start", value)?,
+                end: decode_naive_time("end", value)?,
+            }),
+        })
     }
 }
 
