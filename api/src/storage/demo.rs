@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 
 use crate::storage;
 use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
-use crate::types::{BusinessWeek, Comment, Config, Gate, GateKey, GateState};
+use crate::types::{Comment, Config, Gate, GateKey, GateState};
 
 type DynStorage = dyn storage::Storage + Send + Sync;
 
@@ -29,9 +29,7 @@ impl storage::Storage for ReadOnlyStorage {
     }
 
     async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
-        Ok(Some(Config {
-            business_week: BusinessWeek::default(),
-        }))
+        self.proxy.get_config(id).await
     }
 
     async fn update_state_and_last_updated(
