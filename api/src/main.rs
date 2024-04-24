@@ -736,7 +736,7 @@ mod acceptance_tests {
     }
 
     #[tokio::test]
-    async fn should_get_config() {
+    async fn should_get_default_config() {
         // given
         let now = inside_business_times();
         let mut mock_clock = MockClock::new();
@@ -762,7 +762,7 @@ mod acceptance_tests {
 
         // then
         assert_eq!(response.status_code(), StatusCode::OK);
-        assert_eq!(response.json::<Config>(), Config::default());
+        assert_eq!(response.json::<Config>(), types::Config::default().into());
     }
     #[tokio::test]
     async fn should_set_display_order() {
