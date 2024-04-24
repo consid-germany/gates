@@ -1,10 +1,8 @@
-use axum::async_trait;
-use openapi::models;
-use openapi::models::Config;
-
-use crate::clock::Clock;
 use crate::storage::Storage;
-use crate::types::{BusinessWeek, GLOBAL_CONFIG_ID};
+use crate::types;
+use crate::types::GLOBAL_CONFIG_ID;
+use axum::async_trait;
+use openapi::models::Config;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {}
@@ -28,7 +26,12 @@ impl UseCase for UseCaseImpl {
             .get_config(GLOBAL_CONFIG_ID)
             .await
             .unwrap()
-            .expect("Couldn't find a config");
+            .unwrap_or_else(|| {
+                // Handle the None case here and return a default value or handle the error gracefully
+                println!("Error: Config not found. Returning default config.");
+                types::Config::default() // Return default config
+            });
+
         Ok(config.into())
     }
 }

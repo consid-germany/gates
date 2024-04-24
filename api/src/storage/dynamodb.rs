@@ -12,10 +12,12 @@ use aws_sdk_dynamodb::types::{
 };
 use aws_sdk_dynamodb::{config, Client};
 use axum::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveTime, Utc};
 
 use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
-use crate::types::{BusinessTimes, BusinessWeek, Comment, Config, Gate, GateKey, GateState, GLOBAL_CONFIG_ID};
+use crate::types::{
+    BusinessTimes, BusinessWeek, Comment, Config, Gate, GateKey, GateState, GLOBAL_CONFIG_ID,
+};
 
 const GROUP: &str = "group";
 const SERVICE_ENVIRONMENT: &str = "service_environment";
@@ -506,6 +508,15 @@ fn decode_string(
         .cloned()
 }
 
+fn decode_naive_time(
+    field: &str,
+    input: &HashMap<String, AttributeValue>,
+) -> Result<NaiveTime, DecodeError> {
+    NaiveTime::parse_from_str(&decode_string(field, input).unwrap(), "%H:%M:%S")
+        .map_err(|_| format!("field {field} could not be parsed as naive time"))
+        .map(std::convert::Into::into)
+}
+
 fn decode_datetime_utc(
     field: &str,
     input: &HashMap<String, AttributeValue>,
@@ -577,13 +588,34 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Config {
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Self {
             business_week: BusinessWeek {
-                monday: None,
-                tuesday: None,
-                wednesday: None,
-                thursday: None,
-                friday: None,
-                saturday: None,
-                sunday: None,
+                monday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                tuesday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                wednesday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                thursday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                friday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                saturday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                sunday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
             },
         })
     }
@@ -594,14 +626,35 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Self {
-            monday: None,
-            tuesday: None,
-            wednesday: None,
-            thursday: None,
-            friday: None,
-            saturday: None,
-            sunday: None,
-        })
+                monday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                tuesday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                wednesday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                thursday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                friday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                saturday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+                sunday: Some(BusinessTimes {
+                    start: decode_naive_time("start", value)?,
+                    end: decode_naive_time("end", value)?,
+                }),
+            })
     }
 }
 
@@ -610,8 +663,8 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessTimes {
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Self {
-            start: Default::default(),
-            end: Default::default(),
+            start: decode_naive_time("start", value)?,
+            end: decode_naive_time("end", value)?,
         })
     }
 }
@@ -699,7 +752,7 @@ mod integration_tests {
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
-    use crate::types::{Gate, GLOBAL_CONFIG_ID};
+    use crate::types::Gate;
 
     use super::*;
 
