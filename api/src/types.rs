@@ -7,7 +7,7 @@ use std::collections::HashSet;
 pub mod app_state;
 pub mod use_cases;
 
-pub const GLOBAL_CONFIG_ID: &str = "global_config_id";
+pub const CONFIG_ID: &str = "id";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BusinessTimes {
@@ -76,12 +76,14 @@ impl BusinessWeek {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
+    pub id : String,
     pub business_week: BusinessWeek,
 }
 
 impl Config {
     pub fn default() -> Self {
         Self {
+            id: "DefaultId".parse().unwrap(),
             business_week: BusinessWeek::default(),
         }
     }

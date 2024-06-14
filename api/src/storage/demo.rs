@@ -32,6 +32,10 @@ impl storage::Storage for ReadOnlyStorage {
         self.proxy.get_config(id).await
     }
 
+    async fn save_config(&self, config: &Config) -> Result<(), InsertError> {
+        todo!()
+    }
+
     async fn update_state_and_last_updated(
         &self,
         key: GateKey,
