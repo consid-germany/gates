@@ -1,6 +1,6 @@
 use crate::storage::Storage;
 use crate::types;
-use crate::types::GLOBAL_CONFIG_ID;
+use crate::types::{CONFIG_ID};
 use axum::async_trait;
 use openapi::models::Config;
 
@@ -23,7 +23,7 @@ struct UseCaseImpl {}
 impl UseCase for UseCaseImpl {
     async fn execute(&self, storage: &(dyn Storage + Send + Sync)) -> Result<Config, Error> {
         let config = storage
-            .get_config(GLOBAL_CONFIG_ID)
+            .get_config(CONFIG_ID)
             .await
             .unwrap()
             .unwrap_or_else(|| {
@@ -40,7 +40,7 @@ impl UseCase for UseCaseImpl {
 mod unit_tests {
     use crate::clock::MockClock;
     use crate::storage::MockStorage;
-    use crate::types::{BusinessTimes, BusinessWeek, Config, GLOBAL_CONFIG_ID};
+    use crate::types::{BusinessTimes, BusinessWeek, Config, CONFIG_ID};
     use crate::use_cases::get_config::use_case::{UseCase, UseCaseImpl};
     use chrono::{DateTime, NaiveTime, Utc};
     use mockall::predicate::eq;
@@ -70,6 +70,7 @@ mod unit_tests {
     }
     pub fn config_test_data() -> Config {
         Config {
+            id: "id".to_string(),
             business_week: business_week_test_data(),
         }
     }
@@ -91,7 +92,7 @@ mod unit_tests {
 
         mock_storage
             .expect_get_config()
-            .with(eq(GLOBAL_CONFIG_ID))
+            .with(eq(CONFIG_ID))
             .return_once(move |_| Ok(Some(config)));
         // when
         let actual = UseCaseImpl {}.execute(&mock_storage).await;
