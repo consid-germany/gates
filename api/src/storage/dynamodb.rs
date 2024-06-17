@@ -677,6 +677,13 @@ fn decode_map<'a>(
         .map_err(|_| format!("field {field} could not be parsed as map"))
 }
 
+fn decode_optional_day( day: &str, value: &HashMap<String, AttributeValue>) -> Result<Option<BusinessTimes>, String> {
+    match decode_map(day, value) {
+        Ok(day_map) => BusinessTimes::try_from(day_map).map(Some),
+        Err(_) => Ok(None),  // Return None if the day is not present
+    }
+}
+
 impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
     type Error = String;
 
@@ -731,22 +738,14 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         println!("{:?}", decode_map("saturday", value));
 
-   /*     let get_day_times = |day: &str| {
-            if let Some(day_map) = decode_map(day, value)? {
-                BusinessTimes::try_from(day_map).map(Some)
-            } else {
-                Ok(None)
-            }
-        };*/
-
         Ok(Self {
-            monday: Some(BusinessTimes::try_from( decode_map("monday", value)?)?),
-            tuesday: Some(BusinessTimes::try_from( decode_map("tuesday", value)?)?),
-            wednesday: Some(BusinessTimes::try_from( decode_map("wednesday", value)?)?),
-            thursday: Some(BusinessTimes::try_from( decode_map("thursday", value)?)?),
-            friday: Some(BusinessTimes::try_from( decode_map("friday", value)?)?),
-            saturday: Some(BusinessTimes::try_from( decode_map("saturday", value)?)?),
-            sunday: Some(BusinessTimes::try_from( decode_map("sunday", value)?)?),
+            monday: decode_optional_day("monday", value, )?,
+            tuesday: decode_optional_day("tuesday", value)?,
+            wednesday: decode_optional_day("wednesday", value)?,
+            thursday: decode_optional_day("thursday", value)?,
+            friday: decode_optional_day("friday", value)?,
+            saturday:  decode_optional_day("saturday", value)?,
+            sunday:  decode_optional_day("sunday", value)?,
         })
     }
 }
