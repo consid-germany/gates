@@ -1,5 +1,6 @@
 use std::collections::hash_map::RandomState;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::config::{Credentials, Region};
@@ -15,7 +16,9 @@ use axum::async_trait;
 use chrono::{DateTime, NaiveTime, Utc};
 
 use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
-use crate::types::{BusinessTimes, BusinessWeek, Comment, Config, CONFIG_ID, Gate, GateKey, GateState};
+use crate::types::{
+    BusinessTimes, BusinessWeek, Comment, Config, Gate, GateKey, GateState, CONFIG_ID,
+};
 
 const GROUP: &str = "group";
 const SERVICE_ENVIRONMENT: &str = "service_environment";
@@ -31,7 +34,9 @@ const CREATED: &str = "created";
 
 const BUSINESS_WEEK: &str = "business_week";
 
-const BUSINESS_TIMES: &str = "business_times";
+const START_TIME: &str = "start";
+
+const END_TIME: &str = "end";
 
 const LOCAL_GATES_TABLE_NAME: &str = "GatesLocal";
 
@@ -41,6 +46,37 @@ const ENV_GATES_DYNAMO_DB_TABLE_NAME: &str = "GATES_DYNAMO_DB_TABLE_NAME";
 const ENV_CONFIGURATION_DYNAMO_DB_TABLE_NAME: &str = "CONFIGURATION_DYNAMO_DB_TABLE_NAME";
 
 pub(super) const DEFAULT_LOCAL_DYNAMO_DB_PORT: u16 = 8000;
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Weekday {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+}
+
+impl Weekday {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Monday => "monday",
+            Self::Tuesday => "tuesday",
+            Self::Wednesday => "wednesday",
+            Self::Thursday => "thursday",
+            Self::Friday => "friday",
+            Self::Saturday => "saturday",
+            Self::Sunday => "sunday",
+        }
+    }
+}
+
+impl fmt::Display for Weekday {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
 
 #[derive(Clone)]
 pub struct DynamoDbStorage {
@@ -170,6 +206,7 @@ impl Storage for DynamoDbStorage {
             .put_item()
             .table_name(&self.configuration_table)
             .set_item(Some(config.into()))
+            .condition_expression("attribute_not_exists(id)")
             .send()
             .await?;
 
@@ -517,36 +554,30 @@ impl From<&Comment> for HashMap<String, AttributeValue, RandomState> {
 impl From<BusinessTimes> for HashMap<String, AttributeValue, RandomState> {
     fn from(value: BusinessTimes) -> Self {
         Self::from([
-            ("start".to_owned(), encode_naive_time(value.start)),
-            ("end".to_owned(), encode_naive_time(value.end)),
+            (START_TIME.to_owned(), encode_naive_time(value.start)),
+            (END_TIME.to_owned(), encode_naive_time(value.end)),
         ])
     }
 }
 
-
-/*// Helper function to convert Option<BusinessTimes> to HashMap<String, AttributeValue, RandomState>
-fn option_business_times_to_map(value: &Option<BusinessTimes>) -> HashMap<String, AttributeValue, RandomState> {
-    match value {
-        Some(business_times) => business_times.into(),
-        None => HashMap::new().into(),
-    }
-}*/
-
 impl From<&BusinessWeek> for HashMap<String, AttributeValue, RandomState> {
     fn from(value: &BusinessWeek) -> Self {
         let entries = [
-            ("monday", &value.monday),
-            ("tuesday", &value.tuesday),
-            ("wednesday", &value.wednesday),
-            ("thursday", &value.thursday),
-            ("friday", &value.friday),
-            ("saturday", &value.saturday),
-            ("sunday", &value.sunday),
+            (Weekday::Monday, &value.monday),
+            (Weekday::Tuesday, &value.tuesday),
+            (Weekday::Wednesday, &value.wednesday),
+            (Weekday::Thursday, &value.thursday),
+            (Weekday::Friday, &value.friday),
+            (Weekday::Saturday, &value.saturday),
+            (Weekday::Sunday, &value.sunday),
         ];
 
-        entries.iter()
+        entries
+            .iter()
             .filter_map(|&(day, times)| {
-                times.as_ref().map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
+                times
+                    .as_ref()
+                    .map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
             })
             .collect()
     }
@@ -556,60 +587,13 @@ impl From<&Config> for HashMap<String, AttributeValue, RandomState> {
     fn from(value: &Config) -> Self {
         Self::from([
             (CONFIG_ID.to_owned(), AttributeValue::S(value.id.clone())),
-            ("business_week".to_owned(), AttributeValue::M((&value.business_week).into())),
+            (
+                "business_week".to_owned(),
+                AttributeValue::M((&value.business_week).into()),
+            ),
         ])
     }
 }
-
-/*impl From<&BusinessWeek> for HashMap<String, AttributeValue, RandomState> {
-    fn from(value: &BusinessWeek) -> Self {
-        Self::from([
-                BUSINESS_TIMES,
-                value
-                    .monday
-                    .clone()
-                    .unwrap()
-                    .try_into()
-                    .expect("Can not convert value"),
-                value
-                    .tuesday
-                    .clone()
-                    .unwrap()
-                    .try_into()
-                    .expect("Can not convert value"),
-            value
-                .wednesday
-                .clone()
-                .unwrap()
-                .try_into()
-                .expect("Can not convert value"),
-            value
-                .thursday
-                .clone()
-                .unwrap()
-                .try_into()
-                .expect("Can not convert value"),
-            value
-                .friday
-                .clone()
-                .unwrap()
-                .try_into()
-                .expect("Can not convert value"),
-            value
-                .saturday
-                .clone()
-                .unwrap()
-                .try_into()
-                .expect("Can not convert value"),
-            value
-                .sunday
-                .clone()
-                .unwrap()
-                .try_into()
-                .expect("Can not convert value"),
-        ])
-    }
-}*/
 
 /////////////////////////////////////////////////////////////////////////////
 // Decode
@@ -677,11 +661,13 @@ fn decode_map<'a>(
         .map_err(|_| format!("field {field} could not be parsed as map"))
 }
 
-fn decode_optional_day( day: &str, value: &HashMap<String, AttributeValue>) -> Result<Option<BusinessTimes>, String> {
-    match decode_map(day, value) {
-        Ok(day_map) => BusinessTimes::try_from(day_map).map(Some),
-        Err(_) => Ok(None),  // Return None if the day is not present
-    }
+fn decode_optional_day(
+    day: &str,
+    value: &HashMap<String, AttributeValue>,
+) -> Result<Option<BusinessTimes>, String> {
+    decode_map(day, value).map_or(Ok(None), |day_map| {
+        BusinessTimes::try_from(day_map).map(Some)
+    })
 }
 
 impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
@@ -739,13 +725,13 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
         println!("{:?}", decode_map("saturday", value));
 
         Ok(Self {
-            monday: decode_optional_day("monday", value, )?,
-            tuesday: decode_optional_day("tuesday", value)?,
-            wednesday: decode_optional_day("wednesday", value)?,
-            thursday: decode_optional_day("thursday", value)?,
-            friday: decode_optional_day("friday", value)?,
-            saturday:  decode_optional_day("saturday", value)?,
-            sunday:  decode_optional_day("sunday", value)?,
+            monday: decode_optional_day(Weekday::Monday.as_str(), value)?,
+            tuesday: decode_optional_day(Weekday::Tuesday.as_str(), value)?,
+            wednesday: decode_optional_day(Weekday::Wednesday.as_str(), value)?,
+            thursday: decode_optional_day(Weekday::Thursday.as_str(), value)?,
+            friday: decode_optional_day(Weekday::Friday.as_str(), value)?,
+            saturday: decode_optional_day(Weekday::Saturday.as_str(), value)?,
+            sunday: decode_optional_day(Weekday::Sunday.as_str(), value)?,
         })
     }
 }
@@ -754,31 +740,15 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Config {
     type Error = String;
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let id = decode_string("id", value)?;
-        println!("{:?}", decode_map("business_week", value));
+        let id = decode_string(CONFIG_ID, value)?;
+        println!("{:?}", decode_map(BUSINESS_WEEK, value));
 
-        Ok(Self { id, business_week: BusinessWeek::try_from(decode_map("business_week", value)?)? })
+        Ok(Self {
+            id,
+            business_week: BusinessWeek::try_from(decode_map(BUSINESS_WEEK, value)?)?,
+        })
     }
 }
-/*impl TryFrom<&HashMap<String, AttributeValue>> for Config {
-    type Error = String;
-
-    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let id = decode_string("id", value)?;
-        let business_week_attr = value.get("business_week")
-            .ok_or("Missing 'business_week' field".to_string())?;
-
-        let business_week = match business_week_attr {
-            AttributeValue::M(business_week_map) => {
-                BusinessWeek::try_from(business_week_map).map_err(String::from)?
-            }
-            _ => return Err("Invalid 'business_week' field type".to_string()),
-        };
-
-        Ok(Self { id, business_week })
-    }
-}*/
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Converting SdkError<_> to Storage Errors
@@ -856,7 +826,7 @@ mod integration_tests {
     use super::*;
 
     #[tokio::test]
-    async fn should_insert_and_find_one() {
+    async fn should_insert_gate_and_find_one() {
         // given
         let docker = clients::Cli::default();
 
@@ -918,7 +888,7 @@ mod integration_tests {
         dynamodb_storage
             .save_config(&test_config)
             .await
-            .expect("storage failed to insert Config");
+            .expect("storage failed to save Config");
 
         // when
         let result = dynamodb_storage
@@ -927,8 +897,37 @@ mod integration_tests {
             .expect("failed to get Config")
             .expect("Config not found");
 
-        println!("{:?}", result);
+        // then
         assert_eq!(result, Config::default());
+    }
+
+    #[tokio::test]
+    async fn should_not_save_config_if_it_already_exists() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        let test_config = Config::default();
+
+        dynamodb_storage
+            .save_config(&test_config)
+            .await
+            .expect("storage failed to save Config");
+
+        // when
+        let result = dynamodb_storage.save_config(&test_config).await;
+
+        // then
+        assert_eq!(result.is_err(), true);
+        assert_eq!(
+            result.expect_err("expected error not found").type_name(),
+            InsertError::ItemAlreadyExists(String::default()).type_name()
+        );
     }
 
     #[tokio::test]
@@ -1420,7 +1419,8 @@ mod integration_tests {
     }
 
     #[tokio::test]
-    async fn should_fail_to_delete_comment_by_id_and_update_last_modified_if_comment_does_not_exist() {
+    async fn should_fail_to_delete_comment_by_id_and_update_last_modified_if_comment_does_not_exist(
+    ) {
         // given
         let docker = clients::Cli::default();
 

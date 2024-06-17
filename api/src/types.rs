@@ -76,7 +76,7 @@ impl BusinessWeek {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
-    pub id : String,
+    pub id: String,
     pub business_week: BusinessWeek,
 }
 

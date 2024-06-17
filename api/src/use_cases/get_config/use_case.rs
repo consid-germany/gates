@@ -1,6 +1,6 @@
 use crate::storage::Storage;
 use crate::types;
-use crate::types::{CONFIG_ID};
+use crate::types::CONFIG_ID;
 use axum::async_trait;
 use openapi::models::Config;
 
