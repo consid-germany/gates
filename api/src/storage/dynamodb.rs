@@ -490,8 +490,13 @@ fn encode_naive_time(time: NaiveTime) -> AttributeValue {
     AttributeValue::S(time.format("%H:%M:%S").to_string()) // Adjust based on actual AttributeValue implementation
 }
 
-fn encode_business_times(day: Weekday, times: &Option<BusinessTimes>) -> Option<(String, AttributeValue)> {
-    times.as_ref().map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
+fn encode_business_times(
+    day: Weekday,
+    times: &Option<BusinessTimes>,
+) -> Option<(String, AttributeValue)> {
+    times
+        .as_ref()
+        .map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
 }
 
 fn encode_map(field: &str, value: HashMap<String, AttributeValue>) -> (String, AttributeValue) {
