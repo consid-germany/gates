@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 
 use crate::storage;
 use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
-use crate::types::{Comment, Gate, GateKey, GateState};
+use crate::types::{Comment, Config, Gate, GateKey, GateState};
 
 type DynStorage = dyn storage::Storage + Send + Sync;
 
@@ -26,6 +26,14 @@ impl storage::Storage for ReadOnlyStorage {
 
     async fn delete(&self, _: GateKey) -> Result<(), DeleteError> {
         Err(DeleteError::Other("not allowed in demo mode".to_owned()))
+    }
+
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
+        self.proxy.get_config(id).await
+    }
+
+    async fn save_config(&self, config: &Config) -> Result<(), InsertError> {
+        self.proxy.save_config(config).await
     }
 
     async fn update_state_and_last_updated(
