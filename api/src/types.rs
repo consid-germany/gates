@@ -83,7 +83,7 @@ pub struct Config {
 impl Config {
     pub fn default() -> Self {
         Self {
-            id: "DefaultId".parse().unwrap(),
+            id: "DefaultId".to_string(),
             business_week: BusinessWeek::default(),
         }
     }
