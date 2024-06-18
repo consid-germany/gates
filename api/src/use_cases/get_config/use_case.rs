@@ -1,11 +1,23 @@
 use crate::storage::Storage;
-use crate::types;
 use crate::types::CONFIG_ID;
+use crate::{storage, types};
 use axum::async_trait;
 use openapi::models::Config;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Error {}
+pub enum Error {
+    Internal(String),
+}
+
+impl From<storage::FindError> for Error {
+    fn from(value: storage::FindError) -> Self {
+        match value {
+            storage::FindError::ItemCouldNotBeDecoded(error) | storage::FindError::Other(error) => {
+                Self::Internal(error)
+            }
+        }
+    }
+}
 
 #[async_trait]
 pub trait UseCase {
@@ -22,15 +34,11 @@ struct UseCaseImpl {}
 #[async_trait]
 impl UseCase for UseCaseImpl {
     async fn execute(&self, storage: &(dyn Storage + Send + Sync)) -> Result<Config, Error> {
-        let config = storage
-            .get_config(CONFIG_ID)
-            .await
-            .unwrap()
-            .unwrap_or_else(|| {
-                // Handle the None case here and return a default value or handle the error gracefully
-                println!("Error: Config not found. Returning default config.");
-                types::Config::default() // Return default config
-            });
+        let config = storage.get_config(CONFIG_ID).await?.unwrap_or_else(|| {
+            // Handle the None case here and return a default value or handle the error gracefully
+            println!("Error: Config not found. Returning default config.");
+            types::Config::default() // Return default config
+        });
 
         Ok(config.into())
     }
@@ -101,5 +109,30 @@ mod unit_tests {
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
         assert_eq!(config_result, expected_config);
+    }
+
+    #[tokio::test]
+    async fn should_return_default_config_when_not_found() {
+        // given
+        let mut mock_clock = MockClock::new();
+        let now: DateTime<Utc> = DateTime::from(
+            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+                .expect("failed to parse date"),
+        );
+        let mut mock_storage = MockStorage::new();
+        mock_clock.expect_now().return_const(now);
+
+        mock_storage
+            .expect_get_config()
+            .with(eq(CONFIG_ID))
+            .return_once(move |_| Ok(None));
+
+        // when
+        let actual = UseCaseImpl {}.execute(&mock_storage).await;
+
+        // then
+        assert!(actual.is_ok());
+        let config_result = actual.unwrap();
+        assert_eq!(config_result, Config::default().into());
     }
 }

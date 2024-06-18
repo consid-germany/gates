@@ -66,8 +66,6 @@ pub enum UpdateError {
     ItemToUpdateNotFound(String),
     Other(String),
 }
-
-#[allow(dead_code)]
 #[derive(Debug)]
 pub enum InsertError {
     #[allow(dead_code)] // clippy false-positive
@@ -81,7 +79,6 @@ pub enum FindError {
     Other(String),
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub enum DeleteError {
     #[allow(dead_code)] // clippy false-positive
