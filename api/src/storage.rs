@@ -68,6 +68,7 @@ pub enum UpdateError {
 
 #[derive(Debug)]
 pub enum InsertError {
+    #[allow(dead_code)]
     ItemAlreadyExists(String),
     Other(String),
 }
@@ -80,6 +81,7 @@ pub enum FindError {
 
 #[derive(Debug)]
 pub enum DeleteError {
+    #[allow(dead_code)]
     ItemToDeleteNotFound(String),
     Other(String),
 }
