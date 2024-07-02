@@ -22,9 +22,6 @@ fn random_quote() -> String {
 
 #[cfg(not(test))]
 fn random_quote() -> String {
-    if 1 == 1 {
-        return "random quote".to_string();
-    }
     let quotes: Vec<&str> = QUOTES_STR.split("\n").collect();
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
