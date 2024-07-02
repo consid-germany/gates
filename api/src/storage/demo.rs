@@ -1,8 +1,9 @@
 use axum::async_trait;
 use chrono::{DateTime, Utc};
+#[cfg(not(test))]
 use std::iter::Iterator;
+#[cfg(not(test))]
 use std::time::{SystemTime, UNIX_EPOCH};
-
 use crate::storage;
 use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
@@ -13,6 +14,7 @@ pub struct ReadOnlyStorage {
     pub proxy: Box<DynStorage>,
 }
 
+#[cfg(not(test))]
 const QUOTES_STR: &str = include_str!("demo_quotes.txt");
 
 #[cfg(test)]
@@ -22,14 +24,14 @@ fn random_quote() -> String {
 
 #[cfg(not(test))]
 fn random_quote() -> String {
-    let quotes: Vec<&str> = QUOTES_STR.split("\n").collect();
+    let quotes: Vec<&str> = QUOTES_STR.split('\n').collect();
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("system time not retrieved")
         .as_millis() as usize;
-    quotes
+    (*quotes
         .get(now % quotes.len())
-        .unwrap_or_else(|| panic!("quote could not be obtained"))
+        .unwrap_or_else(|| panic!("quote could not be obtained")))
         .to_string()
 }
 
