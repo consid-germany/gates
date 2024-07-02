@@ -1,12 +1,12 @@
+use crate::storage;
+use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
+use crate::types::{Comment, Gate, GateKey, GateState};
 use axum::async_trait;
 use chrono::{DateTime, Utc};
 #[cfg(not(test))]
 use std::iter::Iterator;
 #[cfg(not(test))]
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::storage;
-use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
-use crate::types::{Comment, Gate, GateKey, GateState};
 
 type DynStorage = dyn storage::Storage + Send + Sync;
 
@@ -32,7 +32,7 @@ fn random_quote() -> String {
     (*quotes
         .get(now % quotes.len())
         .unwrap_or_else(|| panic!("quote could not be obtained")))
-        .to_string()
+    .to_string()
 }
 
 #[async_trait]
