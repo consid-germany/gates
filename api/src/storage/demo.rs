@@ -1,5 +1,7 @@
 use axum::async_trait;
 use chrono::{DateTime, Utc};
+use std::iter::Iterator;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::storage;
 use crate::storage::{DeleteError, FindError, InsertError, UpdateError};
@@ -9,6 +11,29 @@ type DynStorage = dyn storage::Storage + Send + Sync;
 
 pub struct ReadOnlyStorage {
     pub proxy: Box<DynStorage>,
+}
+
+const QUOTES_STR: &str = include_str!("demo_quotes.txt");
+
+#[cfg(test)]
+fn random_quote() -> String {
+    "random quote".to_string()
+}
+
+#[cfg(not(test))]
+fn random_quote() -> String {
+    if 1 == 1 {
+        return "random quote".to_string();
+    }
+    let quotes: Vec<&str> = QUOTES_STR.split("\n").collect();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time not retrieved")
+        .as_millis() as usize;
+    quotes
+        .get(now % quotes.len())
+        .unwrap_or_else(|| panic!("quote could not be obtained"))
+        .to_string()
 }
 
 #[async_trait]
@@ -61,7 +86,7 @@ impl storage::Storage for ReadOnlyStorage {
                 key,
                 Comment {
                     id: comment.id,
-                    message: "sanitized default comment".to_owned(),
+                    message: random_quote(),
                     created: last_updated,
                 },
                 last_updated,
@@ -154,7 +179,7 @@ mod unit_test {
                 }),
                 eq(Comment {
                     id: "some_id".to_owned(),
-                    message: "sanitized default comment".to_owned(),
+                    message: "random quote".to_owned(),
                     created: now,
                 }),
                 eq(now),
@@ -165,7 +190,7 @@ mod unit_test {
                     state: GateState::default(),
                     comments: HashSet::from([Comment {
                         id: "some_id".to_owned(),
-                        message: "sanitized default comment".to_owned(),
+                        message: "random quote".to_owned(),
                         created: last_updated,
                     }]),
                     last_updated: now,
@@ -192,7 +217,7 @@ mod unit_test {
 
         assert!(actual.is_ok());
         assert_eq!(
-            actual.unwrap(),
+            actual.expect(""),
             Gate {
                 key: GateKey {
                     group: String::new(),
@@ -202,7 +227,7 @@ mod unit_test {
                 state: GateState::default(),
                 comments: HashSet::from([Comment {
                     id: "some_id".to_owned(),
-                    message: "sanitized default comment".to_owned(),
+                    message: "random quote".to_owned(),
                     created: now,
                 }]),
                 last_updated: now,
