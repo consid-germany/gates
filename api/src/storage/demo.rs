@@ -17,11 +17,6 @@ pub struct ReadOnlyStorage {
 #[cfg(not(test))]
 const QUOTES_STR: &str = include_str!("demo_quotes.txt");
 
-#[cfg(test)]
-fn random_quote() -> String {
-    "random quote".to_string()
-}
-
 #[cfg(not(test))]
 fn random_quote() -> String {
     let quotes: Vec<&str> = QUOTES_STR.split('\n').collect();
@@ -33,6 +28,11 @@ fn random_quote() -> String {
         .get(now % quotes.len())
         .unwrap_or_else(|| panic!("quote could not be obtained")))
     .to_string()
+}
+
+#[cfg(test)]
+fn random_quote() -> String {
+    "random quote".to_string()
 }
 
 #[async_trait]
