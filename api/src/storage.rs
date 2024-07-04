@@ -68,6 +68,7 @@ pub enum UpdateError {
 
 #[derive(Debug)]
 pub enum InsertError {
+    #[allow(dead_code)] // clippy false-positive
     ItemAlreadyExists(String),
     Other(String),
 }
@@ -80,6 +81,7 @@ pub enum FindError {
 
 #[derive(Debug)]
 pub enum DeleteError {
+    #[allow(dead_code)] // clippy false-positive
     ItemToDeleteNotFound(String),
     Other(String),
 }
