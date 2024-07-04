@@ -1,7 +1,7 @@
 use chrono::{DateTime, Datelike, Utc};
 
 use crate::types::GateState::Closed;
-use crate::types::{ActiveHoursPerWeek, Gate};
+use crate::types::{BusinessWeek, Gate};
 
 pub struct DefaultDateTimeCircuitBreaker;
 
@@ -15,7 +15,7 @@ impl DateTimeSwitch for DefaultDateTimeCircuitBreaker {
     fn is_closed(&self, utc: DateTime<Utc>) -> bool {
         #[cfg(not(feature = "date_time_switch"))]
         return false;
-        is_outside_of_active_hours(&ActiveHoursPerWeek::default(), utc)
+        is_outside_of_business_times(&BusinessWeek::default(), utc)
     }
 
     fn close_if_time(&self, utc: DateTime<Utc>, gate: Gate) -> Gate {
@@ -33,15 +33,15 @@ impl DateTimeSwitch for DefaultDateTimeCircuitBreaker {
     }
 }
 
-fn is_outside_of_active_hours(
-    active_hours_per_week: &ActiveHoursPerWeek,
+fn is_outside_of_business_times(
+    business_week: &BusinessWeek,
     time_to_check: DateTime<Utc>,
 ) -> bool {
-    active_hours_per_week
-        .active_hours_by_weekday(time_to_check.weekday())
+    business_week
+        .business_times_by_weekday(time_to_check.weekday())
         .as_ref()
         .map_or(true, |hours| {
-            hours.is_outside_of_active_hours(time_to_check)
+            hours.is_outside_of_business_times(time_to_check)
         })
 }
 
@@ -61,13 +61,13 @@ mod unit_test {
     use crate::date_time_switch;
     use crate::date_time_switch::DateTimeSwitch;
     use crate::types::GateState::{Closed, Open};
-    use crate::types::{ActiveHours, ActiveHoursPerWeek, Gate, GateKey};
+    use crate::types::{BusinessTimes, BusinessWeek, Gate, GateKey};
 
     // TODO use this test configuration
     #[allow(dead_code)]
-    fn get_test_configuration() -> ActiveHoursPerWeek {
-        ActiveHoursPerWeek {
-            monday: Some(ActiveHours {
+    fn get_test_configuration() -> BusinessWeek {
+        BusinessWeek {
+            monday: Some(BusinessTimes {
                 start: NaiveTime::from_str("07:00:00").unwrap(),
                 end: NaiveTime::from_str("18:30:00").unwrap(),
             }),
@@ -82,7 +82,7 @@ mod unit_test {
 
     #[rstest]
     #[test]
-    fn should_be_open_during_active_hours(#[values("08", "11", "18")] hour: &str) {
+    fn should_be_open_during_business_times(#[values("08", "11", "18")] hour: &str) {
         // given
         let monday = DateTime::parse_from_rfc3339(&format!("2023-06-05T{hour}:00:00+00:00"))
             .expect("failed to parse date");
@@ -98,7 +98,7 @@ mod unit_test {
 
     #[rstest]
     #[test]
-    fn should_be_closed_outside_of_active_hours(#[values("06", "20")] hour: &str) {
+    fn should_be_closed_outside_of_business_times(#[values("06", "20")] hour: &str) {
         // given
         let monday = DateTime::parse_from_rfc3339(&format!("2023-06-05T{hour}:00:00+00:00"))
             .expect("failed to parse date");
@@ -113,7 +113,7 @@ mod unit_test {
     }
 
     #[test]
-    fn should_be_closed_on_a_day_without_configured_active_hours() {
+    fn should_be_closed_on_a_day_without_configured_business_times() {
         // given
         let sunday = DateTime::parse_from_rfc3339("2023-06-04T13:59:59+00:00")
             .expect("failed to parse date");
@@ -127,9 +127,9 @@ mod unit_test {
     }
 
     #[rstest]
-    #[case("06:59", true, "should be closed right before start active hours")]
-    #[case("07:00", false, "should be open at the start of active hours")]
-    #[case("07:01", false, "should be open a second into active hours")]
+    #[case("06:59", true, "should be closed right before start business times")]
+    #[case("07:00", false, "should be open at the start of business times")]
+    #[case("07:01", false, "should be open a second into business times")]
     #[test]
     fn should_be_open_at_start(
         #[case] hour_and_minute: &str,
@@ -150,9 +150,9 @@ mod unit_test {
     }
 
     #[rstest]
-    #[case("18:29", false, "should be open right before end of active hours")]
-    #[case("18:30", false, "should be open at the end of active hours")]
-    #[case("18:31", true, "should be closed a second after active hours")]
+    #[case("18:29", false, "should be open right before end of business times")]
+    #[case("18:30", false, "should be open at the end of business times")]
+    #[case("18:31", true, "should be closed a second after business times")]
     #[test]
     fn should_be_closed_at_end(
         #[case] hour_and_minute: &str,
