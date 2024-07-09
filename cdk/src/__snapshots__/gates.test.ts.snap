@@ -175,7 +175,7 @@ exports[`should match snapshot 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-central-1",
-          "S3Key": "2eb6a831b107939f63cfebf68e6316e1a40f79fc99cae0fee9b333bac8d29bc4.zip",
+          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
         },
         "Description": {
           "Fn::Join": [
@@ -197,7 +197,7 @@ exports[`should match snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -1461,7 +1461,7 @@ exports[`should match snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
