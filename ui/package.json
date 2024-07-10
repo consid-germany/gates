@@ -50,7 +50,7 @@
 		"flowbite-svelte": "^0.46.14",
 		"jsdom": "^24.1.0",
 		"openapi-fetch": "^0.10.2",
-		"openapi-typescript": "^6.7.6",
+		"openapi-typescript": "^7.0.2",
 		"postcss": "^8.4.39",
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.3.2",
