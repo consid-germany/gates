@@ -45,9 +45,9 @@
 		"autoprefixer": "^10.4.19",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-svelte": "^2.41.0",
+		"eslint-plugin-svelte": "^2.42.0",
 		"flowbite": "^2.4.1",
-		"flowbite-svelte": "^0.46.14",
+		"flowbite-svelte": "^0.46.15",
 		"jsdom": "^24.1.0",
 		"openapi-fetch": "^0.10.2",
 		"openapi-typescript": "^7.0.2",
@@ -62,7 +62,7 @@
 		"tslib": "^2.6.3",
 		"typescript": "^5.5.3",
 		"vite": "^5.3.3",
-		"vitest": "^2.0.1"
+		"vitest": "^2.0.2"
 	},
 	"type": "module"
 }
