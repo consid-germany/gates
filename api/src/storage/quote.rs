@@ -11,14 +11,17 @@ pub trait QuotesProvider {
 }
 
 pub struct RandomQuotesProvider {
-    quotes: Vec<String>
+    quotes: Vec<String>,
 }
 
 impl RandomQuotesProvider {
     pub fn new_boxed() -> Box<DynQuotesProvider> {
-        Box::new(Self { quotes: QUOTES_STR.split('\n')
-            .map(std::borrow::ToOwned::to_owned)
-            .collect() })
+        Box::new(Self {
+            quotes: QUOTES_STR
+                .split('\n')
+                .map(std::borrow::ToOwned::to_owned)
+                .collect(),
+        })
     }
 }
 

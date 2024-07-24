@@ -2,7 +2,7 @@ use axum::async_trait;
 use chrono::{DateTime, Utc};
 
 use crate::storage;
-use crate::storage::{DeleteError, FindError, InsertError, quote, UpdateError};
+use crate::storage::{quote, DeleteError, FindError, InsertError, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
 
 type DynStorage = dyn storage::Storage + Send + Sync;
@@ -62,7 +62,10 @@ impl storage::Storage for ReadOnlyStorage {
                 key,
                 Comment {
                     id: comment.id,
-                    message: self.quotes_provider.random_quote().map_err(UpdateError::Other)?,
+                    message: self
+                        .quotes_provider
+                        .random_quote()
+                        .map_err(UpdateError::Other)?,
                     created: last_updated,
                 },
                 last_updated,
@@ -84,7 +87,10 @@ impl storage::Storage for ReadOnlyStorage {
 
 impl ReadOnlyStorage {
     pub fn new(proxy: Box<DynStorage>) -> Self {
-        Self { proxy, quotes_provider: quote::RandomQuotesProvider::new_boxed() }
+        Self {
+            proxy,
+            quotes_provider: quote::RandomQuotesProvider::new_boxed(),
+        }
     }
 }
 
@@ -96,8 +102,8 @@ mod unit_test {
     use mockall::predicate::eq;
 
     use crate::storage::demo::ReadOnlyStorage;
-    use crate::storage::{MockStorage, Storage, UpdateError};
     use crate::storage::quote::MockQuotesProvider;
+    use crate::storage::{MockStorage, Storage, UpdateError};
     use crate::types::{Comment, Gate, GateKey, GateState};
 
     #[tokio::test]
@@ -238,20 +244,20 @@ mod unit_test {
             proxy: Box::new(mock_storage),
             quotes_provider: Box::new(mock_quotes_provider),
         }
-            .update_comment_and_last_updated(
-                GateKey {
-                    group: String::new(),
-                    service: String::new(),
-                    environment: String::new(),
-                },
-                Comment {
-                    id: "some_id".to_owned(),
-                    message: "some dirty comment message".to_owned(),
-                    created: now,
-                },
-                now,
-            )
-            .await;
+        .update_comment_and_last_updated(
+            GateKey {
+                group: String::new(),
+                service: String::new(),
+                environment: String::new(),
+            },
+            Comment {
+                id: "some_id".to_owned(),
+                message: "some dirty comment message".to_owned(),
+                created: now,
+            },
+            now,
+        )
+        .await;
 
         assert!(actual.is_err());
         assert_eq!(
