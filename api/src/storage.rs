@@ -15,6 +15,7 @@ use crate::types::{Comment, Gate, GateKey};
 
 mod demo;
 pub mod dynamodb;
+mod demo_quotes_provider;
 
 const fn is_local() -> bool {
     #[cfg(feature = "local")]
