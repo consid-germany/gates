@@ -36,7 +36,7 @@ impl UseCase for UseCaseImpl {
     async fn execute(&self, storage: &(dyn Storage + Send + Sync)) -> Result<Config, Error> {
         let config = storage.get_config(CONFIG_ID).await?.unwrap_or_else(|| {
             // Handle the None case here and return a default value or handle the error gracefully
-            println!("Error: Config not found. Returning default config.");
+            eprintln!("Error: Config not found. Returning default config.");
             types::Config::default() // Return default config
         });
 
