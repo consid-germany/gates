@@ -1,0 +1,15 @@
+It's not a bug – it's an undocumented feature.
+Code is like humor. When you have to explain it, it’s bad.
+The only way to go fast, is to go well.
+The best thing about a boolean is even if you are wrong, you are only off by a bit.
+I don't care if it works on your machine! We are not shipping your machine!
+In theory, theory and practice are the same. In practice, they’re not.
+A good programmer is someone who always looks both ways before crossing a one-way street.
+Deleted code is debugged code.
+Programming can be fun, so can cryptography; however they should not be combined.
+If debugging is the process of removing software bugs, then programming must be the process of putting them in.
+There are only two hard things in Computer Science: cache invalidation and naming things.
+If you don't understand recursion repeat this sentence.
+When in doubt, use brute force.
+Computers are good at following instructions, but not at reading your mind.
+Real programmers don't comment their code. If it was hard to write, it should be hard to understand.
