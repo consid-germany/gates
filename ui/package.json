@@ -51,7 +51,7 @@
 		"jsdom": "^24.1.1",
 		"openapi-fetch": "^0.10.2",
 		"openapi-typescript": "^7.1.0",
-		"postcss": "^8.4.39",
+		"postcss": "^8.4.40",
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
