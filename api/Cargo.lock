@@ -989,7 +989,6 @@ dependencies = [
  "lambda_runtime",
  "mockall",
  "openapi",
- "quote",
  "rstest",
  "serde",
  "serde_json",
