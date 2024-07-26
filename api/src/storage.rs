@@ -15,6 +15,7 @@ use crate::types::{Comment, Gate, GateKey};
 
 mod demo;
 pub mod dynamodb;
+mod quote;
 
 const fn is_local() -> bool {
     #[cfg(feature = "local")]
@@ -60,7 +61,7 @@ pub async fn test(port: u16) -> impl Storage {
     DynamoDbStorage::new_local(port).await
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub enum UpdateError {
     ItemToUpdateNotFound(String),
     Other(String),
