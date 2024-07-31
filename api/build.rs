@@ -6,7 +6,5 @@ fn main() {
         .arg(script_path)
         .status()
         .expect("Failed to generate openapi models");
-    if !status.success() {
-        panic!("Script execution failed");
-    }
+    assert!(status.success(), "Script execution failed");
 }
