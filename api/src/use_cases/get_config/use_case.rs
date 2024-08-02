@@ -46,11 +46,10 @@ impl UseCase for UseCaseImpl {
 
 #[cfg(test)]
 mod unit_tests {
-    use crate::clock::MockClock;
     use crate::storage::MockStorage;
     use crate::types::{BusinessTimes, BusinessWeek, Config, CONFIG_ID};
     use crate::use_cases::get_config::use_case::{UseCase, UseCaseImpl};
-    use chrono::{DateTime, NaiveTime, Utc};
+    use chrono::NaiveTime;
     use mockall::predicate::eq;
     use openapi::models;
     use rstest::rstest;
@@ -90,13 +89,7 @@ mod unit_tests {
     #[tokio::test]
     async fn should_get_config(config: Config, expected_config: models::Config) {
         // given
-        let mut mock_clock = MockClock::new();
-        let now: DateTime<Utc> = DateTime::from(
-            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed to parse date"),
-        );
         let mut mock_storage = MockStorage::new();
-        mock_clock.expect_now().return_const(now);
 
         mock_storage
             .expect_get_config()
@@ -114,13 +107,7 @@ mod unit_tests {
     #[tokio::test]
     async fn should_return_default_config_when_not_found() {
         // given
-        let mut mock_clock = MockClock::new();
-        let now: DateTime<Utc> = DateTime::from(
-            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed to parse date"),
-        );
         let mut mock_storage = MockStorage::new();
-        mock_clock.expect_now().return_const(now);
 
         mock_storage
             .expect_get_config()

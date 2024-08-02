@@ -36,6 +36,8 @@ const BUSINESS_WEEK: &str = "business_week";
 
 const START_TIME: &str = "start";
 
+const TIME_FORMAT: &str = "%H:%M:%S";
+
 const END_TIME: &str = "end";
 
 const LOCAL_GATES_TABLE_NAME: &str = "GatesLocal";
@@ -187,7 +189,7 @@ impl Storage for DynamoDbStorage {
         self.client
             .get_item()
             .table_name(&self.configuration_table)
-            .key(CONFIG_ID, AttributeValue::S(id.parse().unwrap()))
+            .key(CONFIG_ID, AttributeValue::S(id.to_owned()))
             .send()
             .await?
             .item()
@@ -486,19 +488,6 @@ fn encode_datetime_utc(field: &str, value: DateTime<Utc>) -> (String, AttributeV
     (field.to_owned(), AttributeValue::S(value.to_rfc3339()))
 }
 
-fn encode_naive_time(time: NaiveTime) -> AttributeValue {
-    AttributeValue::S(time.format("%H:%M:%S").to_string()) // Adjust based on actual AttributeValue implementation
-}
-
-fn encode_business_times(
-    day: Weekday,
-    times: &Option<BusinessTimes>,
-) -> Option<(String, AttributeValue)> {
-    times
-        .as_ref()
-        .map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
-}
-
 fn encode_map(field: &str, value: HashMap<String, AttributeValue>) -> (String, AttributeValue) {
     (field.to_owned(), AttributeValue::M(value))
 }
@@ -562,6 +551,9 @@ impl From<&Comment> for HashMap<String, AttributeValue, RandomState> {
 
 impl From<BusinessTimes> for HashMap<String, AttributeValue, RandomState> {
     fn from(value: BusinessTimes) -> Self {
+        fn encode_naive_time(time: NaiveTime) -> AttributeValue {
+            AttributeValue::S(time.format(TIME_FORMAT).to_string()) // Adjust based on actual AttributeValue implementation
+        }
         Self::from([
             (START_TIME.to_owned(), encode_naive_time(value.start)),
             (END_TIME.to_owned(), encode_naive_time(value.end)),
@@ -571,6 +563,14 @@ impl From<BusinessTimes> for HashMap<String, AttributeValue, RandomState> {
 
 impl From<&BusinessWeek> for HashMap<String, AttributeValue, RandomState> {
     fn from(value: &BusinessWeek) -> Self {
+        fn encode_business_times(
+            day: Weekday,
+            times: &Option<BusinessTimes>,
+        ) -> Option<(String, AttributeValue)> {
+            times
+                .as_ref()
+                .map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
+        }
         let entries = [
             (Weekday::Monday, &value.monday),
             (Weekday::Tuesday, &value.tuesday),
@@ -622,7 +622,7 @@ fn decode_naive_time(
     field: &str,
     input: &HashMap<String, AttributeValue>,
 ) -> Result<NaiveTime, DecodeError> {
-    NaiveTime::parse_from_str(&decode_string(field, input)?, "%H:%M:%S")
+    NaiveTime::parse_from_str(&decode_string(field, input)?, TIME_FORMAT)
         .map_err(|_| format!("field {field} could not be parsed as naive time"))
         .map(std::convert::Into::into)
 }
@@ -664,15 +664,6 @@ fn decode_map<'a>(
         .ok_or(format!("field {field} could not be found"))?
         .as_m()
         .map_err(|_| format!("field {field} could not be parsed as map"))
-}
-
-fn decode_optional_day(
-    day: &str,
-    value: &HashMap<String, AttributeValue>,
-) -> Result<Option<BusinessTimes>, String> {
-    decode_map(day, value).map_or(Ok(None), |day_map| {
-        BusinessTimes::try_from(day_map).map(Some)
-    })
 }
 
 impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
@@ -717,8 +708,8 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessTimes {
     type Error = String;
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let start = decode_naive_time("start", value)?;
-        let end = decode_naive_time("end", value)?;
+        let start = decode_naive_time(START_TIME, value)?;
+        let end = decode_naive_time(END_TIME, value)?;
         Ok(Self { start, end })
     }
 }
@@ -727,7 +718,14 @@ impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
     type Error = String;
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        println!("{:?}", decode_map("saturday", value));
+        fn decode_optional_day(
+            day: &str,
+            value: &HashMap<String, AttributeValue>,
+        ) -> Result<Option<BusinessTimes>, String> {
+            decode_map(day, value).map_or(Ok(None), |day_map| {
+                BusinessTimes::try_from(day_map).map(Some)
+            })
+        }
 
         Ok(Self {
             monday: decode_optional_day(Weekday::Monday.as_str(), value)?,
@@ -746,7 +744,6 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Config {
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         let id = decode_string(CONFIG_ID, value)?;
-        println!("{:?}", decode_map(BUSINESS_WEEK, value));
 
         Ok(Self {
             id,
