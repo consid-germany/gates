@@ -94,6 +94,7 @@ pub trait Storage {
     async fn find_all(&self) -> Result<Vec<Gate>, FindError>;
     async fn delete(&self, key: GateKey) -> Result<(), DeleteError>;
     async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError>;
+    #[allow(dead_code)] // remove after using the function
     async fn save_config(&self, config: &Config) -> Result<(), InsertError>;
 
     async fn update_state_and_last_updated(
