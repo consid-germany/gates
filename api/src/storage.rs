@@ -11,7 +11,7 @@ use types::GateState;
 use crate::storage::demo::ReadOnlyStorage;
 use crate::storage::dynamodb::DynamoDbStorage;
 use crate::types;
-use crate::types::{Comment, Gate, GateKey};
+use crate::types::{Comment, Config, Gate, GateKey};
 
 mod demo;
 pub mod dynamodb;
@@ -66,7 +66,6 @@ pub enum UpdateError {
     ItemToUpdateNotFound(String),
     Other(String),
 }
-
 #[derive(Debug)]
 pub enum InsertError {
     #[allow(dead_code)] // clippy false-positive
@@ -94,6 +93,9 @@ pub trait Storage {
     async fn find_one(&self, key: GateKey) -> Result<Option<Gate>, FindError>;
     async fn find_all(&self) -> Result<Vec<Gate>, FindError>;
     async fn delete(&self, key: GateKey) -> Result<(), DeleteError>;
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError>;
+    #[allow(dead_code)] // remove after using the function
+    async fn save_config(&self, config: &Config) -> Result<(), InsertError>;
 
     async fn update_state_and_last_updated(
         &self,

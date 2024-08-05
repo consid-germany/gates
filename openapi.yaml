@@ -648,15 +648,9 @@ components:
       type: object
       description: Contains global configuration.
       properties:
-        system_time:
-          type: string
-          description: The global current system time.
-          format: date-time
-          example: 2023-05-26T21:36:18.345195Z
         business_week:
           $ref: "#/components/schemas/BusinessWeek"
       required:
-        - system_time
         - business_week
 
     BusinessTimes:

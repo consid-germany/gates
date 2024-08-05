@@ -1,5 +1,6 @@
 use std::collections::hash_map::RandomState;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::config::{Credentials, Region};
@@ -12,10 +13,12 @@ use aws_sdk_dynamodb::types::{
 };
 use aws_sdk_dynamodb::{config, Client};
 use axum::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveTime, Utc};
 
 use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
-use crate::types::{Comment, Gate, GateKey, GateState};
+use crate::types::{
+    BusinessTimes, BusinessWeek, Comment, Config, Gate, GateKey, GateState, CONFIG_ID,
+};
 
 const GROUP: &str = "group";
 const SERVICE_ENVIRONMENT: &str = "service_environment";
@@ -29,15 +32,59 @@ const ID: &str = "id";
 const MESSAGE: &str = "message";
 const CREATED: &str = "created";
 
+const BUSINESS_WEEK: &str = "business_week";
+
+const START_TIME: &str = "start";
+
+const TIME_FORMAT: &str = "%H:%M:%S";
+
+const END_TIME: &str = "end";
+
 const LOCAL_GATES_TABLE_NAME: &str = "GatesLocal";
+
+const LOCAL_CONFIGURATION_TABLE_NAME: &str = "ConfigurationLocal";
 const ENV_GATES_DYNAMO_DB_TABLE_NAME: &str = "GATES_DYNAMO_DB_TABLE_NAME";
 
+const ENV_CONFIGURATION_DYNAMO_DB_TABLE_NAME: &str = "CONFIGURATION_DYNAMO_DB_TABLE_NAME";
+
 pub(super) const DEFAULT_LOCAL_DYNAMO_DB_PORT: u16 = 8000;
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Weekday {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+}
+
+impl Weekday {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Monday => "monday",
+            Self::Tuesday => "tuesday",
+            Self::Wednesday => "wednesday",
+            Self::Thursday => "thursday",
+            Self::Friday => "friday",
+            Self::Saturday => "saturday",
+            Self::Sunday => "sunday",
+        }
+    }
+}
+
+impl fmt::Display for Weekday {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
 
 #[derive(Clone)]
 pub struct DynamoDbStorage {
     pub client: Client,
     pub table: String,
+    pub configuration_table: String,
 }
 
 #[async_trait]
@@ -132,6 +179,36 @@ impl Storage for DynamoDbStorage {
             )
             .condition_expression("attribute_exists(#g)")
             .expression_attribute_names("#g", GROUP)
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
+        self.client
+            .get_item()
+            .table_name(&self.configuration_table)
+            .key(CONFIG_ID, AttributeValue::S(id.to_owned()))
+            .send()
+            .await?
+            .item()
+            .map(|item| {
+                item.try_into().map_err(|error| {
+                    FindError::ItemCouldNotBeDecoded(format!(
+                        "could not decode configuration (mapping error: {error})"
+                    ))
+                })
+            })
+            .transpose()
+    }
+
+    async fn save_config(&self, config: &Config) -> Result<(), InsertError> {
+        self.client
+            .put_item()
+            .table_name(&self.configuration_table)
+            .set_item(Some(config.into()))
+            .condition_expression("attribute_not_exists(id)")
             .send()
             .await?;
 
@@ -278,6 +355,7 @@ impl DynamoDbStorage {
         Self {
             client,
             table: std::env::var(ENV_GATES_DYNAMO_DB_TABLE_NAME).unwrap(),
+            configuration_table: std::env::var(ENV_CONFIGURATION_DYNAMO_DB_TABLE_NAME).unwrap(),
         }
     }
 
@@ -302,6 +380,7 @@ impl DynamoDbStorage {
         Self {
             client,
             table: LOCAL_GATES_TABLE_NAME.to_owned(),
+            configuration_table: LOCAL_CONFIGURATION_TABLE_NAME.to_owned(),
         }
     }
 
@@ -362,6 +441,33 @@ async fn create_local_table(client: &Client) {
                 .build()
                 .expect("failed to build KeySchemaElement"),
         )
+        .send()
+        .await;
+
+    _ = client
+        .create_table()
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name(CONFIG_ID.to_owned())
+                .attribute_type(ScalarAttributeType::S)
+                .build()
+                .expect("failed to build AttributeDefinition"),
+        )
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(1)
+                .write_capacity_units(1)
+                .build()
+                .expect("failed to build ProvisionedThroughput"),
+        )
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name(CONFIG_ID.to_owned())
+                .key_type(KeyType::Hash)
+                .build()
+                .expect("failed to build KeySchemaElement"),
+        )
+        .table_name(LOCAL_CONFIGURATION_TABLE_NAME.to_owned())
         .send()
         .await;
 }
@@ -443,6 +549,57 @@ impl From<&Comment> for HashMap<String, AttributeValue, RandomState> {
     }
 }
 
+impl From<BusinessTimes> for HashMap<String, AttributeValue, RandomState> {
+    fn from(value: BusinessTimes) -> Self {
+        fn encode_naive_time(time: NaiveTime) -> AttributeValue {
+            AttributeValue::S(time.format(TIME_FORMAT).to_string()) // Adjust based on actual AttributeValue implementation
+        }
+        Self::from([
+            (START_TIME.to_owned(), encode_naive_time(value.start)),
+            (END_TIME.to_owned(), encode_naive_time(value.end)),
+        ])
+    }
+}
+
+impl From<&BusinessWeek> for HashMap<String, AttributeValue, RandomState> {
+    fn from(value: &BusinessWeek) -> Self {
+        fn encode_business_times(
+            day: Weekday,
+            times: &Option<BusinessTimes>,
+        ) -> Option<(String, AttributeValue)> {
+            times
+                .as_ref()
+                .map(|times| (day.to_string(), AttributeValue::M(times.clone().into())))
+        }
+        let entries = [
+            (Weekday::Monday, &value.monday),
+            (Weekday::Tuesday, &value.tuesday),
+            (Weekday::Wednesday, &value.wednesday),
+            (Weekday::Thursday, &value.thursday),
+            (Weekday::Friday, &value.friday),
+            (Weekday::Saturday, &value.saturday),
+            (Weekday::Sunday, &value.sunday),
+        ];
+
+        entries
+            .iter()
+            .filter_map(|&(day, times)| encode_business_times(day, times))
+            .collect()
+    }
+}
+
+impl From<&Config> for HashMap<String, AttributeValue, RandomState> {
+    fn from(value: &Config) -> Self {
+        Self::from([
+            (CONFIG_ID.to_owned(), AttributeValue::S(value.id.clone())),
+            (
+                "business_week".to_owned(),
+                AttributeValue::M((&value.business_week).into()),
+            ),
+        ])
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // Decode
 /////////////////////////////////////////////////////////////////////////////
@@ -459,6 +616,15 @@ fn decode_string(
         .as_s()
         .map_err(|_| format!("field {field} could not be parsed as string"))
         .cloned()
+}
+
+fn decode_naive_time(
+    field: &str,
+    input: &HashMap<String, AttributeValue>,
+) -> Result<NaiveTime, DecodeError> {
+    NaiveTime::parse_from_str(&decode_string(field, input)?, TIME_FORMAT)
+        .map_err(|_| format!("field {field} could not be parsed as naive time"))
+        .map(std::convert::Into::into)
 }
 
 fn decode_datetime_utc(
@@ -500,6 +666,18 @@ fn decode_map<'a>(
         .map_err(|_| format!("field {field} could not be parsed as map"))
 }
 
+impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: decode_string(ID, value)?,
+            message: decode_string(MESSAGE, value)?,
+            created: decode_datetime_utc(CREATED, value)?,
+        })
+    }
+}
+
 impl TryFrom<&HashMap<String, AttributeValue>> for Gate {
     type Error = String;
 
@@ -526,14 +704,50 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Gate {
     }
 }
 
-impl TryFrom<&HashMap<String, AttributeValue>> for Comment {
+impl TryFrom<&HashMap<String, AttributeValue>> for BusinessTimes {
     type Error = String;
 
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        let start = decode_naive_time(START_TIME, value)?;
+        let end = decode_naive_time(END_TIME, value)?;
+        Ok(Self { start, end })
+    }
+}
+
+impl TryFrom<&HashMap<String, AttributeValue>> for BusinessWeek {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        fn decode_optional_day(
+            day: &str,
+            value: &HashMap<String, AttributeValue>,
+        ) -> Result<Option<BusinessTimes>, String> {
+            decode_map(day, value).map_or(Ok(None), |day_map| {
+                BusinessTimes::try_from(day_map).map(Some)
+            })
+        }
+
         Ok(Self {
-            id: decode_string(ID, value)?,
-            message: decode_string(MESSAGE, value)?,
-            created: decode_datetime_utc(CREATED, value)?,
+            monday: decode_optional_day(Weekday::Monday.as_str(), value)?,
+            tuesday: decode_optional_day(Weekday::Tuesday.as_str(), value)?,
+            wednesday: decode_optional_day(Weekday::Wednesday.as_str(), value)?,
+            thursday: decode_optional_day(Weekday::Thursday.as_str(), value)?,
+            friday: decode_optional_day(Weekday::Friday.as_str(), value)?,
+            saturday: decode_optional_day(Weekday::Saturday.as_str(), value)?,
+            sunday: decode_optional_day(Weekday::Sunday.as_str(), value)?,
+        })
+    }
+}
+
+impl TryFrom<&HashMap<String, AttributeValue>> for Config {
+    type Error = String;
+
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        let id = decode_string(CONFIG_ID, value)?;
+
+        Ok(Self {
+            id,
+            business_week: BusinessWeek::try_from(decode_map(BUSINESS_WEEK, value)?)?,
         })
     }
 }
@@ -614,7 +828,7 @@ mod integration_tests {
     use super::*;
 
     #[tokio::test]
-    async fn should_insert_and_find_one() {
+    async fn should_insert_gate_and_find_one() {
         // given
         let docker = clients::Cli::default();
 
@@ -639,6 +853,83 @@ mod integration_tests {
             .expect("storage failed to find gate")
             .expect("gate not found");
         assert_eq!(stored_gate, gate);
+    }
+
+    #[tokio::test]
+    async fn should_not_get_config_if_no_config_exists() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        // when
+        let result = dynamodb_storage.get_config("wrongId").await;
+
+        // then
+        let configuration = result.expect("storage failed to find configuration");
+        assert_eq!(configuration.is_some(), false);
+    }
+
+    #[tokio::test]
+    async fn should_save_and_get_config() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        let test_config = Config::default();
+
+        dynamodb_storage
+            .save_config(&test_config)
+            .await
+            .expect("storage failed to save Config");
+
+        // when
+        let result = dynamodb_storage
+            .get_config(&test_config.id)
+            .await
+            .expect("failed to get Config")
+            .expect("Config not found");
+
+        // then
+        assert_eq!(result, Config::default());
+    }
+
+    #[tokio::test]
+    async fn should_not_save_config_if_it_already_exists() {
+        // given
+        let docker = clients::Cli::default();
+
+        let dynamodb_container = docker.run(DynamoDb);
+        let port = dynamodb_container.get_host_port_ipv4(8000);
+
+        let dynamodb_storage = DynamoDbStorage::new_local(port).await;
+        assert_empty(&dynamodb_storage).await;
+
+        let test_config = Config::default();
+
+        dynamodb_storage
+            .save_config(&test_config)
+            .await
+            .expect("storage failed to save Config");
+
+        // when
+        let result = dynamodb_storage.save_config(&test_config).await;
+
+        // then
+        assert_eq!(result.is_err(), true);
+        assert_eq!(
+            result.expect_err("expected error not found").type_name(),
+            InsertError::ItemAlreadyExists(String::default()).type_name()
+        );
     }
 
     #[tokio::test]

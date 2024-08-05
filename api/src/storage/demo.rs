@@ -1,3 +1,4 @@
+use crate::types::Config;
 use axum::async_trait;
 use chrono::{DateTime, Utc};
 
@@ -27,6 +28,14 @@ impl storage::Storage for ReadOnlyStorage {
 
     async fn delete(&self, _: GateKey) -> Result<(), DeleteError> {
         Err(DeleteError::Other("not allowed in demo mode".to_owned()))
+    }
+
+    async fn get_config(&self, id: &str) -> Result<Option<Config>, FindError> {
+        self.proxy.get_config(id).await
+    }
+
+    async fn save_config(&self, _: &Config) -> Result<(), InsertError> {
+        Err(InsertError::Other("not allowed in demo mode".to_owned()))
     }
 
     async fn update_state_and_last_updated(

@@ -12,7 +12,6 @@ pub struct AppState {
     pub(crate) id_provider: Arc<IdProvider>,
     pub(crate) use_cases: types::use_cases::UseCases,
     pub(crate) date_time_switch: Arc<DateTimeSwitch>,
-    pub(crate) business_week: types::BusinessWeek,
 }
 impl AppState {
     pub(crate) fn new(
@@ -27,7 +26,6 @@ impl AppState {
             id_provider,
             use_cases: types::use_cases::UseCases::new(),
             date_time_switch,
-            business_week: types::BusinessWeek::default(),
         }
     }
 }
