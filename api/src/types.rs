@@ -7,6 +7,8 @@ use std::collections::HashSet;
 pub mod app_state;
 pub mod use_cases;
 
+pub const CONFIG_ID: &str = "id";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BusinessTimes {
     pub start: NaiveTime,
@@ -72,22 +74,19 @@ impl BusinessWeek {
     }
 }
 
-#[derive(Debug, serde::Deserialize, Hash)]
-#[serde(rename_all = "lowercase")]
-pub enum DayOfWeek {
-    Sunday,
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
-    pub system_time: DateTime<Utc>,
+    pub id: String,
     pub business_week: BusinessWeek,
+}
+
+impl Config {
+    pub fn default() -> Self {
+        Self {
+            id: "DefaultId".to_string(),
+            business_week: BusinessWeek::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -132,6 +131,14 @@ impl From<BusinessWeek> for models::BusinessWeek {
             friday: value.friday.map(Into::into),
             saturday: value.saturday.map(Into::into),
             sunday: value.sunday.map(Into::into),
+        }
+    }
+}
+
+impl From<Config> for models::Config {
+    fn from(value: Config) -> Self {
+        Self {
+            business_week: value.business_week.into(),
         }
     }
 }
