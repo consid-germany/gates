@@ -24,7 +24,7 @@ jobs:
           workspaces: "api"
 
       - name: Install cargo-lambda
-        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        uses: jaxxstorm/action-install-gh-release@v1.13.0
         with:
           repo: cargo-lambda/cargo-lambda
           cache: enable
