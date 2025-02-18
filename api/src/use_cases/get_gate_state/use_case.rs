@@ -68,6 +68,7 @@ impl UseCase for UseCaseImpl {
             })
             .await?
             .map(|gate| date_time_switch.close_if_time(clock.now(), gate))
+            .map(|gate| gate.state)
             .map(Into::into);
         Ok(gate)
     }

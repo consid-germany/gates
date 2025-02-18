@@ -106,7 +106,8 @@ mod unit_tests {
         mock_date_time_switch.expect_is_closed().return_const(false);
 
         let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+            .expect("failed to parse date")
+            .to_utc();
         mock_clock.expect_now().return_const(now);
 
         let gate = some_gate("some group", "some service", "some environment");
@@ -148,7 +149,7 @@ mod unit_tests {
                 environment: gate.key.environment,
                 state: models::GateState::default(),
                 comments: vec![],
-                last_updated: now.to_utc().to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             }
         );

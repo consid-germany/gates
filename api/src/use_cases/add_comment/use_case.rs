@@ -111,7 +111,8 @@ mod unit_tests {
         mock_id_provider.expect_get().return_const("id");
 
         let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+            .expect("failed to parse date")
+            .to_utc();
         mock_clock.expect_now().return_const(now);
 
         let gate = some_gate("some group", "some service", "some environment");
@@ -159,7 +160,7 @@ mod unit_tests {
                         created: DateTime::parse_from_rfc3339("2021-04-12T22:10:57+02:00")
                             .expect("failed creating date")
                             .to_utc()
-                            .to_string(),
+                            .to_rfc3339(),
                     },
                     models::Comment {
                         id: "Comment2".to_owned(),
@@ -167,15 +168,15 @@ mod unit_tests {
                         created: DateTime::parse_from_rfc3339("2022-04-12T22:10:57+02:00")
                             .expect("failed creating date")
                             .to_utc()
-                            .to_string(),
+                            .to_rfc3339(),
                     },
                     models::Comment {
                         id: "id".to_owned(),
                         message: "some new comment".to_owned(),
-                        created: now.to_utc().to_string(),
+                        created: now.to_rfc3339(),
                     },
                 ],
-                last_updated: now.to_utc().to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             }
         );

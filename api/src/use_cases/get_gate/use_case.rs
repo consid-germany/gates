@@ -97,10 +97,9 @@ mod unit_tests {
         let environment = "some-environment";
 
         let mut mock_clock = MockClock::new();
-        let now: DateTime<Utc> = DateTime::from(
-            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed to parse date"),
-        );
+        let now: DateTime<Utc> = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date")
+            .to_utc();
         mock_clock.expect_now().return_const(now);
 
         let mut mock_date_time_switch = MockDateTimeSwitch::new();
@@ -172,7 +171,7 @@ mod unit_tests {
             environment: environment.to_string(),
             state: models::GateState::Closed,
             comments: vec![],
-            last_updated: DateTime::<Utc>::default().to_string(),
+            last_updated: DateTime::<Utc>::default().to_rfc3339(),
             display_order: Some(f64::from(5)),
         });
         assert_eq!(left.expect("could not unwrap gate"), expected_gate);
