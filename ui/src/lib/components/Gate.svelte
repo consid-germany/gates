@@ -132,7 +132,6 @@
 				<Input
 					class="gate-new-comment-message"
 					bind:value={commentMessage}
-					rows="1"
 					placeholder="Your message..."
 				/>
 				<ToolbarButton
