@@ -91,7 +91,8 @@ mod unit_tests {
         let mut mock_storage = MockStorage::new();
         let mut mock_clock = MockClock::new();
         let now = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-            .expect("failed to parse date");
+            .expect("failed to parse date")
+            .to_utc();
         mock_clock.expect_now().return_const(now);
 
         mock_storage
@@ -125,7 +126,7 @@ mod unit_tests {
             environment: "environment".to_string(),
             state: models::GateState::Open,
             comments: vec![],
-            last_updated: now.to_utc().to_string(),
+            last_updated: now.to_rfc3339(),
             display_order: Option::default(),
         };
         assert_eq!(left.unwrap(), expected);

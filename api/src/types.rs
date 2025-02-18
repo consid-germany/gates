@@ -32,19 +32,19 @@ pub struct BusinessWeek {
 }
 
 impl BusinessWeek {
-    pub const fn business_times_by_weekday(&self, weekday: Weekday) -> &Option<BusinessTimes> {
+    pub const fn business_times_by_weekday(&self, weekday: Weekday) -> Option<&BusinessTimes> {
         match weekday {
-            Weekday::Mon => &self.monday,
-            Weekday::Tue => &self.tuesday,
-            Weekday::Wed => &self.wednesday,
-            Weekday::Thu => &self.thursday,
-            Weekday::Fri => &self.friday,
-            Weekday::Sat => &self.saturday,
-            Weekday::Sun => &self.sunday,
+            Weekday::Mon => self.monday.as_ref(),
+            Weekday::Tue => self.tuesday.as_ref(),
+            Weekday::Wed => self.wednesday.as_ref(),
+            Weekday::Thu => self.thursday.as_ref(),
+            Weekday::Fri => self.friday.as_ref(),
+            Weekday::Sat => self.saturday.as_ref(),
+            Weekday::Sun => self.sunday.as_ref(),
         }
     }
 
-    pub fn default() -> Self {
+    pub const fn default() -> Self {
         Self {
             monday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(7, 0, 0).unwrap(),
@@ -139,9 +139,19 @@ impl From<BusinessWeek> for models::BusinessWeek {
 impl From<BusinessTimes> for models::BusinessTimes {
     fn from(value: BusinessTimes) -> Self {
         Self {
-            start: value.start.to_string(),
-            end: value.end.to_string(),
+            start: value.start.to_rfc3339(),
+            end: value.end.to_rfc3339(),
         }
+    }
+}
+
+trait ToRfc339Time {
+    fn to_rfc3339(&self) -> String;
+}
+
+impl ToRfc339Time for NaiveTime {
+    fn to_rfc3339(&self) -> String {
+        format!("{}Z", self.format("%H:%M:%S"))
     }
 }
 
@@ -177,13 +187,14 @@ impl TryFrom<GateState> for String {
     }
 }
 
-impl From<Gate> for models::GateStateRep {
-    fn from(value: Gate) -> Self {
+impl From<GateState> for models::GateStateRep {
+    fn from(value: GateState) -> Self {
         Self {
-            state: value.state.into(),
+            state: value.into(),
         }
     }
 }
+
 impl From<GateState> for models::GateState {
     fn from(source: GateState) -> Self {
         match source {
@@ -205,7 +216,7 @@ impl From<Gate> for models::Gate {
                 .map_into::<models::Comment>()
                 .sorted_by_key(|comment| comment.created.to_string())
                 .collect(),
-            last_updated: value.last_updated.to_string(),
+            last_updated: value.last_updated.to_rfc3339(),
             display_order: value.display_order.map(f64::from),
         }
     }
@@ -216,7 +227,7 @@ impl From<Comment> for models::Comment {
         Self {
             id: value.id,
             message: value.message,
-            created: value.created.to_string(),
+            created: value.created.to_rfc3339(),
         }
     }
 }
@@ -330,22 +341,20 @@ mod unit_test {
                     message: "Some comment message".into(),
                     created: DateTime::parse_from_rfc3339("2021-04-12T20:10:57Z")
                         .expect("can not convert date")
-                        .to_utc()
-                        .to_string(),
+                        .to_rfc3339(),
                 },
                 models::Comment {
                     id: "Comment2".into(),
                     message: "Some other comment message".into(),
                     created: DateTime::parse_from_rfc3339("2022-04-12T20:10:57Z")
                         .expect("can not convert date")
-                        .to_utc()
-                        .to_string(),
+                        .to_rfc3339(),
                 },
             ],
             last_updated: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
                 .expect("can not convert date")
                 .to_utc()
-                .to_string(),
+                .to_rfc3339(),
             display_order: Option::default(),
         };
         assert_eq!(actual, expected);
@@ -368,7 +377,7 @@ mod unit_test {
             created: DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
                 .expect("can not convert date")
                 .to_utc()
-                .to_string(),
+                .to_rfc3339(),
         };
         assert_eq!(actual, expected);
     }

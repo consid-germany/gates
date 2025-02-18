@@ -455,7 +455,7 @@ fn decode_string(
 ) -> Result<String, DecodeError> {
     input
         .get(field)
-        .ok_or(format!("field {field} could not be found"))?
+        .ok_or_else(|| format!("field {field} could not be found"))?
         .as_s()
         .map_err(|_| format!("field {field} could not be parsed as string"))
         .cloned()
@@ -495,7 +495,7 @@ fn decode_map<'a>(
 ) -> Result<&'a HashMap<String, AttributeValue>, DecodeError> {
     input
         .get(field)
-        .ok_or(format!("field {field} could not be found"))?
+        .ok_or_else(|| format!("field {field} could not be found"))?
         .as_m()
         .map_err(|_| format!("field {field} could not be parsed as map"))
 }

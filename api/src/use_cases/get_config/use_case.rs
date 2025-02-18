@@ -32,7 +32,7 @@ impl UseCase for UseCaseImpl {
         business_week: BusinessWeek,
     ) -> Result<Config, Error> {
         let openapi_business_week: models::BusinessWeek = business_week.into();
-        Ok(Config::new(clock.now().to_string(), openapi_business_week))
+        Ok(Config::new(clock.now().to_rfc3339(), openapi_business_week))
     }
 }
 
@@ -46,7 +46,7 @@ mod unit_tests {
     use rstest::rstest;
     use similar_asserts::assert_eq;
 
-    pub fn test_data() -> BusinessWeek {
+    pub const fn test_data() -> BusinessWeek {
         BusinessWeek {
             monday: Some(BusinessTimes {
                 start: NaiveTime::from_hms_opt(9, 0, 0).unwrap(),
@@ -78,11 +78,9 @@ mod unit_tests {
     ) {
         // given
         let mut mock_clock = MockClock::new();
-        let now: DateTime<Utc> = DateTime::from(
-            DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
-                .expect("failed to parse date"),
-        );
-
+        let now: DateTime<Utc> = DateTime::parse_from_rfc3339("2023-04-12T22:10:57+02:00")
+            .expect("failed to parse date")
+            .to_utc();
         mock_clock.expect_now().return_const(now);
 
         // when
@@ -91,7 +89,7 @@ mod unit_tests {
         // then
         assert!(actual.is_ok());
         let config_result = actual.unwrap();
-        assert_eq!(config_result.system_time, now.to_string());
+        assert_eq!(config_result.system_time, now.to_rfc3339());
         assert_eq!(config_result.business_week, expected_business_times);
     }
 }

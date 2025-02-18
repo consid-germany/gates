@@ -156,7 +156,7 @@ mod integration_tests_lambda {
                             environment: "live".to_owned(),
                             state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now.to_utc().to_string(),
+                            last_updated: now.to_rfc3339(),
                             display_order: None,
                         },
                     }],
@@ -173,7 +173,7 @@ mod acceptance_tests {
 
     use axum::http::StatusCode;
     use axum_test::TestServer;
-    use chrono::{DateTime, FixedOffset, Utc};
+    use chrono::{DateTime, Utc};
     use openapi::models;
     use testcontainers::clients;
     use testcontainers_modules::dynamodb_local::DynamoDb;
@@ -260,7 +260,7 @@ mod acceptance_tests {
                                 environment: "develop".to_string(),
                                 state: models::GateState::Closed,
                                 comments: vec![],
-                                last_updated: now.to_string(),
+                                last_updated: now.to_rfc3339(),
                                 display_order: Option::default(),
                             },
                         },
@@ -272,7 +272,7 @@ mod acceptance_tests {
                                 environment: "live".to_string(),
                                 state: models::GateState::Closed,
                                 comments: vec![],
-                                last_updated: now.to_string(),
+                                last_updated: now.to_rfc3339(),
                                 display_order: Option::default(),
                             },
                         },
@@ -347,7 +347,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: models::GateState::Open,
                 comments: vec![],
-                last_updated: now.to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             }
         );
@@ -368,7 +368,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now.to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             }
         );
@@ -384,7 +384,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now.to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             }
         );
@@ -461,7 +461,7 @@ mod acceptance_tests {
                             environment: "develop".to_string(),
                             state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now.to_string(),
+                            last_updated: now.to_rfc3339(),
                             display_order: Option::default(),
                         },
                     },],
@@ -539,9 +539,9 @@ mod acceptance_tests {
                             comments: vec![models::Comment {
                                 id: "some_id".to_owned(),
                                 message: "Some comment message".to_owned(),
-                                created: now.to_string(),
+                                created: now.to_rfc3339(),
                             }],
-                            last_updated: now.to_string(),
+                            last_updated: now.to_rfc3339(),
                             display_order: Option::default(),
                         },
                     },],
@@ -573,7 +573,7 @@ mod acceptance_tests {
                             environment: "develop".to_string(),
                             state: models::GateState::Closed,
                             comments: vec![],
-                            last_updated: now.to_string(),
+                            last_updated: now.to_rfc3339(),
                             display_order: Option::default(),
                         },
                     },],
@@ -729,7 +729,7 @@ mod acceptance_tests {
                 environment: "live".to_string(),
                 state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now.to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Option::default(),
             },
         );
@@ -766,7 +766,7 @@ mod acceptance_tests {
         assert_eq!(response.status_code(), StatusCode::OK);
         assert_eq!(
             response.json::<Config>(),
-            Config::new(now.to_string(), openapi_business_week)
+            Config::new(now.to_rfc3339(), openapi_business_week)
         );
     }
     #[tokio::test]
@@ -832,7 +832,7 @@ mod acceptance_tests {
                 environment: "develop".to_string(),
                 state: models::GateState::Closed,
                 comments: vec![],
-                last_updated: now.to_string(),
+                last_updated: now.to_rfc3339(),
                 display_order: Some(1f64),
             }
         );
@@ -851,12 +851,12 @@ mod acceptance_tests {
                     environments: vec![
                         models::Environment {
                             name: "live".to_string(),
-                            gate: expected_gate_representation(now.into(), "live".to_string()),
+                            gate: expected_gate_representation(now, "live".to_string()),
                         },
                         models::Environment {
                             name: "develop".to_string(),
                             gate: expected_gate_representation_with_display_order(
-                                now.into(),
+                                now,
                                 "develop".to_string(),
                                 1,
                             ),
@@ -867,22 +867,19 @@ mod acceptance_tests {
         );
     }
 
-    fn expected_gate_representation(
-        now: DateTime<FixedOffset>,
-        environment: String,
-    ) -> models::Gate {
+    fn expected_gate_representation(now: DateTime<Utc>, environment: String) -> models::Gate {
         models::Gate {
             group: "somegroup".to_string(),
             service: "someservice".to_string(),
             environment,
             state: models::GateState::Closed,
             comments: vec![],
-            last_updated: now.to_utc().to_string(),
+            last_updated: now.to_rfc3339(),
             display_order: Option::default(),
         }
     }
     fn expected_gate_representation_with_display_order(
-        now: DateTime<FixedOffset>,
+        now: DateTime<Utc>,
         environment: String,
         display_order: u32,
     ) -> models::Gate {
@@ -892,7 +889,7 @@ mod acceptance_tests {
             environment,
             state: models::GateState::Closed,
             comments: vec![],
-            last_updated: now.to_utc().to_string(),
+            last_updated: now.to_rfc3339(),
             display_order: Some(f64::from(display_order)),
         }
     }
