@@ -1,5 +1,5 @@
 use crate::storage;
-use axum::async_trait;
+use async_trait::async_trait;
 use itertools::Itertools;
 use openapi::models;
 
@@ -64,13 +64,13 @@ fn ordered_by_group(gates: Vec<Gate>) -> Vec<models::Group> {
     let group_to_items = gates
         .into_iter()
         .sorted_by_key(|item| item.key.group.clone())
-        .group_by(|item| item.key.group.clone());
+        .chunk_by(|item| item.key.group.clone());
 
     for (group, items) in &group_to_items {
         let service_to_items = items
             .into_iter()
             .sorted_by_key(|item| item.key.service.clone())
-            .group_by(|item| item.key.service.clone());
+            .chunk_by(|item| item.key.service.clone());
 
         let mut services: Vec<models::Service> = Vec::new();
         for (service, items) in &service_to_items {

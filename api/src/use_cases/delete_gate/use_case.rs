@@ -1,7 +1,7 @@
 use crate::storage;
 use crate::storage::Storage;
 use crate::types::GateKey;
-use axum::async_trait;
+use async_trait::async_trait;
 
 #[derive(Debug)]
 pub struct Input {

@@ -1,7 +1,6 @@
-use std::collections::HashSet;
-
-use axum::async_trait;
+use async_trait::async_trait;
 use openapi::models;
+use std::collections::HashSet;
 
 use crate::clock::Clock;
 use crate::storage;
