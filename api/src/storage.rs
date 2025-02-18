@@ -1,10 +1,9 @@
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use serde::Serialize;
 use std::env;
 use std::future::Future;
 use std::sync::Arc;
-
-use axum::async_trait;
-use chrono::{DateTime, Utc};
-use serde::Serialize;
 
 use types::GateState;
 

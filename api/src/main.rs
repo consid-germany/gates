@@ -47,23 +47,23 @@ fn create_router(app_state: AppState) -> Router {
             get(list_gates::route::handler).post(create_gate::route::handler),
         )
         .route(
-            "/:group/:service/:environment",
+            "/{group}/{service}/{environment}",
             get(get_gate::route::handler).delete(delete_gate::route::handler),
         )
         .route(
-            "/:group/:service/:environment/state",
+            "/{group}/{service}/{environment}/state",
             put(update_gate_state::route::handler).get(get_gate_state::route::handler),
         )
         .route(
-            "/:group/:service/:environment/display-order",
+            "/{group}/{service}/{environment}/display-order",
             put(update_display_order::route::handler),
         )
         .route(
-            "/:group/:service/:environment/comments",
+            "/{group}/{service}/{environment}/comments",
             post(add_comment::route::handler),
         )
         .route(
-            "/:group/:service/:environment/comments/:comment_id",
+            "/{group}/{service}/{environment}/comments/{comment_id}",
             delete(delete_comment::route::handler),
         )
         .layer(
@@ -90,7 +90,7 @@ mod integration_tests_lambda {
     use http_body_util::BodyExt;
     use lambda_http::Service;
     use openapi::models;
-    use testcontainers::clients;
+    use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::clock::MockClock;
@@ -100,10 +100,14 @@ mod integration_tests_lambda {
     #[tokio::test]
     async fn should_handle_api_gateway_proxy_request() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
 
@@ -175,7 +179,7 @@ mod acceptance_tests {
     use axum_test::TestServer;
     use chrono::{DateTime, Utc};
     use openapi::models;
-    use testcontainers::clients;
+    use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::clock::MockClock;
@@ -203,10 +207,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -289,10 +297,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -397,10 +409,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -477,10 +493,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let mut mock_id_provider = MockIdProvider::new();
@@ -589,10 +609,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -661,10 +685,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -742,10 +770,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(
@@ -776,10 +808,14 @@ mod acceptance_tests {
         let mut mock_clock = MockClock::new();
         mock_clock.expect_now().return_const(now);
 
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = storage::test(port).await;
         let router = create_router(AppState::new(

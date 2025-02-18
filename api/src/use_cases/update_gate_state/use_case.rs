@@ -2,7 +2,7 @@ use crate::clock::Clock;
 use crate::date_time_switch::DateTimeSwitch;
 use crate::storage::{Storage, UpdateError};
 use crate::types::{GateKey, GateState};
-use axum::async_trait;
+use async_trait::async_trait;
 use openapi::models;
 
 #[derive(Debug)]

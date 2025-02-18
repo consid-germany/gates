@@ -1,6 +1,4 @@
-use std::collections::hash_map::RandomState;
-use std::collections::{HashMap, HashSet};
-
+use async_trait::async_trait;
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::config::{Credentials, Region};
 use aws_sdk_dynamodb::error::SdkError;
@@ -11,8 +9,9 @@ use aws_sdk_dynamodb::types::{
     ReturnValue, ScalarAttributeType,
 };
 use aws_sdk_dynamodb::{config, Client};
-use axum::async_trait;
 use chrono::{DateTime, Utc};
+use std::collections::hash_map::RandomState;
+use std::collections::{HashMap, HashSet};
 
 use crate::storage::{DeleteError, FindError, InsertError, Storage, UpdateError};
 use crate::types::{Comment, Gate, GateKey, GateState};
@@ -272,7 +271,7 @@ impl Storage for DynamoDbStorage {
 
 impl DynamoDbStorage {
     pub async fn new() -> Self {
-        let aws_config = &aws_config::load_defaults(BehaviorVersion::v2023_11_09()).await;
+        let aws_config = &aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
         let client = Client::from_conf(config::Builder::from(aws_config).build());
 
         Self {
@@ -284,7 +283,7 @@ impl DynamoDbStorage {
     pub async fn new_local(port: u16) -> Self {
         let client = Client::from_conf(
             config::Builder::new()
-                .behavior_version(BehaviorVersion::v2023_11_09())
+                .behavior_version(BehaviorVersion::v2024_03_28())
                 .endpoint_url(format!("http://localhost:{port}/"))
                 .credentials_provider(Credentials::new(
                     "AccessKeyId",
@@ -606,7 +605,7 @@ mod integration_tests {
     use itertools::concat;
     use mockall::Any;
     use similar_asserts::assert_eq;
-    use testcontainers::clients;
+    use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::dynamodb_local::DynamoDb;
 
     use crate::types::Gate;
@@ -616,10 +615,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_insert_and_find_one() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -644,10 +647,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_not_insert_if_item_already_exists() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -673,10 +680,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_not_find_one_if_gate_not_exists() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -698,10 +709,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_insert_and_find_all() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -734,10 +749,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_insert_and_delete() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -771,10 +790,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_fail_to_delete_item_if_item_does_not_exist() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -814,10 +837,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_update_state_and_last_modified() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -875,10 +902,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_fail_to_update_state_and_last_modified_of_item_that_does_not_exist() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -920,10 +951,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_add_new_comment_and_update_last_modified() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -971,10 +1006,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_update_existing_comment_and_update_last_modified() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -1031,10 +1070,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_fail_updating_comment_and_update_last_modified_if_item_does_not_exist() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -1073,10 +1116,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_delete_comment_by_id_and_update_last_modified() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -1133,10 +1180,14 @@ mod integration_tests {
     async fn should_fail_to_delete_comment_by_id_and_update_last_modified_if_comment_does_not_exist(
     ) {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
@@ -1177,10 +1228,14 @@ mod integration_tests {
     #[tokio::test]
     async fn should_fail_to_delete_comment_by_id_and_update_last_modified_if_item_does_not_exist() {
         // given
-        let docker = clients::Cli::default();
-
-        let dynamodb_container = docker.run(DynamoDb);
-        let port = dynamodb_container.get_host_port_ipv4(8000);
+        let dynamodb_container = DynamoDb::default()
+            .start()
+            .await
+            .expect("dynamoDb docker container to be started");
+        let port = dynamodb_container
+            .get_host_port_ipv4(8000)
+            .await
+            .expect("dynamoDb docker container host port go be found");
 
         let dynamodb_storage = DynamoDbStorage::new_local(port).await;
         assert_empty(&dynamodb_storage).await;
