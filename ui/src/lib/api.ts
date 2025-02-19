@@ -1,5 +1,5 @@
 import createClient from 'openapi-fetch';
-import type { components, paths } from './generated/api';
+import type { components, paths } from '../../../ui/src/lib/generated/api';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 const client = createClient<paths>({

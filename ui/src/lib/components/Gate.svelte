@@ -79,7 +79,7 @@
 	<div class="mt-5 flex">
 		<GradientButton
 			color={gate.state === 'open' ? 'green' : 'red'}
-			class="gate-state h-16 w-32 rounded-r-none"
+			class="gate-state h-16 w-32 cursor-pointer rounded-r-none"
 			on:click={toggleGateState}
 		>
 			{#if toggleGateStateLoading}
@@ -107,7 +107,7 @@
 							</div>
 							<button
 								on:click={() => removeCommentFromGate(comment.id)}
-								class="gate-comment-remove-button opacity-50 transition-opacity hover:opacity-100"
+								class="gate-comment-remove-button cursor-pointer opacity-50 transition-opacity hover:opacity-100"
 							>
 								<IconDelete />
 							</button>
@@ -119,7 +119,7 @@
 						>
 							<div class="flex grow flex-col">
 								<Spinner
-									class="gate-comment-loading mb-2 ml-2 mt-2 dark:text-gray-700"
+									class="gate-comment-loading mt-2 mb-2 ml-2 dark:text-gray-700"
 									color="gray"
 									size="4"
 								/>
@@ -137,7 +137,7 @@
 				<ToolbarButton
 					type="submit"
 					color="blue"
-					class="gate-new-comment-submit ms-2 rounded-full text-blue-600 dark:text-blue-500"
+					class="gate-new-comment-submit ms-2 cursor-pointer rounded-full text-blue-600 dark:text-blue-500"
 				>
 					<IconSend />
 					<span class="sr-only">Send message</span>
