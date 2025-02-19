@@ -75,7 +75,7 @@
               "README.md"
             ],
             "from": "gates@.*",
-            "to": "gates@${nextRelease.version}",
+            "to": "gates@${nextRelease.gitTag}",
             "results": [
               {
                 "file": "README.md",
