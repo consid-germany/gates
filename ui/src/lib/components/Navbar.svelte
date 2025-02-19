@@ -11,7 +11,7 @@
 			</NavBrand>
 		</div>
 		<div class="flex flex-1 place-items-center justify-end">
-			<DarkMode />
+			<DarkMode class="cursor-pointer" />
 		</div>
 	</div>
 </Navbar>

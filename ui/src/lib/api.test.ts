@@ -56,7 +56,7 @@ describe('should get groups', () => {
 		const result = await getGroups();
 
 		// then
-		expect(result).toEqual([group1, group2, group3]);
+		await expect(result).toEqual([group1, group2, group3]);
 
 		expect(clientMock.GET).toHaveBeenCalledOnce();
 		expect(clientMock.GET).toBeCalledWith('/gates', {});
@@ -72,7 +72,7 @@ describe('should get groups', () => {
 		const result = getGroups();
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.GET).toHaveBeenCalledOnce();
 		expect(clientMock.GET).toBeCalledWith('/gates', {});
@@ -86,7 +86,7 @@ describe('should get groups', () => {
 		const result = getGroups();
 
 		// then
-		expect(result).rejects.toThrow('could not retrieve gates');
+		await expect(result).rejects.toThrow('could not retrieve gates');
 
 		expect(clientMock.GET).toHaveBeenCalledOnce();
 		expect(clientMock.GET).toBeCalledWith('/gates', {});
@@ -100,7 +100,7 @@ describe('should get groups', () => {
 		const result = getGroups();
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.GET).toHaveBeenCalledOnce();
 		expect(clientMock.GET).toBeCalledWith('/gates', {});
@@ -214,7 +214,7 @@ describe('should toggle state of gate', () => {
 		const result = toggleGateState(gate);
 
 		// then
-		expect(result).rejects.toThrow('unknown gate state: invalid_state');
+		await expect(result).rejects.toThrow('unknown gate state: invalid_state');
 
 		expect(clientMock.PUT).toHaveBeenCalledTimes(0);
 	});
@@ -238,7 +238,7 @@ describe('should toggle state of gate', () => {
 		const result = toggleGateState(gate);
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
 		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
@@ -272,7 +272,7 @@ describe('should toggle state of gate', () => {
 		const result = toggleGateState(gate);
 
 		// then
-		expect(result).rejects.toThrow('could not retrieve updated gate');
+		await expect(result).rejects.toThrow('could not retrieve updated gate');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
 		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
@@ -306,7 +306,7 @@ describe('should toggle state of gate', () => {
 		const result = toggleGateState(gate);
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.PUT).toHaveBeenCalledOnce();
 		expect(clientMock.PUT).toBeCalledWith('/gates/{group}/{service}/{environment}/state', {
@@ -395,7 +395,7 @@ describe('should add comment to gate', () => {
 		const result = addCommentToGate(gate, 'some new comment message');
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
 		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
@@ -429,7 +429,7 @@ describe('should add comment to gate', () => {
 		const result = addCommentToGate(gate, 'some new comment message');
 
 		// then
-		expect(result).rejects.toThrow('could not retrieve updated gate');
+		await expect(result).rejects.toThrow('could not retrieve updated gate');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
 		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
@@ -463,7 +463,7 @@ describe('should add comment to gate', () => {
 		const result = addCommentToGate(gate, 'some new comment message');
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.POST).toHaveBeenCalledOnce();
 		expect(clientMock.POST).toBeCalledWith('/gates/{group}/{service}/{environment}/comments', {
@@ -559,7 +559,7 @@ describe('should remove comment from gate', () => {
 		const result = removeCommentFromGate(gate, 'comment-id-1');
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.DELETE).toHaveBeenCalledOnce();
 		expect(clientMock.DELETE).toBeCalledWith(
@@ -600,7 +600,7 @@ describe('should remove comment from gate', () => {
 		const result = removeCommentFromGate(gate, 'comment-id-1');
 
 		// then
-		expect(result).rejects.toThrow('could not retrieve updated gate');
+		await expect(result).rejects.toThrow('could not retrieve updated gate');
 
 		expect(clientMock.DELETE).toHaveBeenCalledOnce();
 		expect(clientMock.DELETE).toBeCalledWith(
@@ -641,7 +641,7 @@ describe('should remove comment from gate', () => {
 		const result = removeCommentFromGate(gate, 'comment-id-1');
 
 		// then
-		expect(result).rejects.toThrow('some error!');
+		await expect(result).rejects.toThrow('some error!');
 
 		expect(clientMock.DELETE).toHaveBeenCalledOnce();
 		expect(clientMock.DELETE).toBeCalledWith(

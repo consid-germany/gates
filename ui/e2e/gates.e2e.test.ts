@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import createClient from 'openapi-fetch';
-import type { paths } from '$lib/generated/api';
+import type { paths } from '../../ui-old/src/lib/generated/api';
 
 const client = createClient<paths>({
 	baseUrl: 'http://localhost:9000/api'

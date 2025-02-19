@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+@config "../tailwind.config.js";
+
+@source "safelist.txt";
+
+@theme {
+	--font-sans: 'Plus Jakarta Sans Variable', sans-serif;
+	--color-primary-50: #f8fafc;
+	--color-primary-100: #f1f5f9;
+	--color-primary-200: #e2e8f0;
+	--color-primary-300: #cbd5e1;
+	--color-primary-400: #94a3b8;
+	--color-primary-500: #64748b;
+	--color-primary-600: #475569;
+	--color-primary-700: #334155;
+	--color-primary-800: #1e293b;
+	--color-primary-900: #0f172a;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
