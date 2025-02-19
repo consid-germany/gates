@@ -16,7 +16,8 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "prebuild": "npm run copy-builds && npm run build:function",
+    "prebuild": "npm run copy-readme && npm run copy-builds && npm run build:function",
+    "copy-readme": "cd scripts && node --import=tsimp/import copy-readme.ts",
     "copy-builds": "cd scripts && node --import=tsimp/import copy-builds.ts",
     "build:function": "cd src/function && tsc && node --import=tsimp/import build.ts",
     "build": "jsii",
