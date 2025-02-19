@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Navigate to the root directory of the project
-cd "$(git rev-parse --show-toplevel)" || exit
+pushd "$(git rev-parse --show-toplevel)" || exit
 
 # Ensure openapi.yaml exists
 if [ ! -f "openapi.yaml" ]; then
@@ -29,3 +29,4 @@ docker run --rm \
   -g $GENERATOR \
   -o /local/$OUTPUT_DIR
 
+popd
