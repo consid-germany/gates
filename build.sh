@@ -1,6 +1,7 @@
 #!/bin/bash
 
 pushd api
+. ./scripts/generate_openapi_models.sh
 cargo lambda build --arm64 --release
 popd
 
