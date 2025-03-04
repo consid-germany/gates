@@ -40,9 +40,7 @@ fn is_outside_of_business_times(
     business_week
         .business_times_by_weekday(time_to_check.weekday())
         .as_ref()
-        .map_or(true, |hours| {
-            hours.is_outside_of_business_times(time_to_check)
-        })
+        .is_none_or(|hours| hours.is_outside_of_business_times(time_to_check))
 }
 
 pub fn default() -> impl DateTimeSwitch {
