@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/consid-germany/gates/compare/v1.1.0...v1.2.0) (2025-03-04)
+
+
+### Bug Fixes
+
+* is_outside_of_business_times ([eef78c0](https://github.com/consid-germany/gates/commit/eef78c08a308fbf67affe90c2a9282e72f322fc2))
+* is_outside_of_business_times ([96efe94](https://github.com/consid-germany/gates/commit/96efe9419c651a5f70ef2750a23a5152c25dda78))
+
+
+### Features
+
+* update release version ([f752641](https://github.com/consid-germany/gates/commit/f752641a6f408d892879ac670fdfef88d1ef3177))
+
 # [1.1.0](https://github.com/consid-germany/gates/compare/v1.0.0...v1.1.0) (2025-03-04)
 
 
