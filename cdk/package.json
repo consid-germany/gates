@@ -56,7 +56,7 @@
     "tsimp": "^2.0.12",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1",
-    "vitest-mock-extended": "^2.0.2",
+    "vitest-mock-extended": "^3.0.1",
     "wildcard-match": "^5.1.4"
   },
   "peerDependencies": {
