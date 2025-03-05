@@ -1,3 +1,11 @@
+## [1.2.2](https://github.com/consid-germany/gates/compare/v1.2.1...v1.2.2) (2025-03-05)
+
+
+### Bug Fixes
+
+* update aws-cdk-lib ([57daa45](https://github.com/consid-germany/gates/commit/57daa45dc5547821d63a7c5f9d919d2d012698d9))
+* update aws-cdk-lib ([79202b5](https://github.com/consid-germany/gates/commit/79202b5cdce4df4ec6f9462c8e3f5b8b577f02aa))
+
 ## [1.2.1](https://github.com/consid-germany/gates/compare/v1.2.0...v1.2.1) (2025-03-05)
 
 
