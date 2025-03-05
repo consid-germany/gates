@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/consid-germany/gates/compare/v1.2.0...v1.2.1) (2025-03-05)
+
+
+### Bug Fixes
+
+* bump jose from 5.10.0 to 6.0.8 in /cdk ([#418](https://github.com/consid-germany/gates/issues/418)) ([3f99dfc](https://github.com/consid-germany/gates/commit/3f99dfccaba903caf6071dfe51644ac833597730))
+
 # [1.2.0](https://github.com/consid-germany/gates/compare/v1.1.0...v1.2.0) (2025-03-04)
 
 
