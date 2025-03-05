@@ -93,8 +93,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./build.sh",
-        "publishCmd": "cd cdk && npm run publish"
+        "prepareCmd": "npm run build && npm pack",
+        "publishCmd": "npm run build && cd cdk && npm run publish"
       }
     ],
     [
