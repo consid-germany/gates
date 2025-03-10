@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
-@config "../tailwind.config.js";
+@plugin 'flowbite/plugin';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @source "safelist.txt";
 
@@ -18,4 +20,4 @@
 	--color-primary-900: #0f172a;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+@source "../node_modules/flowbite-svelte/dist";
