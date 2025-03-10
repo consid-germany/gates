@@ -35,6 +35,7 @@ cuid2 = "0.1.4"
 async-trait = "0.1.87"
 
 openssl = { version = "0.10.71", features = ["vendored"] }
+ring = "0.17.13"
 
 [dev-dependencies]
 axum-test = "17.2.0"
