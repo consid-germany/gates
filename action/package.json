@@ -1,6 +1,6 @@
 {
   "name": "@consid-germany/gates-action",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "private": true,
   "description": "GitHub Action which can be included in GitHub Action pipelines to check if a gate is in the closed state in order to cancel a workflow",
   "main": "dist/index.js",
