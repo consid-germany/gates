@@ -4,7 +4,7 @@ import * as path from "path";
 const API_BUILD_DIR = path.join(__dirname, "..", "..", "api", "target", "lambda", "gates-api");
 const UI_BUILD_DIR = path.join(__dirname, "..", "..", "ui", "build");
 
-const BUILD_DIR = path.join(__dirname, "build");
+const BUILD_DIR = path.join(__dirname, "..", "build");
 
 if (fs.existsSync(BUILD_DIR)) {
     fs.rmSync(BUILD_DIR, { recursive: true });
