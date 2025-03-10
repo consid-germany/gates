@@ -39,7 +39,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: consid-germany/gates@1.0.0
+      - uses: consid-germany/gates@v1.2.0
         with:
           gitHubApiBaseUrl: https://github.gates.consid.tech/api
           group: some-group
