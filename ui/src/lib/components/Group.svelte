@@ -6,7 +6,7 @@
 </script>
 
 <div class="space-y-14">
-	{#each group.services as service}
+	{#each group.services as service (service.name)}
 		<Service {service} />
 	{/each}
 </div>
