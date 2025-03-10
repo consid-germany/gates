@@ -93,7 +93,7 @@
 		>
 			{#if gate.comments.length > 0}
 				<div class="w-full space-y-2 p-2">
-					{#each gate.comments as comment}
+					{#each gate.comments as comment (comment.id)}
 						<div
 							class="flex w-full rounded-lg bg-gray-200 px-3 py-2 dark:bg-gray-600 dark:text-gray-400"
 						>

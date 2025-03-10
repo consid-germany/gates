@@ -13,7 +13,7 @@
 	</div>
 {:then groups}
 	<Tabs contentClass="mt-10">
-		{#each groups as group, i}
+		{#each groups as group, i (group.name)}
 			<TabItem title={group.name} open={i === 0}>
 				<div class="gates-group">
 					<Group {group} />
