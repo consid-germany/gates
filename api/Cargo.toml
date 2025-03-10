@@ -18,27 +18,29 @@ codegen-units = 1
 [dependencies]
 lambda_http = "0.14.0"
 lambda_runtime = "0.13.0"
-tokio = { version = "1.37.0", features = ["macros"] }
-tracing = { version = "0.1.40", features = ["log"] }
-tracing-subscriber = { version = "0.3.18", default-features = false, features = ["fmt"] }
+tokio = { version = "1.44.0", features = ["macros"] }
+tracing = { version = "0.1.41", features = ["log"] }
+tracing-subscriber = { version = "0.3.19", default-features = false, features = ["fmt"] }
 openapi = { path = "./openapi" }
 
 axum = "0.8.1"
-serde = { version = "1.0.198", features = ["derive"] }
-serde_json = "1.0.116"
-chrono = { version = "0.4.38", features = ["serde"] }
-aws-sdk-dynamodb = "1.22.0"
-aws-config = "1.2.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+chrono = { version = "0.4.40", features = ["serde"] }
+aws-sdk-dynamodb = "1.67.0"
+aws-config = "1.5.18"
 itertools = "0.14.0"
 tower-http = { version = "0.6.2", features = ["trace"] }
-cuid2 = "0.1.2"
-async-trait = "0.1.86"
+cuid2 = "0.1.4"
+async-trait = "0.1.87"
+
+openssl = { version = "0.10.71", features = ["vendored"] }
 
 [dev-dependencies]
 axum-test = "17.2.0"
-http-body-util = "0.1.1"
-similar-asserts = "1.5.0"
-testcontainers = "0.23.2"
+http-body-util = "0.1.2"
+similar-asserts = "1.7.0"
+testcontainers = "0.23.3"
 testcontainers-modules = { version = "0.11.6", features = ["dynamodb"] }
 mockall = "0.13.1"
-rstest = "0.24.0"
+rstest = "0.25.0"
