@@ -33,14 +33,14 @@
 		"postinstall": "openapi-typescript ./../openapi.yaml -o src/lib/generated/api.d.ts"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.2.8",
+		"@eslint/compat": "^1.2.9",
 		"@eslint/js": "^9.25.1",
 		"@fontsource-variable/plus-jakarta-sans": "^5.2.5",
 		"@playwright/test": "^1.52.0",
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.20.7",
+		"@sveltejs/kit": "^2.20.8",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
-		"@tailwindcss/vite": "^4.1.4",
+		"@tailwindcss/vite": "^4.1.5",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.7",
 		"@testing-library/user-event": "^14.6.1",
@@ -55,12 +55,12 @@
 		"prettier": "^3.5.3",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
-		"svelte": "^5.28.1",
+		"svelte": "^5.28.2",
 		"svelte-check": "^4.1.6",
 		"tailwindcss": "^4.0.7",
 		"typescript": "^5.8.3",
-		"typescript-eslint": "^8.31.0",
-		"vite": "^6.3.2",
+		"typescript-eslint": "^8.31.1",
+		"vite": "^6.3.4",
 		"vitest": "^3.1.2"
 	}
 }
