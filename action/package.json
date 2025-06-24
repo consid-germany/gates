@@ -29,10 +29,10 @@
     "@actions/core": "^1.11.1",
     "@types/node": "^22.15.23",
     "@vercel/ncc": "^0.38.3",
-    "eslint": "^9.27.0",
-    "prettier": "^3.5.3",
+    "eslint": "^9.29.0",
+    "prettier": "^3.6.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.0",
-    "vitest": "^3.1.4"
+    "typescript-eslint": "^8.35.0",
+    "vitest": "^3.2.4"
   }
 }
