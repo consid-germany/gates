@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: 'npm'
           cache-dependency-path: ui
@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: 'npm'
           cache-dependency-path: ui
@@ -74,7 +74,7 @@ jobs:
           repo: cargo-lambda/cargo-lambda
           cache: enable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: 'npm'
           cache-dependency-path: ui
