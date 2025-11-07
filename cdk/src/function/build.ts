@@ -24,7 +24,9 @@ const OUTDIR = path.join(__dirname, "..", "..", "build", "function");
 
     fs.readdirSync(OUTDIR, { withFileTypes: true, recursive: true })
         .filter((element) => element.isDirectory())
-        .filter((element) => fs.existsSync(path.join(element.parentPath, element.name, "handler.js")))
+        .filter((element) =>
+            fs.existsSync(path.join(element.parentPath, element.name, "handler.js")),
+        )
         .forEach((element) =>
             fs.renameSync(
                 path.join(element.parentPath, element.name, "handler.js"),
