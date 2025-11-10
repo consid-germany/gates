@@ -233,6 +233,7 @@ mod acceptance_tests {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
                 environment: "develop".to_owned(),
+                display_order: None,
             })
             .await;
 
@@ -244,6 +245,7 @@ mod acceptance_tests {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
                 environment: "live".to_owned(),
+                display_order: Some(123),
             })
             .await;
 
@@ -269,7 +271,7 @@ mod acceptance_tests {
                                 state: models::GateState::Closed,
                                 comments: vec![],
                                 last_updated: now.to_rfc3339(),
-                                display_order: Option::default(),
+                                display_order: None,
                             },
                         },
                         models::Environment {
@@ -281,7 +283,7 @@ mod acceptance_tests {
                                 state: models::GateState::Closed,
                                 comments: vec![],
                                 last_updated: now.to_rfc3339(),
-                                display_order: Option::default(),
+                                display_order: Some(123.),
                             },
                         },
                     ],
@@ -325,6 +327,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -338,6 +341,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -437,6 +441,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -450,6 +455,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -525,6 +531,7 @@ mod acceptance_tests {
                 group: "somegroup".to_owned(),
                 service: "someservice".to_owned(),
                 environment: "develop".to_owned(),
+                display_order: None,
             })
             .await;
 
@@ -637,6 +644,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -650,6 +658,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -713,6 +722,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -726,6 +736,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -836,6 +847,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -849,6 +861,7 @@ mod acceptance_tests {
                 group,
                 service,
                 environment,
+                display_order: None,
             })
             .await;
         assert_eq!(response.status_code(), StatusCode::OK);
