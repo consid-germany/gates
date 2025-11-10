@@ -404,7 +404,6 @@ components:
                 type: number
                 description: Specifies a way to order the gate for frontend display purpose.
                 example: 1
-                nullable: true
                 minimum: 0
             required:
               - group
