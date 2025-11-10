@@ -5,7 +5,7 @@ import * as path from "path";
 const PATHS_TO_HANDLER = fs
     .readdirSync(__dirname, { withFileTypes: true, recursive: true })
     .filter((element) => element.isDirectory())
-    .map((element) => path.join(element.path, element.name, "handler.ts"))
+    .map((element) => path.join(element.parentPath, element.name, "handler.ts"))
     .filter((file) => fs.existsSync(file));
 
 const OUTDIR = path.join(__dirname, "..", "..", "build", "function");
@@ -24,11 +24,13 @@ const OUTDIR = path.join(__dirname, "..", "..", "build", "function");
 
     fs.readdirSync(OUTDIR, { withFileTypes: true, recursive: true })
         .filter((element) => element.isDirectory())
-        .filter((element) => fs.existsSync(path.join(element.path, element.name, "handler.js")))
+        .filter((element) =>
+            fs.existsSync(path.join(element.parentPath, element.name, "handler.js")),
+        )
         .forEach((element) =>
             fs.renameSync(
-                path.join(element.path, element.name, "handler.js"),
-                path.join(element.path, element.name, "index.js"),
+                path.join(element.parentPath, element.name, "handler.js"),
+                path.join(element.parentPath, element.name, "index.js"),
             ),
         );
 })();
