@@ -72,24 +72,6 @@ impl BusinessWeek {
     }
 }
 
-#[derive(Debug, serde::Deserialize, Hash)]
-#[serde(rename_all = "lowercase")]
-pub enum DayOfWeek {
-    Sunday,
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Config {
-    pub system_time: DateTime<Utc>,
-    pub business_week: BusinessWeek,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateKey {
     pub group: String,
@@ -214,7 +196,7 @@ impl From<Gate> for models::Gate {
                 .comments
                 .into_iter()
                 .map_into::<models::Comment>()
-                .sorted_by_key(|comment| comment.created.to_string())
+                .sorted_by_key(|comment| comment.created.clone())
                 .collect(),
             last_updated: value.last_updated.to_rfc3339(),
             display_order: value.display_order.map(f64::from),
