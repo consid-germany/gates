@@ -12,6 +12,7 @@ pub struct Payload {
     pub group: String,
     pub service: String,
     pub environment: String,
+    pub display_order: Option<u32>,
 }
 
 pub async fn handler(
@@ -20,6 +21,7 @@ pub async fn handler(
         group,
         service,
         environment,
+        display_order,
     }): Json<Payload>,
 ) -> impl IntoResponse {
     //TODO add display order
@@ -31,6 +33,7 @@ pub async fn handler(
                 group,
                 service,
                 environment,
+                display_order,
             },
             app_state.storage.as_ref(),
             app_state.clock.as_ref(),
