@@ -45,7 +45,7 @@
     "aws-jwt-verify": "^5.0.0",
     "aws-lambda": "^1.0.7",
     "constructs": "^10.4.2",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.27.0",
     "eslint": "^9.20.1",
     "jose": "^6.0.8",
     "jsii": "^5.7.5",
