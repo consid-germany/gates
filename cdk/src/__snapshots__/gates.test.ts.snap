@@ -586,6 +586,292 @@ exports[`should match snapshot 1`] = `
       "Type": "AWS::DynamoDB::GlobalTable",
       "UpdateReplacePolicy": "Retain",
     },
+    "GatesGitHubHttpApiBE8182E0": {
+      "Properties": {
+        "Name": "gates-github-api",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "GatesGitHubHttpApiDefaultStage993225D6": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "GatesGitHubHttpApiBE8182E0",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "GatesGitHubHttpApiGETapigatesgroupserviceenvironmentstate13C9BE87": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "GatesGitHubHttpApiBE8182E0",
+        },
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24",
+        },
+        "RouteKey": "GET /api/gates/{group}/{service}/{environment}/state",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "GatesGitHubHttpApiGETapigatesgroupserviceenvironmentstateApiFunctionGitHubHttpApiIntegration65AA591E",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "GatesGitHubHttpApiGETapigatesgroupserviceenvironmentstateApiFunctionGitHubHttpApiIntegration65AA591E": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "GatesGitHubHttpApiBE8182E0",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "GatesApiFunctionF003CA0A",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "GatesGitHubHttpApiGETapigatesgroupserviceenvironmentstateApiFunctionGitHubHttpApiIntegrationPermission25193EAA": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GatesApiFunctionF003CA0A",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-central-1:1234567890:",
+              {
+                "Ref": "GatesGitHubHttpApiBE8182E0",
+              },
+              "/*/*/api/gates/{group}/{service}/{environment}/state",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "GatesGitHubHttpApiBE8182E0",
+        },
+        "AuthorizerPayloadFormatVersion": "2.0",
+        "AuthorizerResultTtlInSeconds": 300,
+        "AuthorizerType": "REQUEST",
+        "AuthorizerUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":apigateway:eu-central-1:lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "GatesGitHubJwtAuthFunctionD9D90D99",
+                  "Arn",
+                ],
+              },
+              "/invocations",
+            ],
+          ],
+        },
+        "EnableSimpleResponses": true,
+        "IdentitySource": [
+          "$request.header.Authorization",
+        ],
+        "Name": "GitHubJwtAuthorizer",
+      },
+      "Type": "AWS::ApiGatewayV2::Authorizer",
+    },
+    "GatesGitHubHttpApiPOSTapigates95B9BB65": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "GatesGitHubHttpApiBE8182E0",
+        },
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24",
+        },
+        "RouteKey": "POST /api/gates",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "GatesGitHubHttpApiGETapigatesgroupserviceenvironmentstateApiFunctionGitHubHttpApiIntegration65AA591E",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "GatesGitHubHttpApiPOSTapigatesApiFunctionGitHubHttpApiIntegrationPermissionF6C3CA19": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GatesApiFunctionF003CA0A",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-central-1:1234567890:",
+              {
+                "Ref": "GatesGitHubHttpApiBE8182E0",
+              },
+              "/*/*/api/gates",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "GatesGitHubHttpApiStackGatesGitHubHttpApiGitHubJwtAuthorizer7408D87BPermissionFC7763AC": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GatesGitHubJwtAuthFunctionD9D90D99",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-central-1:1234567890:",
+              {
+                "Ref": "GatesGitHubHttpApiBE8182E0",
+              },
+              "/authorizers/",
+              {
+                "Ref": "GatesGitHubHttpApiGitHubJwtAuthorizer8C649E24",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "GatesGitHubJwtAuthFunctionD9D90D99": {
+      "DependsOn": [
+        "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-central-1",
+          "S3Key": "ab4caf6280b1febad72eb59883927ad7609b4e1127c0851e9e333ff8eb6d7bc8.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "ALLOWED_SUB_PATTERNS": "["repo:consid-germany/gates:*"]",
+          },
+        },
+        "FunctionName": "gates-github-jwt-auth",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "GatesGitHubJwtAuthFunctionLogRetention6879C75B": {
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "GatesGitHubJwtAuthFunctionD9D90D99",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "GatesGitHubJwtAuthFunctionServiceRole3FCC35B4": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "GatesHttpApi627E4AAB": {
       "Properties": {
         "Name": "gates-api",
