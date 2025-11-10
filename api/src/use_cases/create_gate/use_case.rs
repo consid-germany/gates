@@ -12,6 +12,7 @@ pub struct Input {
     pub group: String,
     pub service: String,
     pub environment: String,
+    pub display_order: Option<u32>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -55,6 +56,7 @@ impl UseCase for UseCaseImpl {
             group,
             service,
             environment,
+            display_order,
         }: Input,
         storage: &(dyn Storage + Send + Sync),
         clock: &(dyn Clock + Send + Sync),
@@ -74,7 +76,7 @@ impl UseCase for UseCaseImpl {
             state: GateState::default(),
             comments: HashSet::default(),
             last_updated: clock.now(),
-            display_order: Option::default(),
+            display_order,
         };
 
         storage.insert(&gate).await?;
@@ -114,7 +116,7 @@ mod unit_tests {
             state: GateState::Closed,
             comments: HashSet::default(),
             last_updated: DateTime::from(now),
-            display_order: Option::default(),
+            display_order: Some(123),
         };
 
         mock_storage
@@ -128,6 +130,7 @@ mod unit_tests {
                     group: "some group".to_owned(),
                     service: "some service".to_owned(),
                     environment: "some environment".to_owned(),
+                    display_order: Some(123),
                 },
                 &mock_storage,
                 &mock_clock,
@@ -147,6 +150,7 @@ mod unit_tests {
                     group: String::default(),
                     service: "some service".to_owned(),
                     environment: "some environment".to_owned(),
+                    display_order: None,
                 },
                 &mock_storage,
                 &mock_clock,
@@ -171,6 +175,7 @@ mod unit_tests {
                     group: "some group".to_owned(),
                     service: String::default(),
                     environment: "some environment".to_owned(),
+                    display_order: None,
                 },
                 &mock_storage,
                 &mock_clock,
@@ -195,6 +200,7 @@ mod unit_tests {
                     group: "some group".to_owned(),
                     service: "some service".to_owned(),
                     environment: String::default(),
+                    display_order: None,
                 },
                 &mock_storage,
                 &mock_clock,
@@ -244,6 +250,7 @@ mod unit_tests {
                     group: "some group".to_owned(),
                     service: "some service".to_owned(),
                     environment: "some environment".to_owned(),
+                    display_order: None,
                 },
                 &mock_storage,
                 &mock_clock,
@@ -289,6 +296,7 @@ mod unit_tests {
                     group: "some group".to_owned(),
                     service: "some service".to_owned(),
                     environment: "some environment".to_owned(),
+                    display_order: None,
                 },
                 &mock_storage,
                 &mock_clock,
