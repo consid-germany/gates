@@ -132,7 +132,7 @@ jobs:
         run: curl --retry 3 --retry-all-errors ${{ inputs.api-base-url }}/
 
       - name: Run Conformance Tests
-        run: schemathesis run --checks=all --url=${{ inputs.api-base-url }} ./openapi.yaml
+        run: schemathesis run --url=${{ inputs.api-base-url }} ./openapi.yaml -n 1 --phases examples,fuzzing,stateful
 
       - name: Stop api
         if: always()

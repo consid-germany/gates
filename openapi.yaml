@@ -347,7 +347,6 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[0-9a-zA-Z-_]+$'
         minLength: 1
 
     service:
@@ -357,7 +356,6 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[0-9a-zA-Z-_]+$'
         minLength: 1
 
     environment:
@@ -367,7 +365,6 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[0-9a-zA-Z-_]+$'
         minLength: 1
 
     comment_id:
@@ -377,7 +374,6 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[0-9a-zA-Z-_]+$'
         minLength: 1
 
   requestBodies:
@@ -391,19 +387,16 @@ components:
             properties:
               group:
                 type: string
-                pattern: '^[0-9a-zA-Z-_]+$'
                 minLength: 1
                 description: You can use this as a category to group your gates.
                 example: some-gate-group
               service:
                 type: string
-                pattern: '^[0-9a-zA-Z-_]+$'
                 minLength: 1
                 description: This is another deeper nesting level to group your gates.
                 example: some-service
               environment:
                 type: string
-                pattern: '^[0-9a-zA-Z-_]+$'
                 minLength: 1
                 description: Identifies a gate for group and service. This is the third level of nesting.
                 example: develop
@@ -411,6 +404,8 @@ components:
                 type: number
                 description: Specifies a way to order the gate for frontend display purpose.
                 example: 1
+                nullable: true
+                minimum: 0
             required:
               - group
               - service
@@ -438,9 +433,11 @@ components:
             type: object
             properties:
               display_order:
-                type: number
+                type: integer
+                format: uint32
                 description: Is expected to be a positive number, but can basically be anything.
                 example: 1
+                minimum: 0
             required:
               - display_order
 
@@ -466,10 +463,14 @@ components:
     BadRequest:
       description: Bad request
       content:
-        application/json:
+        text/plain:
           schema:
             type: string
             example: group, service and environment must not be empty
+        application/json:
+          schema:
+            type: string
+            example: cannot add comment without message
 
     Forbidden:
       description: Unauthorized request blocked.
@@ -584,6 +585,7 @@ components:
           type: number
           description: The way to describe how you want to arrange your gates.
           example: 1
+          minimum: 0
         comments:
           type: array
           description: The comment describe why you open or closed the gate.
