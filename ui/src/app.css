@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@source "safelist.txt";
+@source 'safelist.txt';
 
 @theme {
 	--font-sans: 'Plus Jakarta Sans Variable', sans-serif;
@@ -20,4 +20,4 @@
 	--color-primary-900: #0f172a;
 }
 
-@source "../node_modules/flowbite-svelte/dist";
+@source '../node_modules/flowbite-svelte/dist';

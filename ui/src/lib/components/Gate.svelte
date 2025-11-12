@@ -83,7 +83,7 @@
 			on:click={toggleGateState}
 		>
 			{#if toggleGateStateLoading}
-				<Spinner class="gate-state-loading mr-2" size="3" color="white" />
+				<Spinner class="gate-state-loading mr-2" size="4" color="gray" />
 			{/if}
 			{gate.state}
 		</GradientButton>
