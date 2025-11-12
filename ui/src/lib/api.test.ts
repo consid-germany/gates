@@ -27,7 +27,7 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-	vi.restoreAllMocks();
+	vi.resetAllMocks();
 });
 
 describe('should get groups', () => {

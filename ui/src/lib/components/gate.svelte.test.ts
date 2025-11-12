@@ -16,6 +16,9 @@ beforeEach(() => {
 		addCommentToGate: vi.fn(),
 		removeCommentFromGate: vi.fn()
 	}));
+	Element.prototype.animate = vi.fn().mockImplementation(() => ({ finished: Promise.resolve(), cancel: vi.fn() }));
+	HTMLDialogElement.prototype.showModal = vi.fn();
+	HTMLDialogElement.prototype.close = vi.fn();
 });
 
 afterEach(() => {

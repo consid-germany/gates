@@ -4,7 +4,7 @@
 	import { getGroups } from '$lib/api';
 	import Group from '$lib/components/Group.svelte';
 
-	let groups = getGroups();
+	const groups = getGroups();
 </script>
 
 {#await groups}
@@ -12,7 +12,7 @@
 		<Spinner />
 	</div>
 {:then groups}
-	<Tabs contentClass="mt-10">
+	<Tabs classes={{ content: "mt-10" }}>
 		{#each groups as group, i (group.name)}
 			<TabItem title={group.name} open={i === 0}>
 				<div class="gates-group">

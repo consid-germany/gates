@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	vi.restoreAllMocks();
+	vi.resetAllMocks();
 	cleanup();
 });
 
