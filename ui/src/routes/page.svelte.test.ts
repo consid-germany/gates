@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import page from './+page.svelte';
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/svelte';
+import { render } from 'vitest-browser-svelte';
 import { getGroups, type Group } from '$lib/api';
+import { page as browserPage } from 'vitest/browser';
 
 beforeEach(() => {
 	vi.mock('$lib/api', () => ({
@@ -10,8 +11,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	vi.restoreAllMocks();
-	cleanup();
+	vi.resetAllMocks();
 });
 
 it('should show loading spinner when loading gates', () => {
@@ -37,7 +37,7 @@ it('should show gate groups in tabs', async () => {
 	const { container } = render(page);
 
 	// then
-	await waitFor(() => {
+	await vi.waitFor(() => {
 		const spinner = container.querySelector('.loading-spinner');
 		expect(spinner).toBeNull();
 	});
@@ -56,7 +56,7 @@ it('should show gates of selected group', async () => {
 	const { container } = render(page);
 
 	// then
-	await waitFor(() => {
+	await vi.waitFor(() => {
 		const spinner = container.querySelector('.loading-spinner');
 		expect(spinner).toBeNull();
 	});
@@ -79,7 +79,7 @@ it('should show gates of other tab', async () => {
 	const { container } = render(page);
 
 	// then
-	await waitFor(() => {
+	await vi.waitFor(() => {
 		const spinner = container.querySelector('.loading-spinner');
 		expect(spinner).toBeNull();
 	});
@@ -89,7 +89,7 @@ it('should show gates of other tab', async () => {
 	// when
 	const tab = container.querySelectorAll("button[role='tab']").item(1);
 	expect(tab?.textContent).toEqual('some-other-group');
-	await fireEvent.click(tab);
+	await browserPage.elementLocator(tab).click();
 
 	// then
 	expect(container.querySelector("button[role='tab'].active")?.textContent).toEqual(
@@ -114,7 +114,7 @@ it('should show error message if loading gates fails', async () => {
 	const { container } = render(page);
 
 	// then
-	await waitFor(() => {
+	await vi.waitFor(() => {
 		const spinner = container.querySelector('.loading-spinner');
 		expect(spinner).toBeNull();
 	});

@@ -15,12 +15,12 @@
 	import type { Gate } from '$lib/api';
 	import * as api from '$lib/api';
 
-	export let gate: Gate;
+	let { gate }: { gate: Gate } = $props();
 
-	let commentMessage = '';
-	let error: Error;
-	let toggleGateStateLoading = false;
-	let addCommentLoading = false;
+	let commentMessage = $state('');
+	let error: Error | undefined = $state();
+	let toggleGateStateLoading = $state(false);
+	let addCommentLoading = $state(false);
 
 	const showError = (newError: Error) => {
 		error = newError;
@@ -37,7 +37,8 @@
 		}
 	};
 
-	const addCommentToGate = async () => {
+	const addCommentToGate = async (event: SubmitEvent) => {
+		event.preventDefault();
 		const newMessage = commentMessage;
 		commentMessage = '';
 		try {
@@ -80,10 +81,10 @@
 		<GradientButton
 			color={gate.state === 'open' ? 'green' : 'red'}
 			class="gate-state h-16 w-32 cursor-pointer rounded-r-none"
-			on:click={toggleGateState}
+			onclick={toggleGateState}
 		>
 			{#if toggleGateStateLoading}
-				<Spinner class="gate-state-loading mr-2" size="3" color="white" />
+				<Spinner class="gate-state-loading mr-2" size="4" color="gray" />
 			{/if}
 			{gate.state}
 		</GradientButton>
@@ -106,7 +107,7 @@
 								>
 							</div>
 							<button
-								on:click={() => removeCommentFromGate(comment.id)}
+								onclick={() => removeCommentFromGate(comment.id)}
 								class="gate-comment-remove-button cursor-pointer opacity-50 transition-opacity hover:opacity-100"
 							>
 								<IconDelete />
@@ -128,7 +129,7 @@
 					{/if}
 				</div>
 			{/if}
-			<form class="flex rounded-lg p-2" on:submit|preventDefault={addCommentToGate}>
+			<form class="flex rounded-lg p-2" onsubmit={addCommentToGate}>
 				<Input
 					class="gate-new-comment-message"
 					bind:value={commentMessage}
