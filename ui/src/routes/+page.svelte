@@ -12,7 +12,7 @@
 		<Spinner />
 	</div>
 {:then groups}
-	<Tabs classes={{ content: "mt-10" }}>
+	<Tabs classes={{ content: 'mt-10' }}>
 		{#each groups as group, i (group.name)}
 			<TabItem title={group.name} open={i === 0}>
 				<div class="gates-group">

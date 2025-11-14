@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import GroupComponent from './Group.svelte';
 import { type Group } from '$lib/api';
-import { render } from '@testing-library/svelte';
+import { render } from 'vitest-browser-svelte';
 
 it('should show services of group', () => {
 	// given

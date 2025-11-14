@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import ServiceComponent from './Service.svelte';
 import { type Service } from '$lib/api';
-import { render } from '@testing-library/svelte';
+import { render } from 'vitest-browser-svelte';
 
 it('should show gate for each environment of service', () => {
 	// given

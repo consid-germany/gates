@@ -8,7 +8,7 @@ import {
 	toggleGateState
 } from '$lib/api';
 import { render } from 'vitest-browser-svelte';
-import {page} from "vitest/browser";
+import { page } from 'vitest/browser';
 
 beforeEach(() => {
 	vi.mock('$lib/api', () => ({
