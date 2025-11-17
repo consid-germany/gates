@@ -33,7 +33,7 @@ jobs:
         with:
           zig-version: 0.11.0
 
-      - uses: cycjimmy/semantic-release-action@v5
+      - uses: cycjimmy/semantic-release-action@v6
         with:
           extra_plugins: |
             @semantic-release/changelog
