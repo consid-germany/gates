@@ -33,7 +33,7 @@
 		"postinstall": "openapi-typescript ./../openapi.yaml -o src/lib/generated/api.d.ts"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.4.1",
+		"@eslint/compat": "^2.0.0",
 		"@eslint/js": "^9.39.1",
 		"@fontsource-variable/plus-jakarta-sans": "^5.2.8",
 		"@playwright/test": "^1.56.1",
