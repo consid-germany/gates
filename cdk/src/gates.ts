@@ -125,7 +125,7 @@ export class Gates extends Construct {
     private createGitHubJwtAuthFunction(appName: string, allowedSubPatterns: string[]) {
         return new lambda.Function(this, "GitHubJwtAuthFunction", {
             functionName: `${appName}-github-jwt-auth`,
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_24_X,
             code: lambda.Code.fromAsset(
                 path.join(__dirname, "..", "build", "function", "github-jwt-authorizer"),
             ),
@@ -324,7 +324,7 @@ export class Gates extends Construct {
             "VerifyOriginSecretRotationFunction",
             {
                 functionName: `${verifyOriginSecret.secretName}-rotation`,
-                runtime: lambda.Runtime.NODEJS_20_X,
+                runtime: lambda.Runtime.NODEJS_24_X,
                 code: lambda.Code.fromAsset(
                     path.join(__dirname, "..", "build", "function", "verify-origin-secret-rotation"),
                 ),
@@ -358,7 +358,7 @@ export class Gates extends Construct {
     ) {
         const verifyOriginAuthFunction = new lambda.Function(this, "VerifyOriginAuthFunction", {
             functionName: `${appName}-verify-origin-auth`,
-            runtime: lambda.Runtime.NODEJS_20_X,
+            runtime: lambda.Runtime.NODEJS_24_X,
             code: lambda.Code.fromAsset(
                 path.join(__dirname, "..", "build", "function", "verify-origin-authorizer"),
             ),

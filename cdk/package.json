@@ -60,8 +60,8 @@
     "wildcard-match": "^5.1.4"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.179.0",
-    "constructs": "^10.4.2"
+    "aws-cdk-lib": "^2.224.0",
+    "constructs": "^10.4.3"
   },
   "jsii": {
     "outdir": "dist",
