@@ -33,6 +33,7 @@ pub async fn default() -> Arc<dyn Storage + Send + Sync> {
     if is_local() {
         get_storage(get_local_database()).await
     } else {
+        #[allow(clippy::large_futures)]
         get_storage(get_live_database()).await
     }
 }

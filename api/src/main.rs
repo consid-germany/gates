@@ -30,6 +30,7 @@ async fn main() -> Result<(), Error> {
         .init();
 
     let result = run(create_router(AppState::new(
+        #[allow(clippy::large_futures)]
         storage::default().await,
         Arc::new(clock::default()),
         Arc::new(id_provider::default()),
