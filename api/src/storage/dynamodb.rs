@@ -271,7 +271,7 @@ impl Storage for DynamoDbStorage {
 
 impl DynamoDbStorage {
     pub async fn new() -> Self {
-        let aws_config = &aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
+        let aws_config = &aws_config::load_defaults(BehaviorVersion::v2025_08_07()).await;
         let client = Client::from_conf(config::Builder::from(aws_config).build());
 
         Self {
@@ -283,7 +283,7 @@ impl DynamoDbStorage {
     pub async fn new_local(port: u16) -> Self {
         let client = Client::from_conf(
             config::Builder::new()
-                .behavior_version(BehaviorVersion::v2024_03_28())
+                .behavior_version(BehaviorVersion::v2025_08_07())
                 .endpoint_url(format!("http://localhost:{port}/"))
                 .credentials_provider(Credentials::new(
                     "AccessKeyId",
