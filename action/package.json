@@ -27,12 +27,12 @@
   "homepage": "https://github.com/consid-germany/gates",
   "devDependencies": {
     "@actions/core": "^1.11.1",
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.10.2",
     "@vercel/ncc": "^0.38.4",
     "eslint": "^9.39.1",
-    "prettier": "^3.7.1",
+    "prettier": "^3.7.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0",
-    "vitest": "^4.0.14"
+    "typescript-eslint": "^8.49.0",
+    "vitest": "^4.0.15"
   }
 }
