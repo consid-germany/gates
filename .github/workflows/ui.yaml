@@ -53,7 +53,7 @@ jobs:
       - run: npm ci
         working-directory: ui
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-playwright
         with:
           path: |
@@ -116,7 +116,7 @@ jobs:
       - name: Get api info
         run: curl --retry 3 --retry-all-errors ${{ inputs.api-base-url }}/
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-playwright
         with:
           path: |
