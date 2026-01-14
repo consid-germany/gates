@@ -27,7 +27,7 @@
   "homepage": "https://github.com/consid-germany/gates",
   "devDependencies": {
     "@actions/core": "^2.0.2",
-    "@types/node": "^25.0.7",
+    "@types/node": "^25.0.8",
     "@vercel/ncc": "^0.38.4",
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",
