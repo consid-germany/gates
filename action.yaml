@@ -14,6 +14,9 @@ inputs:
   environment:
     description: 'Specify the environment of the gate of which the gate state is checked during the workflow execution.'
     required: true
+  create_gate_if_not_exists:
+    description: 'If set to true and the gate with the specified group, service and environment does not exist, it will be automatically created.'
+    default: "false"
 runs:
   using: 'node20'
   main: 'action/dist/index.js'

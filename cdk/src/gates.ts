@@ -168,6 +168,13 @@ export class Gates extends Construct {
             path: "/api/gates/{group}/{service}/{environment}/state",
             methods: [apigatewayv2.HttpMethod.GET]
         });
+
+        httpApi.addRoutes({
+            integration: apiFunctionIntegration,
+            authorizer: gitHubJwtAuthorizer,
+            path: "/api/gates",
+            methods: [apigatewayv2.HttpMethod.POST]
+        });
     }
 
     private createGitHubDomainMapping(hostedZone?: route53.IHostedZone, domain?: Domain): apigatewayv2.DomainMappingOptions | undefined {
