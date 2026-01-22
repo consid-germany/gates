@@ -42,7 +42,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/node": "^25",
-		"@vitest/browser-playwright": "^4.0.17",
+		"@vitest/browser-playwright": "^4.0.18",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
@@ -51,16 +51,16 @@
 		"openapi-fetch": "^0.15.0",
 		"openapi-typescript": "^7.10.1",
 		"playwright": "^1.56.1",
-		"prettier": "^3.8.0",
+		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",
-		"svelte": "^5.47.1",
+		"svelte": "^5.48.0",
 		"svelte-check": "^4.3.5",
 		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.53.1",
 		"vite": "^7.3.1",
 		"vitest": "^4.0.8",
-		"vitest-browser-svelte": "^2.0.1"
+		"vitest-browser-svelte": "^2.0.2"
 	}
 }
