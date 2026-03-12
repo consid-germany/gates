@@ -55,6 +55,7 @@
     "nock": "^14.0.11",
     "prettier": "^3.8.1",
     "publib": "^0.2.1036",
+    "ts-node": "^10.9.2",
     "tsimp": "^2.0.12",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
