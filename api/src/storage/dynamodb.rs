@@ -418,11 +418,8 @@ impl From<&Gate> for HashMap<String, AttributeValue, RandomState> {
             ),
         ];
 
-        if value.display_order.is_some() {
-            fields.push(encode_u32(
-                DISPLAY_ORDER,
-                value.display_order.expect("TODO"),
-            ));
+        if let Some(display_order) = value.display_order {
+            fields.push(encode_u32(DISPLAY_ORDER, display_order));
         }
 
         Self::from_iter(fields)
