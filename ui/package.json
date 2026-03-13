@@ -43,7 +43,7 @@
 		"@tailwindcss/vite": "^4.2.1",
 		"@types/node": "^25",
 		"@vitest/browser-playwright": "^4.1.0",
-		"eslint": "^9.39.2",
+		"eslint": "^10.0.3",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.15.2",
 		"flowbite-svelte": "^1.31.0",
