@@ -182,14 +182,7 @@ export class Gates extends Construct {
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 
-        const certificateDeleteWaitHandler = this.createCertificateDeleteWaitHandler();
-        const certificateDeleteWaitResource = new cdk.CustomResource(this, "CertificateDeleteWait", {
-            serviceToken: certificateDeleteWaitHandler.functionArn,
-            properties: {
-                certificateArn: gitHubSubdomainCertificate.certificateArn,
-            },
-        });
-        certificateDeleteWaitResource.node.addDependency(gitHubSubdomainCertificate);
+        this.createCertificateDeleteWait("GitHubCertificateDeleteWait", gitHubSubdomainCertificate);
 
         const gitHubHttpApiDomainName = new apigatewayv2.DomainName(this, "GitHubHttpApiDomain", {
             domainName: gitHubApiDomainName,
@@ -445,6 +438,8 @@ export class Gates extends Construct {
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 
+        this.createCertificateDeleteWait("GlobalCertificateDeleteWait", certificate);
+
         const certificateArn = new CrossRegionStringRef(this, "GlobalCertificateArn", {
             constructInOtherRegion: certificate,
             value: (certificate) => certificate.certificateArn,
@@ -499,15 +494,29 @@ export class Gates extends Construct {
         }).value;
     }
 
-    private createCertificateDeleteWaitHandler(): lambda.Function {
-        return new lambda.Function(this, "CertificateDeleteWaitHandler", {
-            functionName: "certificate-delete-wait",
-            runtime: lambda.Runtime.NODEJS_24_X,
-            code: lambda.Code.fromAsset(
-                path.join(__dirname, "..", "build", "function", "certificate-delete-wait-handler"),
-            ),
-            handler: "index.handler",
-            timeout: cdk.Duration.seconds(60),
+    private createCertificateDeleteWait(id: string, certificate: acm.Certificate): cdk.CustomResource {
+        const targetStack = cdk.Stack.of(certificate);
+
+        const handlerId = "CertificateDeleteWaitHandler";
+        let handler = targetStack.node.tryFindChild(handlerId) as lambda.Function | undefined;
+        if (!handler) {
+            handler = new lambda.Function(targetStack, handlerId, {
+                runtime: lambda.Runtime.NODEJS_24_X,
+                code: lambda.Code.fromAsset(
+                    path.join(__dirname, "..", "build", "function", "certificate-delete-wait-handler"),
+                ),
+                handler: "index.handler",
+                timeout: cdk.Duration.seconds(65),
+            });
+        }
+
+        const resource = new cdk.CustomResource(targetStack, id, {
+            serviceToken: handler.functionArn,
+            properties: {
+                certificateArn: certificate.certificateArn,
+            },
         });
+        resource.node.addDependency(certificate);
+        return resource;
     }
 }
