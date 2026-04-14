@@ -182,6 +182,15 @@ export class Gates extends Construct {
             validation: acm.CertificateValidation.fromDns(hostedZone),
         });
 
+        const certificateDeleteWaitHandler = this.createCertificateDeleteWaitHandler();
+        const certificateDeleteWaitResource = new cdk.CustomResource(this, "CertificateDeleteWait", {
+            serviceToken: certificateDeleteWaitHandler.functionArn,
+            properties: {
+                certificateArn: gitHubSubdomainCertificate.certificateArn,
+            },
+        });
+        certificateDeleteWaitResource.node.addDependency(gitHubSubdomainCertificate);
+
         const gitHubHttpApiDomainName = new apigatewayv2.DomainName(this, "GitHubHttpApiDomain", {
             domainName: gitHubApiDomainName,
             certificate: gitHubSubdomainCertificate,
@@ -488,5 +497,17 @@ export class Gates extends Construct {
             constructInOtherRegion: webAcl,
             value: (webAcl) => webAcl.attrArn,
         }).value;
+    }
+
+    private createCertificateDeleteWaitHandler(): lambda.Function {
+        return new lambda.Function(this, "CertificateDeleteWaitHandler", {
+            functionName: "certificate-delete-wait",
+            runtime: lambda.Runtime.NODEJS_24_X,
+            code: lambda.Code.fromAsset(
+                path.join(__dirname, "..", "build", "function", "certificate-delete-wait-handler"),
+            ),
+            handler: "index.handler",
+            timeout: cdk.Duration.seconds(60),
+        });
     }
 }
