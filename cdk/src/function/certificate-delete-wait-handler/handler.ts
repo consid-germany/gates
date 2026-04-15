@@ -2,7 +2,7 @@ import { CloudFormationCustomResourceHandler, CloudFormationCustomResourceEvent 
 import * as https from "https";
 import * as url from "url";
 
-const WAIT_TIME_MS = 60000; // 60 seconds
+const WAIT_TIME_MS = 120000; // 120 seconds
 
 export const handler: CloudFormationCustomResourceHandler = async (event: CloudFormationCustomResourceEvent) => {
     console.log("Event:", JSON.stringify(event, null, 2));
