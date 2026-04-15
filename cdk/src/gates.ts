@@ -506,7 +506,7 @@ export class Gates extends Construct {
                     path.join(__dirname, "..", "build", "function", "certificate-delete-wait-handler"),
                 ),
                 handler: "index.handler",
-                timeout: cdk.Duration.seconds(65),
+                timeout: cdk.Duration.seconds(130),
             });
         }
 
