@@ -26,6 +26,7 @@ docker run --rm \
   -v ${PWD}:/local openapitools/openapi-generator-cli generate \
   -i /local/openapi.yaml \
   --additional-properties=avoidBoxedModels=true \
+  --type-mappings=DateTime=String \
   -g $GENERATOR \
   -o /local/$OUTPUT_DIR
 
