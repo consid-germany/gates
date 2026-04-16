@@ -15,7 +15,7 @@ inputs:
     description: 'Specify the environment of the gate of which the gate state is checked during the workflow execution.'
     required: true
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'action/dist/index.js'
 branding:
   icon: 'toggle-left'
