@@ -1,6 +1,10 @@
 import * as fs from "fs";
 import * as esbuild from "esbuild";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PATHS_TO_HANDLER = fs
     .readdirSync(__dirname, { withFileTypes: true, recursive: true })

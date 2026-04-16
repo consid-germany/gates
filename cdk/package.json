@@ -17,9 +17,9 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "prebuild": "npm run copy-readme && npm run copy-builds && npm run build:function",
-    "copy-readme": "cd scripts && node --import=tsimp/import copy-readme.ts",
-    "copy-builds": "cd scripts && node --import=tsimp/import copy-builds.ts",
-    "build:function": "cd src/function && tsc && node --import=tsimp/import build.ts",
+    "copy-readme": "cd scripts && node copy-readme.ts",
+    "copy-builds": "cd scripts && node copy-builds.ts",
+    "build:function": "cd src/function && tsc && node build.ts",
     "build": "jsii",
     "build:watch": "jsii -w",
     "package": "jsii-pacmak",
@@ -56,10 +56,9 @@
     "prettier": "^3.8.1",
     "publib": "^0.2.1036",
     "ts-node": "^10.9.2",
-    "tsimp": "^2.0.12",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.57.0",
-    "vitest-mock-extended": "^3.1.0",
+    "vitest-mock-extended": "^4.0.0",
     "wildcard-match": "^5.1.4"
   },
   "peerDependencies": {

@@ -7,5 +7,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noEmit": true,
+    "types": ["node"]
   }
 }
