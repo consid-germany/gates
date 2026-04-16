@@ -1,6 +1,12 @@
 name: release
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run semantic-release in dry-run mode
+        required: false
+        default: false
+        type: boolean
 
 
 jobs:
@@ -35,6 +41,7 @@ jobs:
 
       - uses: cycjimmy/semantic-release-action@v6
         with:
+          dry_run: ${{ github.event.inputs.dry_run == 'true' }}
           extra_plugins: |
             @semantic-release/changelog
             @semantic-release/exec
