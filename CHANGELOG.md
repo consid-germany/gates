@@ -1,3 +1,11 @@
+## [1.3.3](https://github.com/consid-germany/gates/compare/v1.3.2...v1.3.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* **api:** avoid unnecessary unwrap when encoding display_order ([#646](https://github.com/consid-germany/gates/issues/646)) ([6a64041](https://github.com/consid-germany/gates/commit/6a64041335fee6a751d33526a7bdb1b6891afc55))
+* **cdk:** add delete wait handler for certificates ([#701](https://github.com/consid-germany/gates/issues/701)) ([91716f9](https://github.com/consid-germany/gates/commit/91716f960406c34c2433fad565d3d4688d6c30a3))
+
 ## [1.3.2](https://github.com/consid-germany/gates/compare/v1.3.1...v1.3.2) (2025-11-20)
 
 
