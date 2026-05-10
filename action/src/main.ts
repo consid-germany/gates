@@ -13,6 +13,9 @@ export async function run(): Promise<void> {
         const group = core.getInput("group", { required: true });
         const service = core.getInput("service", { required: true });
         const environment = core.getInput("environment", { required: true });
+        const create_gate_if_not_exists = core.getBooleanInput("create_gate_if_not_exists", {
+            required: true,
+        });
 
         const gateStateResponse = await fetch(
             `${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`,
@@ -36,6 +39,10 @@ export async function run(): Promise<void> {
                 break;
             case 204:
                 core.setFailed(`Gate ${group}/${service}/${environment} could not be found.`);
+                if (create_gate_if_not_exists) {
+                    await create_gate(gitHubApiBaseUrl, group, service, environment);
+                    core.notice(`Created gate ${group}/${service}/${environment}.`);
+                }
                 break;
             default:
                 core.setFailed(
@@ -45,6 +52,28 @@ export async function run(): Promise<void> {
         }
     } catch (error) {
         core.setFailed(`${error}`);
+    }
+}
+
+async function create_gate(
+    gitHubApiBaseUrl: string,
+    group: string,
+    service: string,
+    environment: string,
+) {
+    const createGateResponse = await fetch(`${gitHubApiBaseUrl}/gates`, {
+        method: "POST",
+        body: JSON.stringify({ group, service, environment }),
+        headers: {
+            Accept: "application/json",
+            "User-Agent": USER_AGENT,
+            Authorization: `Bearer ${await core.getIDToken(AUDIENCE)}`,
+        },
+    });
+    if (createGateResponse.status !== 200) {
+        throw new Error(
+            `Request to create gate ${group}/${service}/${environment} failed: ${createGateResponse.status} ${createGateResponse.statusText}`,
+        );
     }
 }
 
