@@ -38,7 +38,7 @@
 		"@fontsource-variable/plus-jakarta-sans": "^5.2.8",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.59.1",
+		"@sveltejs/kit": "^2.60.1",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^25",
@@ -54,12 +54,12 @@
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^3.5.2",
 		"prettier-plugin-tailwindcss": "^0.8.0",
-		"svelte": "^5.55.5",
+		"svelte": "^5.55.7",
 		"svelte-check": "^4.4.8",
 		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.59.3",
-		"vite": "^8.0.12",
+		"vite": "^8.0.13",
 		"vitest": "^4.0.8",
 		"vitest-browser-svelte": "^2.1.1"
 	}
