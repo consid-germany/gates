@@ -9,11 +9,12 @@ beforeEach(() => {
         getInput: vi.fn(),
         getIDToken: vi.fn(),
         setFailed: vi.fn(),
+        setOutput: vi.fn(),
         notice: vi.fn(),
     }));
 });
 
-it("should not fail and set notice if gate is open", async () => {
+it("should set output OPEN and set notice if gate is open", async () => {
     // given
     vi.mocked(core.getInput).mockImplementation((input) => {
         switch (input) {
@@ -43,6 +44,7 @@ it("should not fail and set notice if gate is open", async () => {
     await run();
 
     // then
+    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "OPEN");
     expect(core.notice).toHaveBeenCalledWith(
         "Gate some-test-group/some-test-service/some-test-environment is open.",
     );
@@ -59,7 +61,7 @@ it("should not fail and set notice if gate is open", async () => {
     );
 });
 
-it("should fail and set failed if gate is closed", async () => {
+it("should set output CLOSED and not fail if gate is closed", async () => {
     // given
     vi.mocked(core.getInput).mockImplementation((input) => {
         switch (input) {
@@ -89,9 +91,11 @@ it("should fail and set failed if gate is closed", async () => {
     await run();
 
     // then
-    expect(core.setFailed).toHaveBeenCalledWith(
+    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "CLOSED");
+    expect(core.notice).toHaveBeenCalledWith(
         "Gate some-test-group/some-test-service/some-test-environment is closed.",
     );
+    expect(core.setFailed).not.toHaveBeenCalled();
     expect(fetch).toHaveBeenCalledWith(
         "https://github.some.gates.deployment.com/api/gates/some-test-group/some-test-service/some-test-environment/state",
         {
