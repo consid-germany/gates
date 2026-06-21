@@ -29,7 +29,13 @@ it("should match snapshot", async () => {
     });
 
     // when
-    new Gates(stack, "Gates", {});
+    new Gates(stack, "Gates", {
+        gitHubApi: {
+            allowedSubPatterns: [
+                "repo:consid-germany/gates:*"
+            ]
+        }
+    });
 
     // then
     const template = Template.fromStack(stack);
