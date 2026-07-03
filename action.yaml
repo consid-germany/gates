@@ -20,7 +20,7 @@ inputs:
     default: 'true'
 outputs:
   gate_state:
-    description: "Gate state of the gate check: OPEN or CLOSED"
+    description: "State of the gate as returned by the gates API, e.g. 'open' or 'closed'"
 runs:
   using: 'node24'
   main: 'action/dist/index.js'
