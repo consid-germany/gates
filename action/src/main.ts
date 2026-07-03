@@ -28,19 +28,20 @@ export async function run(): Promise<void> {
         );
 
         switch (gateStateResponse.status) {
-            case 200:
-                if (isClosed(await gateStateResponse.json())) {
-                    core.setOutput("gate_state", "CLOSED");
+            case 200: {
+                const gateState: GateState = await gateStateResponse.json();
+                core.setOutput("gate_state", gateState.state);
+                if (isClosed(gateState)) {
                     if (failOnClosedGate) {
                         core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
                     } else {
                         core.notice(`Gate ${group}/${service}/${environment} is closed.`);
                     }
                 } else {
-                    core.setOutput("gate_state", "OPEN");
                     core.notice(`Gate ${group}/${service}/${environment} is open.`);
                 }
                 break;
+            }
             case 204:
                 core.setFailed(`Gate ${group}/${service}/${environment} could not be found.`);
                 break;
