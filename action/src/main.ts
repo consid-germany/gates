@@ -13,6 +13,7 @@ export async function run(): Promise<void> {
         const group = core.getInput("group", { required: true });
         const service = core.getInput("service", { required: true });
         const environment = core.getInput("environment", { required: true });
+        const failOnClosedGate = core.getBooleanInput("failOnClosedGate");
 
         const gateStateResponse = await fetch(
             `${gitHubApiBaseUrl}/gates/${group}/${service}/${environment}/state`,
@@ -30,7 +31,11 @@ export async function run(): Promise<void> {
             case 200:
                 if (isClosed(await gateStateResponse.json())) {
                     core.setOutput("gate_state", "CLOSED");
-                    core.notice(`Gate ${group}/${service}/${environment} is closed.`);
+                    if (failOnClosedGate) {
+                        core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
+                    } else {
+                        core.notice(`Gate ${group}/${service}/${environment} is closed.`);
+                    }
                 } else {
                     core.setOutput("gate_state", "OPEN");
                     core.notice(`Gate ${group}/${service}/${environment} is open.`);

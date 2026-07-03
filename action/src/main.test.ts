@@ -4,14 +4,17 @@ import { run } from "./main";
 
 global.fetch = vi.fn();
 
+vi.mock("@actions/core", () => ({
+    getInput: vi.fn(),
+    getBooleanInput: vi.fn(),
+    getIDToken: vi.fn(),
+    setFailed: vi.fn(),
+    setOutput: vi.fn(),
+    notice: vi.fn(),
+}));
+
 beforeEach(() => {
-    vi.mock("@actions/core", () => ({
-        getInput: vi.fn(),
-        getIDToken: vi.fn(),
-        setFailed: vi.fn(),
-        setOutput: vi.fn(),
-        notice: vi.fn(),
-    }));
+    vi.clearAllMocks();
 });
 
 it("should set output OPEN and set notice if gate is open", async () => {
@@ -61,7 +64,7 @@ it("should set output OPEN and set notice if gate is open", async () => {
     );
 });
 
-it("should set output CLOSED and not fail if gate is closed", async () => {
+it("should set output CLOSED and set failed if gate is closed and failOnClosedGate is true (default)", async () => {
     // given
     vi.mocked(core.getInput).mockImplementation((input) => {
         switch (input) {
@@ -77,6 +80,55 @@ it("should set output CLOSED and not fail if gate is closed", async () => {
         return "";
     });
 
+    vi.mocked(core.getBooleanInput).mockReturnValue(true);
+    vi.mocked(core.getIDToken).mockResolvedValue("some-github-jwt");
+
+    vi.mocked(fetch).mockResolvedValue({
+        status: 200,
+        json: () =>
+            Promise.resolve({
+                state: "closed",
+            }),
+    } as Response);
+
+    // when
+    await run();
+
+    // then
+    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "CLOSED");
+    expect(core.setFailed).toHaveBeenCalledWith(
+        "Gate some-test-group/some-test-service/some-test-environment is closed.",
+    );
+    expect(fetch).toHaveBeenCalledWith(
+        "https://github.some.gates.deployment.com/api/gates/some-test-group/some-test-service/some-test-environment/state",
+        {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Authorization: "Bearer some-github-jwt",
+                "User-Agent": "consid-germany/gates",
+            },
+        },
+    );
+});
+
+it("should set output CLOSED and only notice (not fail) if gate is closed and failOnClosedGate is false", async () => {
+    // given
+    vi.mocked(core.getInput).mockImplementation((input) => {
+        switch (input) {
+            case "gitHubApiBaseUrl":
+                return "https://github.some.gates.deployment.com/api";
+            case "group":
+                return "some-test-group";
+            case "service":
+                return "some-test-service";
+            case "environment":
+                return "some-test-environment";
+        }
+        return "";
+    });
+
+    vi.mocked(core.getBooleanInput).mockReturnValue(false);
     vi.mocked(core.getIDToken).mockResolvedValue("some-github-jwt");
 
     vi.mocked(fetch).mockResolvedValue({
