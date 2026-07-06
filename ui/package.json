@@ -41,7 +41,7 @@
 		"@sveltejs/kit": "^2.69.1",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.2",
-		"@types/node": "^25",
+		"@types/node": "^26",
 		"@vitest/browser-playwright": "^4.1.9",
 		"eslint": "^10.6.0",
 		"eslint-config-prettier": "^10.1.8",
