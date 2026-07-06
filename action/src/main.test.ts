@@ -47,7 +47,7 @@ it("should set output OPEN and set notice if gate is open", async () => {
     await run();
 
     // then
-    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "open");
+    expect(core.setOutput).toHaveBeenCalledWith("gateState", "open");
     expect(core.notice).toHaveBeenCalledWith(
         "Gate some-test-group/some-test-service/some-test-environment is open.",
     );
@@ -95,7 +95,7 @@ it("should set output CLOSED and set failed if gate is closed and failOnClosedGa
     await run();
 
     // then
-    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "closed");
+    expect(core.setOutput).toHaveBeenCalledWith("gateState", "closed");
     expect(core.setFailed).toHaveBeenCalledWith(
         "Gate some-test-group/some-test-service/some-test-environment is closed.",
     );
@@ -143,7 +143,7 @@ it("should set output closed and only notice (not fail) if gate is closed and fa
     await run();
 
     // then
-    expect(core.setOutput).toHaveBeenCalledWith("gate_state", "closed");
+    expect(core.setOutput).toHaveBeenCalledWith("gateState", "closed");
     expect(core.notice).toHaveBeenCalledWith(
         "Gate some-test-group/some-test-service/some-test-environment is closed.",
     );

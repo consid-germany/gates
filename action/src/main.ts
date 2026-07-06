@@ -30,7 +30,7 @@ export async function run(): Promise<void> {
         switch (gateStateResponse.status) {
             case 200: {
                 const gateState: GateState = await gateStateResponse.json();
-                core.setOutput("gate_state", gateState.state);
+                core.setOutput("gateState", gateState.state);
                 if (isClosed(gateState)) {
                     if (failOnClosedGate) {
                         core.setFailed(`Gate ${group}/${service}/${environment} is closed.`);
