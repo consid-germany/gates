@@ -225,7 +225,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         // when
         let response = server
@@ -317,7 +317,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let group = "somegroup".to_owned();
         let service = "someservice".to_owned();
@@ -431,7 +431,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let group = "somegroup".to_owned();
         let service = "someservice".to_owned();
@@ -519,7 +519,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let response = server.get("/api/gates").await;
         assert_eq!(response.status_code(), StatusCode::OK);
@@ -634,7 +634,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let group = "somegroup".to_owned();
         let service = "someservice".to_owned();
@@ -712,7 +712,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let group = "somegroup".to_owned();
         let service = "someservice".to_owned();
@@ -799,7 +799,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         // when
         // try to set get the config with the system_time
@@ -837,7 +837,7 @@ mod acceptance_tests {
             Arc::new(date_time_switch::default()),
         ));
 
-        let server = TestServer::new(router).expect("failed to create test server");
+        let server = TestServer::new(router);
 
         let group = "somegroup".to_owned();
         let service = "someservice".to_owned();
