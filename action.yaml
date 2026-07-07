@@ -14,6 +14,13 @@ inputs:
   environment:
     description: 'Specify the environment of the gate of which the gate state is checked during the workflow execution.'
     required: true
+  failOnClosedGate:
+    description: 'Whether the action should fail the workflow if the gate state is closed. Set to false to only set the gateState output instead of failing.'
+    required: false
+    default: 'true'
+outputs:
+  gateState:
+    description: "State of the gate as returned by the gates API, e.g. 'open' or 'closed'"
 runs:
   using: 'node24'
   main: 'action/dist/index.js'
