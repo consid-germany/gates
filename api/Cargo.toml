@@ -31,7 +31,7 @@ aws-sdk-dynamodb = "1.116.0"
 aws-config = "1.8.18"
 itertools = "0.15.0"
 tower-http = { version = "0.7.0", features = ["trace"] }
-cuid2 = "0.1.4"
+cuid2 = "0.1.6"
 async-trait = "0.1.89"
 
 openssl = { version = "0.10.75", features = ["vendored"] }
