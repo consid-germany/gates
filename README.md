@@ -28,9 +28,10 @@ To use gates within your GitHub deployment pipeline you can simply use the ***co
 The parameters explained:
 
 - `gitHubApiBaseUrl`: URL of the GitHub API of your gates deployment.
-- `group`, `service`, `environment`: Required and used to specify the gate of which the gate state is checked during the workflow execution. 
- 
-If the gate state is `open`, the workflow will proceed. If the gate state is `closed` the action will set an error to cancel the workflow.
+- `group`, `service`, `environment`: Required and used to specify the gate of which the gate state is checked during the workflow execution.
+- `failOnClosedGate` *(optional, default: `true`)*: If `true`, the action fails the workflow when the gate is `closed` (default behavior). If `false`, the workflow continues and the gate state is available via the `gateState` output instead.
+
+If the gate state is `open`, the workflow will proceed. If the gate state is `closed` the action will set an error to cancel the workflow (default behavior with `failOnClosedGate: true`).
 
 ```yaml
 jobs:
@@ -46,6 +47,34 @@ jobs:
           service: some-service
           environment: test
 ```
+
+### Output: `gateState`
+
+The action always sets a `gateState` output with the state returned by the API (e.g. `open` or `closed`).
+This is especially useful in combination with `failOnClosedGate: false` to let follow-up steps decide themselves whether to proceed:
+
+```yaml
+jobs:
+  example:
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - id: gate_check
+        uses: consid-germany/gates@v1.3.3
+        with:
+          gitHubApiBaseUrl: https://github.gates.consid.tech/api
+          group: some-group
+          service: some-service
+          environment: test
+          failOnClosedGate: false
+
+      - name: Deploy
+        if: ${{ steps.gate_check.outputs.gateState == 'open' }}
+        run: ./deploy.sh
+```
+
+In this mode, follow-up steps guarded with `if: ${{ steps.gate_check.outputs.gateState == 'open' }}` will be **skipped** (not failed) when the gate is closed, keeping the overall deployment marked as successful in GitHub.
 
 ## Quick Start - AWS Deployment
 
