@@ -34,7 +34,7 @@ tower-http = { version = "0.7.0", features = ["trace"] }
 cuid2 = "0.1.6"
 async-trait = "0.1.89"
 
-openssl = { version = "0.10.75", features = ["vendored"] }
+openssl = { version = "0.10.81", features = ["vendored"] }
 ring = "0.17.14"
 
 [dev-dependencies]
