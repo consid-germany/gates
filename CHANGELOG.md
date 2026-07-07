@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/consid-germany/gates/compare/v1.3.3...v1.4.0) (2026-07-07)
+
+
+### Features
+
+* **action:** add gateState output instead of failing on closed gate ([#736](https://github.com/consid-germany/gates/issues/736)) ([067e889](https://github.com/consid-germany/gates/commit/067e889ec701bc862214ec60a6ec43dfbeb74b84))
+
 ## [1.3.3](https://github.com/consid-germany/gates/compare/v1.3.2...v1.3.3) (2026-04-16)
 
 
