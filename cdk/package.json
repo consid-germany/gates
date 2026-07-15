@@ -44,7 +44,7 @@
     "@types/node": "^26.1.0",
     "aws-cdk-lib": "2.261.0",
     "aws-jwt-verify": "^5.2.1",
-    "constructs": "10.6.0",
+    "constructs": "10.7.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
