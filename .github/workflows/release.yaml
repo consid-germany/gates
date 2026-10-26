@@ -45,7 +45,7 @@ jobs:
           cache-dependency-path: cdk
           node-version: lts/*
 
-      - uses: cycjimmy/semantic-release-action@v6
+      - uses: cycjimmy/semantic-release-action@v8
         with:
           dry_run: ${{ github.event.inputs.dry_run == 'true' }}
           extra_plugins: |
